@@ -4,7 +4,10 @@ A modern full-stack application built with React, Express, and PostgreSQL.
 
 ## Tech Stack
 
+see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of our tech stack.
+
 ### Frontend
+
 - React + Vite
 - React Router
 - React Hook Form with Zod
@@ -12,6 +15,7 @@ A modern full-stack application built with React, Express, and PostgreSQL.
 - Auth0 for authentication
 
 ### Backend
+
 - Express.js
 - PostgreSQL
 - Jest for testing
@@ -34,14 +38,20 @@ A modern full-stack application built with React, Express, and PostgreSQL.
 - PostgreSQL (if running locally)
 - Auth0 account
 
+## Recommended
+
+- Node version manager (you may run `nvm use` in the project root folder to switch to the project's node version automatically.)
+
 ## Development Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Set up environment variables:
+
    - Copy `.env.example` to `.env` in both frontend and backend packages
    - Fill in the required environment variables
 
@@ -59,4 +69,4 @@ A modern full-stack application built with React, Express, and PostgreSQL.
 
 ## Documentation
 
-Each feature/user flow is documented with UML/Sequence diagrams in the respective package's `docs` directory. 
+Each feature/user flow is documented with UML/Sequence diagrams in the respective package's `docs` directory.
