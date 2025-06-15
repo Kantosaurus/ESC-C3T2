@@ -9,7 +9,7 @@ const port = process.env.PORT ?? "3000";
 app.use(corsWithConfig());
 
 // require authentication for routes here
-app.use(authMiddleware);
+app.use(authMiddleware());
 
 app.get(
   "/api/test/",
@@ -23,3 +23,5 @@ app.get(
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);
 });
+
+export default app;
