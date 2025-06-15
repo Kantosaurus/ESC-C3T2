@@ -16,7 +16,9 @@
   "dependencies": {
     "@esc-c3t2/core": "^1.0.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jose": "^6.0.11",
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
