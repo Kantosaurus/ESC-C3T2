@@ -1,0 +1,29 @@
+{
+  "name": "@esc-c3t2/backend",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "run": "node dist/index.js",
+    "dev": "tsx watch --clear-screen=false --env-file ../../.env src/index.ts",
+    "start": "node --env-file .env dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Ryan Tan",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@esc-c3t2/core": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3"
+  },
+  "imports": {
+    "#*": "./src/*"
+  }
+}

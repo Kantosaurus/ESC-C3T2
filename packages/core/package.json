@@ -1,0 +1,15 @@
+{
+  "name": "@esc-c3t2/core",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "devDependencies": {},
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch --preserveWatchOutput",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Ryan Tan",
+  "license": "ISC",
+  "description": ""
+}

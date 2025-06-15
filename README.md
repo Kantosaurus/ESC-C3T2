@@ -28,7 +28,7 @@ see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of o
 ├── packages/
 │   ├── frontend/     # React + Vite application
 │   ├── backend/      # Express.js server
-│   └── common/       # Shared types and utilities
+│   └── core/       # Shared types and utilities
 ```
 
 ## Prerequisites
