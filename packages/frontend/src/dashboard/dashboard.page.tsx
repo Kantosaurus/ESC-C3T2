@@ -1,13 +1,14 @@
-import { useTest } from "@/test";
+import { useCaregiver } from "@/caregiver/use-caregiver";
 import { UserButton } from "@clerk/clerk-react";
 
 export default function DashboardPage() {
-  const { msg } = useTest();
+  const { caregiverDetails } = useCaregiver();
   return (
     <div>
       {/* TODO: Dashboard Page */}
       <UserButton />
-      {msg}
+      <pre>{JSON.stringify(caregiverDetails, null, 2)}</pre>
     </div>
   );
 }
+//
