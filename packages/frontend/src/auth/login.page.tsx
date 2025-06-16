@@ -7,7 +7,8 @@ export default function LoginPage() {
   return (
     <>
       <SignedIn>
-        <Navigate to={"/"} /> {/* Redirect to home if already signed in */}
+        <Navigate to={"/caregiver/new"} />{" "}
+        {/* Redirect to caregiver onboarding if already signed in */}
       </SignedIn>
 
       <div className="flex flex-col md:flex-row w-screen h-screen">
@@ -16,7 +17,10 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold mb-4">Welcome!</h1>
           <p className="text-gray-600 mb-6">Please sign in to continue.</p>
           {/* SignInButton will be provided by Clerk */}
-          <Button className="w-full" onClick={() => openSignIn()}>
+          <Button
+            className="w-full"
+            onClick={() => openSignIn({ afterSignInUrl: "/caregiver/new" })}
+          >
             Login with Clerk
           </Button>
         </div>
