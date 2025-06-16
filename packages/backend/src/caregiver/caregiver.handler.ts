@@ -15,6 +15,7 @@ export const getCaregiverSelfHandler = authenticated(async (req, res) => {
 
   if (!caregiver) {
     res.status(404).json({ error: "Caregiver not found" });
+    return;
   }
 
   res.json(caregiver);
@@ -39,6 +40,7 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
 
   if (!newCaregiver) {
     res.status(400).json({ error: "Failed to create caregiver" });
+    return;
   }
 
   res.status(201).json(newCaregiver);
