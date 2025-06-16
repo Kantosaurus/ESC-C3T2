@@ -31,8 +31,8 @@ export default function NewCaregiverPage() {
     });
 
   return (
-    <section className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Caregiver Onboarding</h1>
+    <section className="p-8 mx-auto max-w-2xl">
+      <h1 className="text-2xl font-bold mb-4">🎂 Caregiver Onboarding</h1>
       <p className="text-muted-foreground mb-6">
         Let us know more about you so we can better assist you in your
         caregiving journey.
