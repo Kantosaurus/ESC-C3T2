@@ -7,8 +7,8 @@ const path = require("path");
 const concurrently = require("concurrently");
 
 // Copy VITE environment variables into the frontend folder
-const envPath = path.join(__dirname, ".env");
-const envVitePath = path.join(__dirname, "packages", "frontend", ".env");
+const envPath = path.join(__dirname, "..", ".env");
+const envVitePath = path.join(__dirname, "..", "packages", "frontend", ".env");
 
 const sharedVars = fs.readFileSync(envPath, "utf-8").split("\n");
 

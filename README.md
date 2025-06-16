@@ -58,6 +58,7 @@ see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of o
 3. Start the development environment:
    ```bash
    docker-compose up -d
+   npm run migrate
    npm run dev
    ```
 
@@ -66,6 +67,8 @@ see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of o
 - `npm run dev` - Start all packages in development mode
 - `npm run build` - Build all packages
 - `npm run test` - Run tests across all packages
+- `npm run lint` - Lint all packages
+- `npm run migrate` - Run database migrations
 
 ## Documentation
 
