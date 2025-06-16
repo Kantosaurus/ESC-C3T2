@@ -6,7 +6,8 @@ export default function SignUpPage() {
   return (
     <>
       <SignedIn>
-        <Navigate to={"/"} /> {/* Redirect to home if already signed in */}
+        <Navigate to={"/caregiver/new"} />{" "}
+        {/* Redirect to caregiver onboarding if already signed in */}
       </SignedIn>
       <div className="flex flex-col md:flex-row w-screen h-screen">
         <div className="flex-grow bg-blue-100"></div>
@@ -16,7 +17,11 @@ export default function SignUpPage() {
             Sign up to get started with Carely.
           </p>
           <div className="w-full">
-            <SignUp path="/sign-up" routing="path" />
+            <SignUp
+              path="/sign-up"
+              routing="path"
+              afterSignUpUrl="/caregiver/new"
+            />
           </div>
         </div>
       </div>
