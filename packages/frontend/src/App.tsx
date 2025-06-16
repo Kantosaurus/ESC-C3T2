@@ -1,23 +1,17 @@
-import {
-  SignedOut,
-  SignInButton,
-  SignedIn,
-  UserButton,
-} from "@clerk/clerk-react";
-import { useTest } from "./test";
+import { SignedOut, SignedIn } from "@clerk/clerk-react";
+import LandingPage from "./landing/landing.page";
+import { Navigate } from "react-router";
 
 function App() {
-  const { msg } = useTest();
   return (
-    <header>
+    <>
       <SignedOut>
-        <SignInButton />
+        <LandingPage />
       </SignedOut>
       <SignedIn>
-        <UserButton />
+        <Navigate to="/dashboard" />
       </SignedIn>
-      {msg}
-    </header>
+    </>
   );
 }
 
