@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { authorizationHeaderSchema, jwtPayloadSchema } from "@esc-c3t2/core";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
+import { jwtSecret } from "./secret";
 
 const JWKS = createRemoteJWKSet(
   new URL(
@@ -14,7 +15,19 @@ type AuthMiddlewareConfig = {
 
 export const authMiddleware =
   (
-    config: AuthMiddlewareConfig = { verifier: (jwt) => jwtVerify(jwt, JWKS) }
+    config: AuthMiddlewareConfig = {
+      verifier: (jwt) => {
+        // check if the JWT was signed by carely
+        const claims = decodeJwt(jwt);
+        if (claims.iss === "carely") {
+          // if so, verify it with carely's secret
+          return jwtVerify(jwt, jwtSecret);
+        } else {
+          // if not, check if it was signed by clerk
+          return jwtVerify(jwt, JWKS);
+        }
+      },
+    }
   ): RequestHandler =>
   (req, res, next) =>
     authorizationHeaderSchema

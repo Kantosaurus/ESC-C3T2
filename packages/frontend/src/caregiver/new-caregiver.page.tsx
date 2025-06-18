@@ -1,23 +1,18 @@
-import { useQueryBuilder } from "@/lib/http";
+import { http } from "@/lib/http";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 
 function useNewCaregiver() {
-  const qb = useQueryBuilder();
-
-  return useCallback(
-    (values: CaregiverFormType) => {
-      return qb()
-        .then((http) => http.post("/api/caregiver/self", values))
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error creating caregiver:", error);
-          throw error;
-        });
-    },
-    [qb]
-  );
+  return useCallback((values: CaregiverFormType) => {
+    return http()
+      .post("/api/caregiver/self", values)
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Error creating caregiver:", error);
+        throw error;
+      });
+  }, []);
 }
 
 export default function NewCaregiverPage() {
