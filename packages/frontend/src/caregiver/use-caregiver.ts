@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { useQueryBuilder } from "@/lib/http";
 import type { Caregiver } from "@esc-c3t2/core";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router";
+import { http } from "@/lib/http";
 
 /**
  * Get current user info
  */
 export function useCaregiver() {
-  const qb = useQueryBuilder();
   const [caregiverDetails, setCaregiverDetails] = useState<Caregiver>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
@@ -17,8 +16,8 @@ export function useCaregiver() {
 
   useEffect(() => {
     setIsLoading(true);
-    qb()
-      .then((http) => http.get("/api/caregiver/self"))
+    http()
+      .get("/api/caregiver/self")
       .then(
         (res: AxiosResponse<Caregiver>) => {
           setCaregiverDetails(res.data);
@@ -32,7 +31,7 @@ export function useCaregiver() {
         }
       )
       .finally(() => setIsLoading(false));
-  }, [navigate, qb]);
+  }, [navigate]);
 
   return { caregiverDetails, error, isLoading };
 }

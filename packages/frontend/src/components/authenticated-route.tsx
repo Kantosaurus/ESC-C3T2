@@ -1,15 +1,12 @@
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
+import { isTokenValid } from "@/auth/token";
+import { useMemo } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 export const RouteGuard = () => {
-  return (
-    <>
-      <SignedIn>
-        <Outlet />
-      </SignedIn>
-      <SignedOut>
-        <Navigate to="/login" />
-      </SignedOut>
-    </>
-  );
+  // prevent unnecessary re-renders
+  if (useMemo(() => isTokenValid(), [])) {
+    return <Outlet />;
+  } else {
+    return <Navigate to="/login" />;
+  }
 };
