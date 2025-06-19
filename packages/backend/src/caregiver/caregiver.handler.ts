@@ -1,5 +1,5 @@
 import { authenticated } from "#auth/guard.ts";
-import { caregiverSchema } from "@esc-c3t2/core";
+import { caregiverSchema } from "@carely/core";
 import { getCaregiverDetails, insertCaregiver } from "./caregiver.entity";
 
 /**

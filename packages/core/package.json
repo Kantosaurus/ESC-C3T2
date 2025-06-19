@@ -1,5 +1,5 @@
 {
-  "name": "@esc-c3t2/core",
+  "name": "@carely/core",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "devDependencies": {

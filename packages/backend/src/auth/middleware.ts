@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { authorizationHeaderSchema, jwtPayloadSchema } from "@esc-c3t2/core";
+import { authorizationHeaderSchema, jwtPayloadSchema } from "@carely/core";
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import { jwtSecret } from "./secret";
 

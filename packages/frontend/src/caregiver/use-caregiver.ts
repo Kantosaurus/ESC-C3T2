@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Caregiver } from "@esc-c3t2/core";
+import type { Caregiver } from "@carely/core";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router";
 import { http } from "@/lib/http";

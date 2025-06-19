@@ -1,6 +1,6 @@
-# ESC-C3T2 Project
+# carely
 
-A modern full-stack application built with React, Express, and PostgreSQL.
+Carely aims to reduce administrative burden and cognitive load for caregivers so that they can focus on caregiving.
 
 ## Tech Stack
 

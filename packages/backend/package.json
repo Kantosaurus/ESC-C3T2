@@ -1,5 +1,5 @@
 {
-  "name": "@esc-c3t2/backend",
+  "name": "@carely/backend",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@esc-c3t2/core": "^1.0.0",
+    "@carely/core": "^1.0.0",
     "@opengovsg/sgid-client": "^2.3.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",

@@ -1,4 +1,4 @@
-import { caregiverSchema } from "@esc-c3t2/core";
+import { caregiverSchema } from "@carely/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";

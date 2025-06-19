@@ -1,6 +1,6 @@
 import { db } from "#db/db.ts";
-import { Caregiver } from "@esc-c3t2/core";
-import { caregiverSchema } from "@esc-c3t2/core";
+import { Caregiver } from "@carely/core";
+import { caregiverSchema } from "@carely/core";
 import z from "zod/v4";
 
 export const getCaregiverDetails = (userId: string) =>

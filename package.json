@@ -1,5 +1,5 @@
 {
-  "name": "esc-c3t2",
+  "name": "carely",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -7,9 +7,9 @@
   ],
   "scripts": {
     "dev": "node ./scripts/dev.js",
-    "dev-core": "npm run dev --workspace=@esc-c3t2/core",
-    "dev-backend": "npm run dev --workspace=@esc-c3t2/backend",
-    "dev-frontend": "npm run dev --workspace=@esc-c3t2/frontend",
+    "dev-core": "npm run dev --workspace=@carely/core",
+    "dev-backend": "npm run dev --workspace=@carely/backend",
+    "dev-frontend": "npm run dev --workspace=@carely/frontend",
     "build": "npm run build --workspaces",
     "test": "npm run test:run --workspaces --if-present",
     "coverage": "npm run coverage --workspaces --if-present",
