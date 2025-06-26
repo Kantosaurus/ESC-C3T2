@@ -29,7 +29,22 @@ sequenceDiagram
 			Backend->>Database: Create new caregiver profile
 			Database-->>Backend: Return created caregiver profile
 			Backend-->>Frontend: Return success response
-			Frontend->>User: Redirect to dashboard with new caregiver profile
+			Frontend->>User: Redirect to /elder/new
+			User->>Frontend: Fill out elder form
+			Frontend->>Backend: POST /api/elder/new with elder details
+			Backend->>Database: Create new elder profile
+			Database-->>Backend: Return created elder profile
+			Backend-->>Frontend: Return success response
+			Frontend->>User: Redirect to /dashboard
+		end
+		alt No elder profile exists
+			Frontend->>User: Redirect to /elder/new
+			User->>Frontend: Fill out elder form
+			Frontend->>Backend: POST /api/elder/self with elder details
+			Backend->>Database: Create new elder profile
+			Database-->>Backend: Return created elder profile
+			Backend-->>Frontend: Return success response
+			Frontend->>User: Redirect to /dashboard
 		end
 
 ```
