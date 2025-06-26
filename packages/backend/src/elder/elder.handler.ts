@@ -1,5 +1,9 @@
 import { authenticated } from "#auth/guard.ts";
-import { elderSchema, newElderDtoSchema } from "@carely/core";
+import {
+  elderSchema,
+  getInviteLinkResponseDtoSchema,
+  newElderDtoSchema,
+} from "@carely/core";
 import { addRelationship, getElderDetails, insertElder } from "./elder.entity";
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
@@ -76,7 +80,12 @@ export const getInviteLinkHandler = authenticated(async (req, res) => {
   url.searchParams.set("token", encodeURIComponent(btoa(token)));
   url.searchParams.set("elderName", thisElder.name);
 
-  res.json({ inviteLink: url.toString(), elderId });
+  res.json(
+    getInviteLinkResponseDtoSchema.parse({
+      inviteLink: url.toString(),
+      elderId,
+    })
+  );
 });
 
 /**
@@ -91,10 +100,9 @@ export const getInviteLinkHandler = authenticated(async (req, res) => {
  */
 export const createElderRelationshipHandler = authenticated(
   async (req, res) => {
-    const caregiverId = res.locals.user.userId;
-    const token = atob(decodeURIComponent(z.string().parse(req.body.token)));
-
     try {
+      const caregiverId = res.locals.user.userId;
+      const token = atob(decodeURIComponent(z.string().parse(req.body.token)));
       // Verify the JWT token, extracting the elder ID from it
       const { sub: elderId } = await jwtVerify(token, jwtSecret).then(
         ({ payload }) =>

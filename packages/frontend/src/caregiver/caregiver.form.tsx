@@ -48,7 +48,8 @@ export function CaregiverForm({
                 <Input placeholder="Tan Ah Kao" {...field} />
               </FormControl>
               <FormDescription>
-                Please enter your full name as it appears on your ID.
+                This is the name that will be displayed in the app. You may use
+                your preferred name or nickname.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -64,7 +65,8 @@ export function CaregiverForm({
                 <Input placeholder="91234567" {...field} />
               </FormControl>
               <FormDescription>
-                We will use this to contact you only in case of emergencies.
+                Optional, we will use this to contact you only in case of
+                emergencies.
               </FormDescription>
               <FormMessage />
             </FormItem>

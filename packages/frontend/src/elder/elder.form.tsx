@@ -45,10 +45,11 @@ export function ElderForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Tan Ah Kao" {...field} />
+                <Input placeholder="Ah Ma" {...field} />
               </FormControl>
               <FormDescription>
-                Full name as it appears on your elder's ID.
+                This is the name that will be displayed in the app. You may use
+                their preferred name or nickname.
               </FormDescription>
               <FormMessage />
             </FormItem>
