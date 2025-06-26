@@ -10,6 +10,8 @@ import NewCaregiverPage from "./caregiver/new-caregiver.page.tsx";
 import RedirectPage from "./auth/redirect.page.tsx";
 import LandingPage from "./landing/landing.page.tsx";
 import NewElderPage from "./elder/new-elder-page.tsx";
+import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
+import { Toaster } from "@/components/ui/sonner.tsx";
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -29,8 +31,11 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/caregiver/new" element={<NewCaregiverPage />} />
           <Route path="/elder/new" element={<NewElderPage />} />
+          <Route path="/elder/:id/invite" element={<InvitePage />} />
+          <Route path="/invite" element={<AcceptInvitePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
+    <Toaster />
   </StrictMode>
 );

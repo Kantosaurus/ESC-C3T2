@@ -13,11 +13,12 @@ export function useDashboardData() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsLoading(false);
+    setIsLoading(true);
+    const controller = new AbortController();
 
     Promise.all([
-      http().get("/api/caregiver/self"),
-      http().get("/api/elder/details"),
+      http().get("/api/caregiver/self", { signal: controller.signal }),
+      http().get("/api/elder/details", { signal: controller.signal }),
     ])
       .then(
         ([caregiverRes, elderRes]: [
@@ -35,9 +36,9 @@ export function useDashboardData() {
         },
         (error: AxiosError) => {
           if (error.status === 404) {
-            console.log("error", error);
-            // Redirect to create caregiver page if not found
-            navigate("/caregiver/new");
+            const urlSearchParams = new URLSearchParams();
+            urlSearchParams.set("after", "/elder/new");
+            navigate("/caregiver/new" + "?" + urlSearchParams.toString());
             setError("Caregiver not found");
           } else {
             setError("An error occurred while fetching data");
@@ -45,7 +46,12 @@ export function useDashboardData() {
         }
       )
       .finally(() => setIsLoading(false));
-  }, [navigate]);
+
+    return () => {
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     caregiverDetails,

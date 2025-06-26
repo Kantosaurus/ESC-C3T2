@@ -37,3 +37,12 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
         )
         .then(() => newElder);
     });
+
+export const addRelationship = (caregiverId: string, elderId: number) =>
+  db.query(
+    `
+			INSERT INTO caregiver_elder (caregiver_id, elder_id)
+			VALUES ($1, $2);
+			`,
+    [caregiverId, elderId]
+  );

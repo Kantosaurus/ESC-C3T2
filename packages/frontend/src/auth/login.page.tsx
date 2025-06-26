@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Navigate } from "react-router";
+import { Navigate, useSearchParams } from "react-router";
 import { getSingpassAuthUrl } from "./singpass-auth-url";
 import { getToken } from "./token";
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams();
+  const after = searchParams.get("after") ?? undefined;
+
   if (getToken()) {
     return <Navigate to={"/dashboard"} />;
   }
@@ -19,7 +22,7 @@ export default function LoginPage() {
             <Button
               className="w-full"
               onClick={() =>
-                getSingpassAuthUrl()
+                getSingpassAuthUrl(after)
                   .then((res) => {
                     window.location.href = res.data.url;
                   })

@@ -28,7 +28,7 @@ export function useElderDetails() {
           setElderDetails(res.data);
         },
         (error: AxiosError) => {
-          if (error.status === 404) {
+          if (error.response?.status === 404) {
             setError("Elders not found");
           }
         }
