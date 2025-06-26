@@ -1,4 +1,3 @@
-import { authenticated } from "#auth/guard.ts";
 import {
   elderSchema,
   getInviteLinkResponseDtoSchema,
@@ -7,7 +6,8 @@ import {
 import { addRelationship, getElderDetails, insertElder } from "./elder.entity";
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
-import { jwtSecret } from "#auth/secret.ts";
+import { authenticated } from "../auth/guard";
+import { jwtSecret } from "../auth/secret";
 import { JOSEError } from "jose/errors";
 
 /**

@@ -1,12 +1,13 @@
 import crypto from "crypto";
 import { generatePkcePair } from "@opengovsg/sgid-client";
 import { singpassClient } from "./client";
-import { sessionData } from "#auth/session.ts";
 import z from "zod/v4";
+import { RequestHandler } from "express";
+import { sessionData } from "../session";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
-export const singpassAuthUrlHandler = async (req, res) => {
+export const singpassAuthUrlHandler: RequestHandler = async (req, res) => {
   console.log("singpassAuthUrlHandler called");
   // Generate a session ID
   const sessionId = crypto.randomUUID();
@@ -44,5 +45,5 @@ export const singpassAuthUrlHandler = async (req, res) => {
   console.log("after", after);
 
   // Return the authorization URL
-  return res.json({ url });
+  res.json({ url });
 };

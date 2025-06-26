@@ -1,7 +1,7 @@
-import { db } from "#db/db.ts";
 import { Caregiver } from "@carely/core";
 import { caregiverSchema } from "@carely/core";
 import z from "zod/v4";
+import { db } from "../db/db";
 
 export const getCaregiverDetails = (userId: string) =>
   db

@@ -1,6 +1,6 @@
-import { db } from "#db/db.ts";
 import { elderSchema, NewElderDto } from "@carely/core";
 import z from "zod/v4";
+import { db } from "../db/db";
 
 export const getElderDetails = (caregiverId: string) =>
   db

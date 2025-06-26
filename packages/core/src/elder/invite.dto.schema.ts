@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { elderSchema } from "./elder.schema";
+import { elderSchema } from "./elder.schema.js";
 
 export const getInviteLinkResponseDtoSchema = z.object({
   inviteLink: z

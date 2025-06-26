@@ -5,12 +5,14 @@
   "workspaces": [
     "packages/*"
   ],
+  "main": "./dist/index.mjs",
   "scripts": {
+    "start": "node --env-file=.env .",
     "dev": "node ./scripts/dev.js",
     "dev-core": "npm run dev --workspace=@carely/core",
     "dev-backend": "npm run dev --workspace=@carely/backend",
     "dev-frontend": "npm run dev --workspace=@carely/frontend",
-    "build": "npm run build --workspaces",
+    "build": "node --env-file=.env ./scripts/build.js",
     "test": "npm run test:run --workspaces --if-present",
     "coverage": "npm run coverage --workspaces --if-present",
     "lint": "npm run lint --workspaces",

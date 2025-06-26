@@ -1,18 +1,18 @@
 import express from "express";
-import { authMiddleware } from "#auth/middleware.ts";
-import { corsWithConfig } from "#misc/cors.ts";
+import { authMiddleware } from "./auth/middleware";
+import { redirectHandler } from "./auth/redirect.handler";
+import { singpassAuthUrlHandler } from "./auth/singpass/auth-url.handler";
 import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
-} from "#caregiver/caregiver.handler.ts";
-import { singpassAuthUrlHandler } from "#auth/singpass/auth-url.handler.ts";
-import { redirectHandler } from "#auth/redirect.handler.ts";
+} from "./caregiver/caregiver.handler";
 import {
-  createElderRelationshipHandler,
   getElderDetailsHandler,
-  getInviteLinkHandler,
   insertElderHandler,
-} from "#elder/elder.handler.ts";
+  getInviteLinkHandler,
+  createElderRelationshipHandler,
+} from "./elder/elder.handler";
+import { corsWithConfig } from "./misc/cors";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -20,6 +20,20 @@ const port = process.env.PORT ?? "3000";
 app.use(corsWithConfig());
 
 app.use(express.json()); // for parsing application/json
+
+app.use(express.static("./dist/static"));
+
+app.use((req, res, next) => {
+  // check if the request is for the frontend
+  if (req.path.startsWith("/api")) {
+    next(); // continue to the next middleware
+  } else {
+    // if not, serve the index.html file
+    res.sendFile("index.html", {
+      root: "./dist/static",
+    });
+  }
+});
 
 app.get("/api/singpass/auth-url", singpassAuthUrlHandler);
 app.get("/api/redirect", redirectHandler);
