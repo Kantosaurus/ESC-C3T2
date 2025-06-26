@@ -15,7 +15,8 @@
     "coverage": "npm run coverage --workspaces --if-present",
     "lint": "npm run lint --workspaces",
     "prepare": "husky",
-    "migrate": "node --env-file=.env ./scripts/migrate.js"
+    "migrate": "node --env-file=.env ./scripts/migrate.js",
+    "clean": "node --env-file=.env ./scripts/clean.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

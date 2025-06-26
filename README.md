@@ -69,6 +69,7 @@ see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of o
 - `npm run test` - Run tests across all packages
 - `npm run lint` - Lint all packages
 - `npm run migrate` - Run database migrations
+- `npm run clean` - Clear database and reset migrations
 
 ## Documentation
 
