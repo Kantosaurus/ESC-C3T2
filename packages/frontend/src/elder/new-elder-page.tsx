@@ -21,13 +21,20 @@ export default function NewElderPage() {
   };
 
   return (
-    <section className="p-8 mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold mb-4">👴👵 Setup New Elder</h1>
-      <p className="text-muted-foreground mb-6">
-        Please provide the details of the elder you are caring for. This will
-        help us tailor our services to their needs.
-      </p>
-      <ElderForm onSubmit={handleSubmit} />
-    </section>
+    <>
+      <section className="bg-indigo-100 text-indigo-800">
+        <div className="p-8 mx-auto max-w-2xl">
+          <h1 className="text-2xl font-bold mb-2">👴 New Elder Profile</h1>{" "}
+          <p>
+            Please provide the details of the elder you are caring for. This
+            will help us tailor our services to their needs.
+          </p>
+        </div>
+      </section>
+
+      <section className="p-8 mx-auto max-w-2xl">
+        <ElderForm onSubmit={handleSubmit} />
+      </section>
+    </>
   );
 }

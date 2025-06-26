@@ -26,13 +26,20 @@ export default function NewCaregiverPage() {
     });
 
   return (
-    <section className="p-8 mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold mb-4">🎂 Caregiver Onboarding</h1>
-      <p className="text-muted-foreground mb-6">
-        Let us know more about you so we can better assist you in your
-        caregiving journey.
-      </p>
-      <CaregiverForm onSubmit={handleSubmit} />
-    </section>
+    <>
+      <section className="bg-teal-100 text-teal-800">
+        <div className="mx-auto max-w-2xl p-8">
+          <h1 className="text-2xl font-bold mb-2">🏃‍♂️ New Caregiver Profile</h1>
+          <p>
+            Let us know more about you so we can better assist you in your
+            caregiving journey.
+          </p>
+        </div>
+      </section>
+
+      <section className="p-8 mx-auto max-w-2xl">
+        <CaregiverForm onSubmit={handleSubmit} />
+      </section>
+    </>
   );
 }
