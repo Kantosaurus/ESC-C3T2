@@ -1,0 +1,16 @@
+CREATE TABLE elders (
+	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	name VARCHAR(100) NOT NULL,
+	phone VARCHAR(15),
+	address TEXT NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE caregiver_elder(
+	caregiver_id TEXT NOT NULL,
+	elder_id BIGINT NOT NULL,
+	PRIMARY KEY (caregiver_id, elder_id),
+	FOREIGN KEY (caregiver_id) REFERENCES caregivers(id) ON DELETE CASCADE,
+	FOREIGN KEY (elder_id) REFERENCES elders(id) ON DELETE CASCADE
+);

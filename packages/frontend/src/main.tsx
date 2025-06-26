@@ -9,6 +9,7 @@ import DashboardPage from "./dashboard/dashboard.page.tsx";
 import NewCaregiverPage from "./caregiver/new-caregiver.page.tsx";
 import RedirectPage from "./auth/redirect.page.tsx";
 import LandingPage from "./landing/landing.page.tsx";
+import NewElderPage from "./elder/new-elder-page.tsx";
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -27,6 +28,7 @@ createRoot(document.getElementById("root")!).render(
         <Route element={<RouteGuard />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/caregiver/new" element={<NewCaregiverPage />} />
+          <Route path="/elder/new" element={<NewElderPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

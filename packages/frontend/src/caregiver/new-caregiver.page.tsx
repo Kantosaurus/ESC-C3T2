@@ -22,7 +22,7 @@ export default function NewCaregiverPage() {
   const handleSubmit = (values: CaregiverFormType) =>
     createNewCaregiver(values).then(() => {
       // Redirect to dashboard or show success message
-      navigate("/dashboard");
+      navigate("/elder/new");
     });
 
   return (
