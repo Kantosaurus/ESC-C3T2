@@ -1,3 +1,4 @@
+import { RequestHandler } from "express";
 import { jwtSecret } from "./secret";
 import { sessionData } from "./session";
 import { singpassClient } from "./singpass/client";
@@ -5,11 +6,15 @@ import { SignJWT } from "jose";
 
 const FRONTEND_HOST = process.env.FRONTEND_HOST || "http://localhost:3000";
 
-export const redirectHandler = async (req, res): Promise<void> => {
+export const redirectHandler: RequestHandler = async (
+  req,
+  res
+): Promise<void> => {
   // Retrieve the authorization code and session ID
   const authCode = String(req.query.code);
-  const state = String(req.query.state);
-  const sessionId = new URLSearchParams(state).get("sessionId");
+  const state = new URLSearchParams(String(req.query.state));
+  const sessionId = state.get("sessionId");
+  const after = state.get("after");
 
   if (!sessionId || !authCode) {
     res.redirect(`${FRONTEND_HOST}/error`);
@@ -42,5 +47,13 @@ export const redirectHandler = async (req, res): Promise<void> => {
     .setExpirationTime("2h")
     .sign(jwtSecret);
 
-  res.redirect(`${FRONTEND_HOST}/redirect?token=${encodeURIComponent(token)}`);
+  const redirectUrl = new URL("/redirect", FRONTEND_HOST);
+  redirectUrl.searchParams.set("token", token);
+
+  if (after) {
+    // If an after parameter is provided, add it to the redirect URL
+    redirectUrl.searchParams.set("after", after);
+  }
+
+  res.redirect(redirectUrl.toString());
 };

@@ -1,7 +1,7 @@
 import { http } from "@/lib/http";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useAfter } from "@/lib/use-after";
 
 function useNewCaregiver() {
   return useCallback((values: CaregiverFormType) => {
@@ -16,23 +16,32 @@ function useNewCaregiver() {
 }
 
 export default function NewCaregiverPage() {
-  const navigate = useNavigate();
   const createNewCaregiver = useNewCaregiver();
+  const after = useAfter();
 
-  const handleSubmit = (values: CaregiverFormType) =>
-    createNewCaregiver(values).then(() => {
-      // Redirect to dashboard or show success message
-      navigate("/dashboard");
-    });
+  const handleSubmit = useCallback(
+    (values: CaregiverFormType) =>
+      createNewCaregiver(values).then(() => {
+        after();
+      }),
+    [after, createNewCaregiver]
+  );
 
   return (
-    <section className="p-8 mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold mb-4">🎂 Caregiver Onboarding</h1>
-      <p className="text-muted-foreground mb-6">
-        Let us know more about you so we can better assist you in your
-        caregiving journey.
-      </p>
-      <CaregiverForm onSubmit={handleSubmit} />
-    </section>
+    <>
+      <section className="bg-teal-100 text-teal-800">
+        <div className="mx-auto max-w-2xl p-8">
+          <h1 className="text-2xl font-bold mb-2">🏃‍♂️ New Caregiver Profile</h1>
+          <p>
+            Let us know more about you so we can better assist you in your
+            caregiving journey.
+          </p>
+        </div>
+      </section>
+
+      <section className="p-8 mx-auto max-w-2xl">
+        <CaregiverForm onSubmit={handleSubmit} />
+      </section>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { caregiverSchema } from "@carely/core";
+import { elderSchema } from "@carely/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -15,23 +15,23 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-const caregiverFormSchema = caregiverSchema.pick({
+const elderFormSchema = elderSchema.pick({
   name: true,
   phone: true,
   address: true,
 });
 
-export type CaregiverFormType = z.infer<typeof caregiverFormSchema>;
+export type ElderFormType = z.infer<typeof elderFormSchema>;
 
-export function CaregiverForm({
+export function ElderForm({
   defaultValues = {},
   onSubmit,
 }: {
-  defaultValues?: Partial<CaregiverFormType>;
-  onSubmit: (values: CaregiverFormType) => Promise<void>;
+  defaultValues?: Partial<ElderFormType>;
+  onSubmit: (values: ElderFormType) => Promise<void>;
 }) {
-  const form = useForm<CaregiverFormType>({
-    resolver: zodResolver(caregiverFormSchema),
+  const form = useForm<ElderFormType>({
+    resolver: zodResolver(elderFormSchema),
     defaultValues,
   });
 
@@ -45,11 +45,11 @@ export function CaregiverForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Tan Ah Kao" {...field} />
+                <Input placeholder="Ah Ma" {...field} />
               </FormControl>
               <FormDescription>
                 This is the name that will be displayed in the app. You may use
-                your preferred name or nickname.
+                their preferred name or nickname.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -65,8 +65,7 @@ export function CaregiverForm({
                 <Input placeholder="91234567" {...field} />
               </FormControl>
               <FormDescription>
-                Optional, we will use this to contact you only in case of
-                emergencies.
+                Optional, We will use this in case of emergencies.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -82,7 +81,7 @@ export function CaregiverForm({
                 <Input placeholder="Block 123 Ang Mo Kio" {...field} />
               </FormControl>
               <FormDescription>
-                Optional, but helps us to know where you are located.
+                This helps us tailor our services to your elder's location.
               </FormDescription>
               <FormMessage />
             </FormItem>

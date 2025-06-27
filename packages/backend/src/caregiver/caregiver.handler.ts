@@ -1,6 +1,6 @@
-import { authenticated } from "#auth/guard.ts";
 import { caregiverSchema } from "@carely/core";
 import { getCaregiverDetails, insertCaregiver } from "./caregiver.entity";
+import { authenticated } from "../auth/guard";
 
 /**
  * Handler to get the details of the authenticated caregiver.

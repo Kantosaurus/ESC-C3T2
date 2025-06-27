@@ -4,7 +4,7 @@
     "module": "ESNext",
     "sourceMap": true,
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
@@ -17,6 +17,5 @@
     "skipLibCheck": true,
     "noEmitOnError": true
   },
-  "exclude": ["**/*.test.ts", "**/*.spec.ts"],
-  "include": ["vite.config.ts"]
+  "exclude": ["**/*.test.ts", "**/*.spec.ts"]
 }

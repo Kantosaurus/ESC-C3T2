@@ -7,6 +7,11 @@ export const RouteGuard = () => {
   if (useMemo(() => isTokenValid(), [])) {
     return <Outlet />;
   } else {
-    return <Navigate to="/login" />;
+    // get the current full url
+    const currentUrl = window.location.href;
+    //encode the current url
+    const encodedUrl = encodeURIComponent(currentUrl);
+    // redirect to login with the current url as a query parameter
+    return <Navigate to={`/login?after=${encodedUrl}`} />;
   }
 };
