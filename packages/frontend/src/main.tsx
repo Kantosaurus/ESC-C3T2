@@ -10,6 +10,7 @@ import NewCaregiverPage from "./caregiver/new-caregiver.page.tsx";
 import RedirectPage from "./auth/redirect.page.tsx";
 import LandingPage from "./landing/landing.page.tsx";
 import NewElderPage from "./elder/new-elder-page.tsx";
+import CalendarPage from "./calendar/calendar.page.tsx";
 import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 
@@ -33,6 +34,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/elder/new" element={<NewElderPage />} />
           <Route path="/elder/:id/invite" element={<InvitePage />} />
           <Route path="/invite" element={<AcceptInvitePage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
