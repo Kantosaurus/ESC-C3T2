@@ -52,7 +52,7 @@ These guidelines will help the team maintain a consistent codebase and ensure a 
    - Migration scripts must be named incrementally (e.g., 1_caregivers.sql`, `2_elderly.sql`).
    - Note that migrations should be idempotent, meaning they can be run multiple times without causing issues. Migrations should not be edited once they are merged into `dev` or `main`.
    - If you need to undo a migration, create a new migration script that reverses the changes of the previous one.
-   - Use the `npm run migrations` to run migrations.
+   - Use the `npm run migrate` to run migrations.
 
 4. Implement the feature
 
