@@ -13,13 +13,6 @@ import NewElderPage from "./elder/new-elder-page.tsx";
 import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 
-// Import your Publishable Key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key");
-}
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
