@@ -3,7 +3,12 @@ import {
   getInviteLinkResponseDtoSchema,
   newElderDtoSchema,
 } from "@carely/core";
-import { addRelationship, getElderDetails, insertElder } from "./elder.entity";
+import {
+  addRelationship,
+  getElderDetails,
+  getEldersDetails,
+  insertElder,
+} from "./elder.entity";
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
 import { authenticated } from "../auth/guard";
@@ -15,10 +20,36 @@ import { JOSEError } from "jose/errors";
  * This handler assumes that the user is already authenticated and
  * their user ID is available in `res.locals.user.userId`.
  */
-export const getElderDetailsHandler = authenticated(async (req, res) => {
+export const getEldersDetailsHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
-  const elders = await getElderDetails(caregiverId);
+  const elders = await getEldersDetails(caregiverId);
   res.json(elders);
+});
+
+/**
+ * Handler to get the details of a specific elder by elderId.
+ * This handler assumes that the user is already authenticated and
+ * their user ID is available in `res.locals.user.userId`.
+ * It expects the elderId to be passed as a URL parameter.
+ */
+export const getElderDetailsHandler = authenticated(async (req, res) => {
+  try {
+    const caregiverId = res.locals.user.userId;
+    // get elderId from query parameters
+    const { elderId } = z
+      .object({ elderId: elderSchema.shape.id })
+      .parse(req.params);
+
+    const elder = await getElderDetails(caregiverId, elderId);
+
+    res.json(elder);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid/Missing elderId" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 /**
@@ -50,7 +81,7 @@ export const getInviteLinkHandler = authenticated(async (req, res) => {
   const elderId = elderSchema.shape.id.parse(req.query.elderId);
 
   // Check that the caregiver is authorized to create an invite link
-  const elders = await getElderDetails(caregiverId);
+  const elders = await getEldersDetails(caregiverId);
 
   const thisElder = elders.find((e) => e.id === elderId);
 

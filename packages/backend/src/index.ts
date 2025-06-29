@@ -7,10 +7,11 @@ import {
   insertCaregiverHandler,
 } from "./caregiver/caregiver.handler";
 import {
-  getElderDetailsHandler,
+  getEldersDetailsHandler,
   insertElderHandler,
   getInviteLinkHandler,
   createElderRelationshipHandler,
+  getElderDetailsHandler,
 } from "./elder/elder.handler";
 import { corsWithConfig } from "./misc/cors";
 
@@ -44,7 +45,8 @@ app.use(authMiddleware());
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post("/api/caregiver/self", insertCaregiverHandler);
 
-app.get("/api/elder/details", getElderDetailsHandler);
+app.get("/api/elder/details", getEldersDetailsHandler);
+app.get("/api/elder/details/:elderId", getElderDetailsHandler);
 app.post("/api/elder/new", insertElderHandler);
 
 app.get("/api/elder/invite", getInviteLinkHandler);

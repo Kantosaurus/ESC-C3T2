@@ -5,9 +5,9 @@ import { useNavigate } from "react-router";
 import { http } from "@/lib/http";
 
 /**
- * Get current user info
+ * Get all elders that the caregiver is associated with.
  */
-export function useElderDetails() {
+export function useEldersDetails() {
   const [elderDetails, setElderDetails] = useState<Elder[]>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +35,34 @@ export function useElderDetails() {
       )
       .finally(() => setIsLoading(false));
   }, [navigate]);
+
+  return { elderDetails, error, isLoading };
+}
+
+export function useElderDetails(elderId: number | null) {
+  const [elderDetails, setElderDetails] = useState<Elder | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!elderId) {
+      return;
+    }
+    setIsLoading(true);
+    http()
+      .get(`/api/elder/details/${elderId}`)
+      .then((res: AxiosResponse<Elder>) => {
+        setElderDetails(res.data);
+      })
+      .catch((error: AxiosError) => {
+        if (error.response?.status === 404) {
+          setError("Elder not found");
+        } else {
+          setError("Failed to fetch elder details");
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [elderId]);
 
   return { elderDetails, error, isLoading };
 }
