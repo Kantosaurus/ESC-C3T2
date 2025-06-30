@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-const elderFormSchema = elderSchema.pick({
-  name: true,
-  phone: true,
-  address: true,
+const elderFormSchema = z.object({
+  name: elderSchema.shape.name,
+  phone: elderSchema.shape.phone.unwrap().unwrap().optional(), // this makes it optional and not nullable for the form
+  address: elderSchema.shape.address,
 });
 
 export type ElderFormType = z.infer<typeof elderFormSchema>;
