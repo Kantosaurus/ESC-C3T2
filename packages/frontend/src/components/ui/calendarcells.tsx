@@ -7,8 +7,8 @@ const calendarCellVariants = cva("border p-2 text-center select-none", {
   variants: {
     variant: {
       default: "bg-white text-black",
-      empty: "bg-gray text-black", //"bg-transparent border-transparent pointer-events-none",
-      header: "bg-gray-100 font-semibold cursor-default select-text",
+      empty: "bg-gray-200 text-gray-300",
+      header: "bg-gray-100 font-semibold cursor-default",
       today: "bg-blue-500 text-white font-bold",
     },
     interactive: {
@@ -45,4 +45,4 @@ const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
 
 CalendarCell.displayName = "CalendarCell";
 
-export { CalendarCell, calendarCellVariants };
+export { CalendarCell };
