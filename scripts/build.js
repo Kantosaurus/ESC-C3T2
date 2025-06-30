@@ -1,4 +1,25 @@
 const exec = require("child_process").execSync;
+const fs = require("fs");
+const path = require("path");
+
+const envBuildPath = path.join(__dirname, "..", ".env.build");
+const envFrontendPath = path.join(
+  __dirname,
+  "..",
+  "packages",
+  "frontend",
+  ".env"
+);
+
+if (fs.existsSync(envBuildPath)) {
+  const envContent = fs.readFileSync(envBuildPath, "utf-8");
+  fs.writeFileSync(envFrontendPath, envContent, "utf-8");
+  console.log(`✅ Copied .env.build to ${envFrontendPath}`);
+} else {
+  console.warn(
+    `⚠️ .env.build file not found at ${envBuildPath}. Skipping copy.`
+  );
+}
 
 const buildPackage = (workspace) => {
   console.log(`Building package: ${workspace}`);
