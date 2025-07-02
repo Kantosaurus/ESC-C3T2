@@ -20,8 +20,9 @@ export const getElderDetails = (caregiverId: string, elderId: number) =>
       return elderSchema.parse(result[0]);
     });
 
-export const getEldersDetails = (caregiverId: string) =>
-  db
+export const getEldersDetails = (caregiverId: string) => {
+  console.log("Querying elders for caregiver ID:", caregiverId);
+  return db
     .query(
       `
 			SELECT *
@@ -31,21 +32,31 @@ export const getEldersDetails = (caregiverId: string) =>
 			`,
       [caregiverId]
     )
-    .then((result) => z.array(elderSchema).parse(result));
+    .then((result) => {
+      console.log("Database query result:", result);
+      return z.array(elderSchema).parse(result);
+    })
+    .catch((error) => {
+      console.error("Database query error:", error);
+      throw error;
+    });
+};
 
 export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
   db
     .query(
       `
-			INSERT INTO elders (
-				name, phone, address,
-				street_address, unit_number, postal_code, city, state, country, latitude, longitude
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-			RETURNING *;
-			`,
+        INSERT INTO elders (
+          name, date_of_birth, gender, phone, address,
+          street_address, unit_number, postal_code, city, state, country, latitude, longitude
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        RETURNING *;
+      `,
       [
         elderData.name,
+        elderData.date_of_birth,
+        elderData.gender,
         elderData.phone,
         elderData.address,
         elderData.address_details?.street_address || null,
@@ -63,9 +74,9 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
       return db
         .query(
           `
-				INSERT INTO caregiver_elder (caregiver_id, elder_id)
-				VALUES ($1, $2);
-				`,
+            INSERT INTO caregiver_elder (caregiver_id, elder_id)
+            VALUES ($1, $2);
+          `,
           [caregiverId, newElder.id]
         )
         .then(() => newElder);
@@ -79,3 +90,50 @@ export const addRelationship = (caregiverId: string, elderId: number) =>
 			`,
     [caregiverId, elderId]
   );
+
+export const updateElder = (elderId: number, elderData: NewElderDto) =>
+  db
+    .query(
+      `
+        UPDATE elders 
+        SET 
+          name = $1, 
+          date_of_birth = $2, 
+          gender = $3, 
+          phone = $4, 
+          address = $5,
+          street_address = $6, 
+          unit_number = $7, 
+          postal_code = $8, 
+          city = $9, 
+          state = $10, 
+          country = $11, 
+          latitude = $12, 
+          longitude = $13,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $14
+        RETURNING *;
+      `,
+      [
+        elderData.name,
+        elderData.date_of_birth,
+        elderData.gender,
+        elderData.phone,
+        elderData.address,
+        elderData.address_details?.street_address || null,
+        elderData.address_details?.unit_number || null,
+        elderData.address_details?.postal_code || null,
+        elderData.address_details?.city || null,
+        elderData.address_details?.state || null,
+        elderData.address_details?.country || null,
+        elderData.address_details?.latitude || null,
+        elderData.address_details?.longitude || null,
+        elderId,
+      ]
+    )
+    .then((result) => {
+      if (result.length === 0) {
+        throw new Error("Elder not found.");
+      }
+      return elderSchema.parse(result[0]);
+    });

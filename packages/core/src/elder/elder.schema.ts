@@ -4,6 +4,8 @@ import { addressSchema } from "../caregiver/caregiver.schema.js";
 export const elderSchema = z.object({
   id: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
+  date_of_birth: z.coerce.date(),
+  gender: z.enum(["male", "female", "other"]),
   phone: z
     .string()
     .max(15, "Phone number must be at most 15 characters long")
@@ -18,6 +20,8 @@ export type Elder = z.infer<typeof elderSchema>;
 
 export const newElderDtoSchema = elderSchema.pick({
   name: true,
+  date_of_birth: true,
+  gender: true,
   phone: true,
   address: true,
   address_details: true,
@@ -25,5 +29,5 @@ export const newElderDtoSchema = elderSchema.pick({
 
 export type NewElderDto = Pick<
   Elder,
-  "name" | "phone" | "address" | "address_details"
+  "name" | "date_of_birth" | "gender" | "phone" | "address" | "address_details"
 >;

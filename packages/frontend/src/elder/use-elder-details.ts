@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Elder } from "@carely/core";
 import type { AxiosError, AxiosResponse } from "axios";
-import { useNavigate } from "react-router";
 import { http } from "@/lib/http";
 
 /**
@@ -12,31 +11,36 @@ export function useEldersDetails() {
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
 
-  const navigate = useNavigate();
+  const fetchElders = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await http().get("/api/elder/details");
+      setElderDetails(res.data);
+      setError(undefined);
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "status" in error.response &&
+        error.response.status === 404
+      ) {
+        setError("Elders not found");
+      } else {
+        setError("Failed to fetch elders");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    http()
-      .get("/api/elder/details")
-      .then(
-        (res: AxiosResponse<Elder[]>) => {
-          // check if there are no elders
-          if (res.data.length <= 0) {
-            console.warn("No elders found, redirecting to new elder page");
-            navigate("/elder/new");
-          }
-          setElderDetails(res.data);
-        },
-        (error: AxiosError) => {
-          if (error.response?.status === 404) {
-            setError("Elders not found");
-          }
-        }
-      )
-      .finally(() => setIsLoading(false));
-  }, [navigate]);
+    fetchElders();
+  }, [fetchElders]);
 
-  return { elderDetails, error, isLoading };
+  return { elderDetails, error, isLoading, refetch: fetchElders };
 }
 
 export function useElderDetails(elderId: number | null) {

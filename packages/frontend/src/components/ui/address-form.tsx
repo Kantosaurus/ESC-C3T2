@@ -5,8 +5,8 @@ import { Label } from "./label";
 import { env } from "@/lib/env";
 
 interface AddressFormProps {
-  value?: Partial<Address>;
-  onChange: (address: Partial<Address>) => void;
+  value?: Partial<Address> | undefined | null;
+  onChange: (address: Partial<Address> | undefined | null) => void;
   onValidationChange?: (isValid: boolean) => void;
   className?: string;
 }
@@ -166,7 +166,7 @@ export function AddressForm({
 
   const handleInputChange = (field: keyof Address, inputValue: string) => {
     onChange({
-      ...value,
+      ...(value ?? {}),
       [field]: inputValue,
     });
   };
@@ -219,7 +219,7 @@ export function AddressForm({
         <Input
           ref={autocompleteRef}
           placeholder="Start typing your address..."
-          value={value?.street_address || ""}
+          value={value?.street_address ?? ""}
           onChange={(e) => handleInputChange("street_address", e.target.value)}
           className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
         />
@@ -235,7 +235,7 @@ export function AddressForm({
           </Label>
           <Input
             placeholder="Apt, Suite, etc. (optional)"
-            value={value?.unit_number || ""}
+            value={value?.unit_number ?? ""}
             onChange={(e) => handleInputChange("unit_number", e.target.value)}
             className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
           />
@@ -247,7 +247,7 @@ export function AddressForm({
           </Label>
           <Input
             placeholder="Enter postal code"
-            value={value?.postal_code || ""}
+            value={value?.postal_code ?? ""}
             onChange={(e) => handleInputChange("postal_code", e.target.value)}
             className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
           />
@@ -261,7 +261,7 @@ export function AddressForm({
           </Label>
           <Input
             placeholder="Enter city"
-            value={value?.city || ""}
+            value={value?.city ?? ""}
             onChange={(e) => handleInputChange("city", e.target.value)}
             className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
           />
@@ -273,7 +273,7 @@ export function AddressForm({
           </Label>
           <Input
             placeholder="Enter state/province"
-            value={value?.state || ""}
+            value={value?.state ?? ""}
             onChange={(e) => handleInputChange("state", e.target.value)}
             className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
           />
@@ -286,7 +286,7 @@ export function AddressForm({
         </Label>
         <Input
           placeholder="Enter country"
-          value={value?.country || ""}
+          value={value?.country ?? ""}
           onChange={(e) => handleInputChange("country", e.target.value)}
           className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
         />
