@@ -12,6 +12,8 @@ import LandingPage from "./landing/landing.page.tsx";
 import NewElderPage from "./elder/new-elder-page.tsx";
 import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
+import NotesPage from "./notes/notes.page.tsx";
+import NewNotePage from "./notes/new-note.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -26,6 +28,10 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/elder/new" element={<NewElderPage />} />
           <Route path="/elder/:id/invite" element={<InvitePage />} />
           <Route path="/invite" element={<AcceptInvitePage />} />
+
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/notes/new" element={<NewNotePage />} />
+
         </Route>
       </Routes>
     </BrowserRouter>

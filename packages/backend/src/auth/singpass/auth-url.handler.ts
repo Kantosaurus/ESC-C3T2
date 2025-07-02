@@ -9,6 +9,10 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 export const singpassAuthUrlHandler: RequestHandler = async (req, res) => {
   console.log("singpassAuthUrlHandler called");
+  console.log(BASE_URL);
+  console.log(process.env.SGID_CLIENT_ID);
+
+
   // Generate a session ID
   const sessionId = crypto.randomUUID();
   const after = z.string().optional().parse(req.query.after);
