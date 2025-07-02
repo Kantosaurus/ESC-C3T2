@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useElderDetails } from "./use-elder-details";
 import { http } from "@/lib/http";
@@ -38,11 +38,27 @@ export default function ElderProfilePage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<object | null>(null);
 
+  const generateInviteLink = useCallback(async () => {
+    if (!elderId) return;
+
+    setIsGeneratingLink(true);
+    try {
+      const response = await http().get<InviteLinkResponse>(
+        `/api/elder/invite?elderId=${elderId}`
+      );
+      setInviteLink(response.data.inviteLink);
+    } catch (error) {
+      console.error("Failed to generate invite link:", error);
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  }, [elderId]);
+
   useEffect(() => {
     if (elderId) {
       generateInviteLink();
     }
-  }, [elderId]);
+  }, [elderId, generateInviteLink]);
 
   // Load Google Maps API
   useEffect(() => {
@@ -95,22 +111,6 @@ export default function ElderProfilePage() {
       mapInstanceRef.current = map;
     }
   }, [isMapLoaded, elderDetails]);
-
-  const generateInviteLink = async () => {
-    if (!elderId) return;
-
-    setIsGeneratingLink(true);
-    try {
-      const response = await http().get<InviteLinkResponse>(
-        `/api/elder/invite?elderId=${elderId}`
-      );
-      setInviteLink(response.data.inviteLink);
-    } catch (error) {
-      console.error("Failed to generate invite link:", error);
-    } finally {
-      setIsGeneratingLink(false);
-    }
-  };
 
   const copyToClipboard = async () => {
     try {
