@@ -37,11 +37,26 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
   db
     .query(
       `
-			INSERT INTO elders (name, phone, address)
-			VALUES ($1, $2, $3)
+			INSERT INTO elders (
+				name, phone, address,
+				street_address, unit_number, postal_code, city, state, country, latitude, longitude
+			)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			RETURNING *;
 			`,
-      [elderData.name, elderData.phone, elderData.address]
+      [
+        elderData.name,
+        elderData.phone,
+        elderData.address,
+        elderData.address_details?.street_address || null,
+        elderData.address_details?.unit_number || null,
+        elderData.address_details?.postal_code || null,
+        elderData.address_details?.city || null,
+        elderData.address_details?.state || null,
+        elderData.address_details?.country || null,
+        elderData.address_details?.latitude || null,
+        elderData.address_details?.longitude || null,
+      ]
     )
     .then((result) => {
       const newElder = elderSchema.parse(result[0]);

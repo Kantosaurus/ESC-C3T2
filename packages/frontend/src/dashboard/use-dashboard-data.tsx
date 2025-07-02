@@ -36,9 +36,7 @@ export function useDashboardData() {
         },
         (error: AxiosError) => {
           if (error.status === 404) {
-            const urlSearchParams = new URLSearchParams();
-            urlSearchParams.set("after", "/elder/new");
-            navigate("/caregiver/new" + "?" + urlSearchParams.toString());
+            navigate("/caregiver/new");
             setError("Caregiver not found");
           } else {
             setError("An error occurred while fetching data");

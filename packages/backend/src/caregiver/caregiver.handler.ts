@@ -30,7 +30,14 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
 
   const caregiverDetails = caregiverSchema
-    .pick({ name: true, phone: true, address: true })
+    .pick({
+      name: true,
+      date_of_birth: true,
+      gender: true,
+      phone: true,
+      address: true,
+      address_details: true,
+    })
     .parse(req.body);
 
   const newCaregiver = await insertCaregiver({
