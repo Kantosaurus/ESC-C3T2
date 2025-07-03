@@ -13,6 +13,10 @@ import {
   createElderRelationshipHandler,
   getElderDetailsHandler,
 } from "./elder/elder.handler";
+import { 
+  getNotesHandler, 
+  insertNotesHandler 
+} from "#notes/notes.handler.js";
 import { corsWithConfig } from "./misc/cors";
 
 const app = express();
@@ -51,6 +55,9 @@ app.post("/api/elder/new", insertElderHandler);
 
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
+
+app.get("api/notes/details", getNotesHandler);
+app.post("api/notes/details", insertNotesHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

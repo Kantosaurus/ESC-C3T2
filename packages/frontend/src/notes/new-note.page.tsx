@@ -1,23 +1,23 @@
-// import { http } from "@/lib/http";
-import { AddNoteForm } from "./add-note.form";
-
-// import { AddNoteForm, type AddNoteFormType } from "./add-note.form";
+import { http } from "@/lib/http";
+//import { AddNoteForm } from "./add-note.form";
+import { AddNoteForm, type AddNoteFormType } from "./add-note.form";
 import { useNavigate } from "react-router";
+import type { NewNotesDto } from "@carely/core";
 
-// const addNewNote = (values: AddNoteFormType) =>
-//   http()
-//     .post("/api/notes/new", values)
-//     .then((res) => res.data)
-//     .catch((error) => {
-//       console.error("Error creating note:", error);
-//       throw error;
-//     });
+const addNewNote = (values: NewNotesDto) =>
+   http()
+     .post("/api/notes/new", values)
+     .then((res) => res.data)
+     .catch((error) => {
+       console.error("Error creating note:", error);
+       throw error;
+     });
 
 export default function NewNotePage() {
     const navigate = useNavigate();
-    const handleSubmit = async () => {
-        //   const handleSubmit = async (values: AddNoteFormType) => {
-        // await addNewNote(values);
+    //const handleSubmit = async () => {
+    const handleSubmit = async (values: AddNoteFormType) => {
+        await addNewNote(values);
         // TODO: Handle form submission of data and link to backend API db
         navigate("/notes");
     };

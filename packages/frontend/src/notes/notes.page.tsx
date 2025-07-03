@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { NoteComponent } from "@/components/ui/note-component";
+import { NotesDetails } from "./use-notes-data";
+
 export default function NotesPage() {
 
   return (
@@ -15,6 +17,7 @@ export default function NotesPage() {
       </Link>
       <section className="p-8 mx-auto max-w-2xl">
         <NoteComponent />
+        <NotesDetails />
       </section>
     </>
   );

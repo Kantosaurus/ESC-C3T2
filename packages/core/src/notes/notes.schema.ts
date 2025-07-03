@@ -12,7 +12,14 @@ export const notesSchema = z.object({
         .nullish(),
     created_at: z.date(),
     updated_at: z.date(),
-    created_by: z.string(),
 });
 
 export type Notes = z.infer<typeof notesSchema>;
+
+export const newNotesDtoSchema = notesSchema.pick({
+    elder_name: true,
+    header: true,
+    content: true,
+});
+
+export type NewNotesDto = Pick<Notes, "elder_name" | "header" | "content">;
