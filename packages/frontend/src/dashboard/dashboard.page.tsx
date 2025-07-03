@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import { useEldersDetails } from "@/elder/use-elder-details";
 import { useNavigate } from "react-router-dom";
-import { http } from "@/lib/http";
 import { DashboardCard } from "./dashboard-card";
 import { ElderCard } from "./elder-card";
 import { EmptyState } from "./empty-state";
-import { DashboardLoading } from "./loading";
 import { FocusBento } from "@/components/ui/focus-bento";
 import {
   Navbar,
@@ -21,6 +19,7 @@ import {
   NavbarLogo,
 } from "@/components/ui/resizable-navbar";
 import { useState, useRef, useEffect } from "react";
+import { signOut } from "@/auth/token";
 
 const DashboardPage = () => {
   const { caregiverDetails, isLoading: caregiverLoading } = useCaregiver();
@@ -42,11 +41,6 @@ const DashboardPage = () => {
     console.log("Dashboard - Caregiver Loading:", caregiverLoading);
   }, [elderDetails, eldersLoading, caregiverDetails, caregiverLoading]);
 
-  // Refresh elders data when component mounts or when user navigates back
-  useEffect(() => {
-    refetchElders();
-  }, [refetchElders]);
-
   useEffect(() => {
     if (!avatarDropdownOpen) return;
     function handleClickOutside(event: MouseEvent) {
@@ -64,19 +58,9 @@ const DashboardPage = () => {
   }, [avatarDropdownOpen]);
 
   const handleLogout = async () => {
-    try {
-      await http().post("/api/auth/logout");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    signOut();
+    navigate("/login");
   };
-
-  const isLoading = caregiverLoading || eldersLoading;
-
-  if (isLoading) {
-    return <DashboardLoading />;
-  }
 
   const navItems = [
     { name: "Dashboard", link: "/dashboard" },
@@ -144,22 +128,19 @@ const DashboardPage = () => {
             <div ref={avatarRef} className="relative">
               <div
                 className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
-                onClick={() => setAvatarDropdownOpen((open) => !open)}
-              >
+                onClick={() => setAvatarDropdownOpen((open) => !open)}>
                 {getInitials(caregiverDetails?.name)}
               </div>
               {avatarDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 z-50 py-2">
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={handleLogout}
-                  >
+                    onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2 inline-block" /> Logout
                   </button>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={() => navigate("/caregiver/profile")}
-                  >
+                    onClick={() => navigate("/caregiver/profile")}>
                     <User className="h-4 w-4 mr-2 inline-block" /> Profile
                   </button>
                 </div>
@@ -183,8 +164,7 @@ const DashboardPage = () => {
                   key={index}
                   href={item.link}
                   className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  onClick={() => setMobileMenuOpen(false)}>
                   {item.name}
                 </a>
               ))}
@@ -197,8 +177,7 @@ const DashboardPage = () => {
                     handleLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                >
+                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </button>
@@ -239,8 +218,7 @@ const DashboardPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-800 p-6"
-        >
+          className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-800 p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Your Elders
@@ -250,8 +228,7 @@ const DashboardPage = () => {
                 size="sm"
                 variant="outline"
                 onClick={refetchElders}
-                disabled={eldersLoading}
-              >
+                disabled={eldersLoading}>
                 <RefreshCw
                   className={`h-4 w-4 mr-2 ${
                     eldersLoading ? "animate-spin" : ""
@@ -293,8 +270,7 @@ const DashboardPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-8"
-        >
+          className="mt-8">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Care Resources
