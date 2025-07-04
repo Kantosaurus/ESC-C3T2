@@ -6,11 +6,11 @@ export const caregiverSchema = z.object({
   phone: z
     .string()
     .max(15, "Phone number must be at most 15 characters long")
-    .optional(),
+    .nullish(),
   address: z
     .string()
     .max(255, "Address must be at most 255 characters long")
-    .optional(),
+    .nullish(),
   created_at: z.date(),
   updated_at: z.date(),
 });

@@ -2,7 +2,25 @@ import { elderSchema, NewElderDto } from "@carely/core";
 import z from "zod/v4";
 import { db } from "../db/db";
 
-export const getElderDetails = (caregiverId: string) =>
+export const getElderDetails = (caregiverId: string, elderId: number) =>
+  db
+    .query(
+      `
+		SELECT *
+		FROM elders e
+		INNER JOIN caregiver_elder ce ON e.id = ce.elder_id
+		WHERE ce.caregiver_id = $1 AND e.id = $2;
+		`,
+      [caregiverId, elderId]
+    )
+    .then((result) => {
+      if (result.length === 0) {
+        throw new Error("Elder not found for the given caregiver.");
+      }
+      return elderSchema.parse(result[0]);
+    });
+
+export const getEldersDetails = (caregiverId: string) =>
   db
     .query(
       `

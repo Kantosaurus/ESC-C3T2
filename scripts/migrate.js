@@ -1,4 +1,5 @@
 const { migrate } = require("postgres-migrations");
+const pg = require("pg");
 
 /**
  * Converts a PostgreSQL connection string into a configuration object.
@@ -17,7 +18,7 @@ function connectionStringToConfig(connectionString) {
   };
 }
 
-function runMigrations() {
+async function runMigrations() {
   if (!process.env.POSTGRES_CONNECTION_STRING) {
     throw new Error("POSTGRES_CONNECTION_STRING environment variable not set");
   }
@@ -25,6 +26,9 @@ function runMigrations() {
   const dbConfig = {
     // Build the database configuration from the connection string
     ...connectionStringToConfig(process.env.POSTGRES_CONNECTION_STRING.trim()),
+
+    // Enable SSL if the environment variable is set
+    ssl: process.env.POSTGRES_SSL === "true",
 
     // Default: false for backwards-compatibility
     // This might change!
@@ -35,15 +39,20 @@ function runMigrations() {
     defaultDatabase: "postgres",
   };
 
-  return migrate(dbConfig, "./migrations");
+  const client = new pg.Client(dbConfig);
+  await client.connect();
+
+  return await migrate({ client }, "./migrations");
 }
 
 runMigrations().then(
   (migrations) => {
     console.log("🚀 Migrations completed successfully.");
     console.log("Applied migrations:", migrations);
+    process.exit(0);
   },
   (error) => {
     console.error("Error running migrations:", error);
+    process.exit(1);
   }
 );

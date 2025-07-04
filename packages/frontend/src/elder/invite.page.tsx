@@ -6,6 +6,7 @@ import { elderSchema, getInviteLinkResponseDtoSchema } from "@carely/core";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { useElderDetails } from "./use-elder-details";
 
 const useInviteLink = (elderId: number) => {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
@@ -107,12 +108,37 @@ export function AcceptInvitePage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
+  const elderId = useMemo(() => {
+    if (!token) return null;
+    const payload = atob(atob(decodeURIComponent(token)).split(".")[1]);
+    const sub = JSON.parse(payload).sub;
+    if (!sub || !sub.startsWith("invite-")) return null;
+    return parseInt(sub.split("-")[1], 10);
+  }, [token]);
+
+  const { elderDetails } = useElderDetails(elderId);
+
+  const isAlreadyCaregiver = !!elderDetails;
+
   if (!token) {
     return <section>Error: No token provided in the URL.</section>;
   }
 
   if (!caregiverDetails) {
     return <section>Loading...</section>;
+  }
+
+  if (isAlreadyCaregiver) {
+    return (
+      <section
+        className="w-screen h-screen flex flex-col items-center justify-center gap-
+4 p-8">
+        <h2 className="text-2xl font-bold mb-4">
+          You are already a caregiver for {elderDetails.name}.
+        </h2>
+        <Button onClick={() => navigate("/dashboard")}>Go to Dashboard</Button>
+      </section>
+    );
   }
 
   return (
@@ -122,6 +148,7 @@ export function AcceptInvitePage() {
       </h2>
       <h1 className="text-4xl font-bold">Accept Invite</h1>
       <Button
+        disabled={isAlreadyCaregiver}
         onClick={() => {
           acceptInvite(token).then(
             () => {
