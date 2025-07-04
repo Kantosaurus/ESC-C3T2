@@ -1,15 +1,10 @@
-import { z } from "zod";
-
-const datetimeString = z.string().refine((val) => !isNaN(Date.parse(val)), {
-  message: "Invalid datetime format",
-});
+import z from "zod/v4";
 
 export const appointmentSchema = z.object({
-  id: z.string(),
-  elder_id: z.number(),
-  startDateTime: datetimeString,
-  endDateTime: datetimeString,
-  details: z.string(),
+  elder_id: z.coerce.number(),
+  startDateTime: z.coerce.date(),
+  endDateTime: z.coerce.date(),
+  details: z.string().nullish(),
 });
 
-export type appointment = z.infer<typeof appointmentSchema>;
+export type Appointment = z.infer<typeof appointmentSchema>;

@@ -1,9 +1,8 @@
 CREATE TABLE appointments (
-  id TEXT PRIMARY KEY,
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   elder_id INT NOT NULL,
-  startDateTime DATETIME,
-  endDateTime DATETIME,
-  title TEXT NOT NULL,
+  startDateTime TIMESTAMP,
+  endDateTime TIMESTAMP,
   details TEXT,
   FOREIGN KEY (elder_id) REFERENCES elders(id)
 );

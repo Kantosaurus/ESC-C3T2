@@ -2,17 +2,33 @@ import { useState } from "react";
 import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
-import CalendarForm from "@/components/ui/calendarform";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { useEldersDetails } from "@/elder/use-elder-details";
+import type { Elder } from "@carely/core";
+import { AppointmentForm, type AppointmentFormType } from "./appointment.form";
+import { useCreateAppointment, useGetAppointments } from "./use-appointment";
 
 export default function Calendarview() {
   const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
   const [currDate, setCurrDate] = useState(new Date());
-  const [showForm, setShowForm] = useState(false);
-  const [formDate, setFormDate] = useState<Date | null>(null);
   const [viewDate, setViewDate] = useState<Date | null>(null);
-  const [appointments, setAppointments] = useState<
-    { title: string; time: string; date: Date; details?: string }[]
-  >([]);
+  const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
+  const { elderDetails, error, isLoading } = useEldersDetails();
+
+  const [showForm, setShowForm] = useState(false);
+
+  const {
+    appointments,
+    error: appointmentsError,
+    isLoading: appointmentsLoading,
+  } = useGetAppointments(selectedElder?.id || null);
 
   const year = currDate.getFullYear();
   const month = currDate.getMonth();
@@ -21,15 +37,6 @@ export default function Calendarview() {
   const today = new Date();
 
   const calCells = [];
-
-  const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter(
-      (appt) =>
-        appt.date.getFullYear() === date.getFullYear() &&
-        appt.date.getMonth() === date.getMonth() &&
-        appt.date.getDate() === date.getDate()
-    );
-  };
 
   for (let i = 0; i < firstDay; i++) {
     calCells.push(<CalendarCell variant="empty" key={`empty-${i}`} />);
@@ -42,13 +49,19 @@ export default function Calendarview() {
       year === today.getFullYear();
     const cellDate = new Date(year, month, day);
 
+    const hasAppointments = appointments?.some((appointment) => {
+      const appointmentDate = new Date(appointment.startDateTime);
+      return appointmentDate.toDateString() === cellDate.toDateString();
+    });
+
     calCells.push(
       <CalendarCell
         variant={isToday ? "today" : "default"}
-        interactive
+        hasEvent={hasAppointments ? true : false}
         key={day}
         onClick={() => {
           setViewDate(cellDate);
+          setShowForm(false);
         }}
       >
         {day}
@@ -59,21 +72,70 @@ export default function Calendarview() {
   const prevMonth = () => setCurrDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrDate(new Date(year, month + 1, 1));
 
+  const addAppointment = useCreateAppointment();
+
+  const handleAppointmentSubmit = async (values: AppointmentFormType) => {
+    try {
+      await addAppointment(values);
+      setShowForm(false);
+      setViewDate(null);
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+    }
+  };
+
+  const selectedDateAppointments =
+    viewDate && appointments
+      ? appointments.filter((appointment) => {
+          const appointmentDate = new Date(appointment.startDateTime);
+          return appointmentDate.toDateString() === viewDate.toDateString();
+        })
+      : [];
+
   return (
     <>
       <section className="bg-blue-100 text-blue-800">
         <div className="mx-auto max-w-2xl p-8">
           <h1 className="text-2xl font-bold mb-2">🗓️ Calendar</h1>
-          <p>Manage and view your appointments here</p>
-          <Button
-            onClick={() => {
-              setFormDate(null);
-              setShowForm(true);
-            }}
-            className="mt-4"
-          >
-            + Add Appointment
-          </Button>
+          <p>View and add appointments here</p>
+
+          <div className="mt-6">
+            <label
+              htmlFor="elder-select"
+              className="block text-sm font-medium mb-2"
+            >
+              Select Elder:
+            </label>
+            {isLoading ? (
+              <div className="w-full max-w-xs bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2">
+                Loading elders...
+              </div>
+            ) : error ? (
+              <div className="w-full max-w-xs bg-red-50 text-red-600 border border-red-300 rounded-md px-3 py-2">
+                Error: {error}
+              </div>
+            ) : (
+              <Select
+                onValueChange={(value) => {
+                  const elderObj = elderDetails?.find(
+                    (elder) => elder.id.toString() === value
+                  );
+                  setSelectedElder(elderObj || null);
+                }}
+              >
+                <SelectTrigger className="w-full max-w-xs bg-white text-gray-900">
+                  <SelectValue placeholder="Choose an elder..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {elderDetails?.map((elder) => (
+                    <SelectItem key={elder.id} value={elder.id.toString()}>
+                      {elder.name} (ID: {elder.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         </div>
       </section>
 
@@ -103,74 +165,70 @@ export default function Calendarview() {
             {calCells}
           </div>
 
-          {showForm && (
-            <CalendarForm
-              initialDate={formDate}
-              onSave={({ title, time, date, details }) => {
-                const apptDate = new Date(`${date}T${time}`);
-                setAppointments((prev) => [
-                  ...prev,
-                  { title, time, date: apptDate, details },
-                ]);
-                setShowForm(false);
-                setViewDate(apptDate);
-              }}
-              onCancel={() => {
-                setFormDate(null);
-                setShowForm(false);
-              }}
-            />
-          )}
-
-          {viewDate && (
-            <div className="mt-4">
-              <h3 className="font-semibold">
-                Appointments for {viewDate.toDateString()}
+          {viewDate && selectedElder && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-lg mb-2">
+                Selected Date: {viewDate.toDateString()}
               </h3>
-              {getAppointmentsForDate(viewDate).length > 0 ? (
-                <ul className="space-y-2 mt-2">
-                  {getAppointmentsForDate(viewDate).map((appt, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center bg-gray-100 p-2 rounded"
-                    >
-                      <div>
-                        🕒 {appt.time} — {appt.title}
-                        {appt.details && (
-                          <div className="text-sm text-gray-600">
-                            {appt.details}
+
+              {appointmentsLoading && (
+                <div className="mb-4 p-3 bg-gray-50 rounded">
+                  Loading appointments...
+                </div>
+              )}
+
+              {appointmentsError && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded">
+                  Error loading appointments: {appointmentsError}
+                </div>
+              )}
+
+              {selectedDateAppointments.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">Existing Appointments:</h4>
+                  <div className="space-y-2">
+                    {selectedDateAppointments.map((appointment, index) => {
+                      const startTime = new Date(
+                        appointment.startDateTime
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                      const endTime = new Date(
+                        appointment.endDateTime
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+
+                      return (
+                        <div key={index} className="p-3 bg-gray-50 rounded">
+                          <div className="font-medium">
+                            {startTime} - {endTime}
                           </div>
-                        )}
-                      </div>
-                      <div className="space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setFormDate(appt.date);
-                            setShowForm(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setAppointments((prev) =>
-                              prev.filter((_, i) => i !== index)
-                            );
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 italic">
-                  No appointments for this date.
-                </p>
+                          <div className="text-sm text-gray-600">
+                            {appointment.details}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {showForm && viewDate && selectedElder && (
+                <AppointmentForm
+                  selectedDate={viewDate}
+                  elder_id={selectedElder.id}
+                  elder_name={selectedElder.name}
+                  onSubmit={handleAppointmentSubmit}
+                />
+              )}
+
+              {!showForm && (
+                <Button onClick={() => setShowForm(true)}>
+                  Add Appointment
+                </Button>
               )}
             </div>
           )}

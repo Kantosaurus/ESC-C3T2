@@ -1,32 +1,41 @@
 import { db } from "../db/db";
-import { appointment, appointmentSchema } from "@carely/core";
-import { z } from "zod";
+import { Appointment, appointmentSchema } from "@carely/core";
+import z from "zod/v4";
 
 export const insertAppointment = (
   appt: Pick<
-    appointment,
-    "id" | "elder_id" | "startDateTime" | "endDateTime" | "details"
+    Appointment,
+    "elder_id" | "startDateTime" | "endDateTime" | "details"
   >
 ) =>
   db
     .query(
-      `INSERT INTO appointments (id, elder_id, startDateTime, endDateTime, details)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [
-        appt.id,
-        appt.elder_id,
-        appt.startDateTime,
-        appt.endDateTime,
-        appt.details,
-      ]
+      `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details`,
+      [appt.elder_id, appt.startDateTime, appt.endDateTime, appt.details]
     )
-    .then((res) => appointmentSchema.parse(res[0]));
+    .then((result) => {
+      console.log("Insert Appointment:", result);
+      const rows = result.rows || result;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        throw new Error("Invalid format");
+      }
+      return appointmentSchema.parse(rows[0]);
+    });
 
-export const getAppointmentsForElder = (elderId: number) =>
+export const getAppointmentsForElder = (elder_id: number) =>
   db
     .query(
-      `SELECT * FROM appointments WHERE elder_id = $1 ORDER BY startDateTime ASC`,
-      [elderId]
+      `SELECT id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details
+      FROM appointments
+      WHERE elder_id = $1;`,
+      [elder_id]
     )
-    .then((res) => z.array(appointmentSchema).parse(res));
+    .then((result) => {
+      const rows = result.rows || result;
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid format");
+      }
+      return z.array(appointmentSchema).parse(rows);
+    });
