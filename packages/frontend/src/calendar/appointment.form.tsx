@@ -19,80 +19,78 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 
 const appointmentFormSchema = z.object({
-  startDateTime: z.string(),
-  endDateTime: z.string(),
+  startDateTime: z.coerce.date(),
+  endDateTime: z.coerce.date(),
   details: appointmentSchema.shape.details.unwrap().unwrap().optional(),
   elder_id: appointmentSchema.shape.elder_id,
 });
 
 export type AppointmentFormType = z.infer<typeof appointmentFormSchema>;
+export type AppointmentFormInput = z.input<typeof appointmentFormSchema>;
+
+//every 5 mins frrom 6am to 10pm
+const generateTimeOptions = () => {
+  const times = [];
+  for (let hour = 6; hour <= 22; hour++) {
+    for (let minute = 0; minute < 60; minute += 5) {
+      const timeString = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+      const displayTime = new Date(2000, 0, 1, hour, minute).toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }
+      );
+      times.push({ value: timeString, display: displayTime });
+    }
+  }
+  return times;
+};
+
+const timeOptions = generateTimeOptions();
+
+//default time values
+const defaultStart = "9:00";
+const defaultEnd = "10:00";
+
+// create string
+const constructISOString = (date: Date, timeString: string): string => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const newDate = new Date(date);
+  newDate.setHours(hours, minutes, 0, 0);
+  return newDate.toISOString();
+};
+
+// get time
+const extractTimeFromISO = (isoString: string): string => {
+  if (!isoString) return defaultStart;
+  const date = new Date(isoString);
+  return `${date.getHours().toString().padStart(2, "0")}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
+};
 
 export function AppointmentForm({
-  defaultValues = { details: "" },
+  defaultValues,
   selectedDate,
   elder_id,
   elder_name,
   onSubmit,
 }: {
-  defaultValues?: Partial<AppointmentFormType>;
+  defaultValues?: AppointmentFormType;
   selectedDate?: Date | null;
   elder_id?: number;
   elder_name?: string;
   onSubmit: (values: AppointmentFormType) => Promise<void>;
 }) {
-  const form = useForm<AppointmentFormType>({
+  const form = useForm<AppointmentFormInput, unknown, AppointmentFormType>({
+    defaultValues: defaultValues,
     resolver: zodResolver(appointmentFormSchema),
-    defaultValues: { ...defaultValues },
   });
-
-  //every 5 mins frrom 6am to 10pm
-  const generateTimeOptions = () => {
-    const times = [];
-    for (let hour = 6; hour <= 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 5) {
-        const timeString = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        const displayTime = new Date(
-          2000,
-          0,
-          1,
-          hour,
-          minute
-        ).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
-        times.push({ value: timeString, display: displayTime });
-      }
-    }
-    return times;
-  };
-
-  const timeOptions = generateTimeOptions();
-
-  //default time values
-  const defaultStart = "9:00";
-  const defaultEnd = "10:00";
-
-  // create string
-  const constructISOString = (date: Date, timeString: string): string => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    const newDate = new Date(date);
-    newDate.setHours(hours, minutes, 0, 0);
-    return newDate.toISOString();
-  };
-
-  // get time
-  const extractTimeFromISO = (isoString: string): string => {
-    if (!isoString) return defaultStart;
-    const date = new Date(isoString);
-    return `${date.getHours().toString().padStart(2, "0")}:${date
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   useEffect(() => {
     if (selectedDate) {
@@ -124,8 +122,7 @@ export function AppointmentForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mt-4 p-4 border rounded bg-white shadow space-y-4"
-      >
+        className="mt-4 p-4 border rounded bg-white shadow space-y-4">
         <div className="space-y-2">
           <Label>Elder</Label>
           <div className="p-2 border rounded bg-gray-50">
@@ -145,97 +142,98 @@ export function AppointmentForm({
         <FormField
           control={form.control}
           name="startDateTime"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Time</FormLabel>
-              <FormControl>
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    Selected:{" "}
-                    {selectedDate && field.value
-                      ? new Date(field.value).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })
-                      : "No time selected"}
-                  </div>
-                  <ScrollArea className="h-32 border rounded p-2">
-                    <div className="space-y-1">
-                      {timeOptions.map((time) => (
-                        <div
-                          key={time.value}
-                          className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                            field.value &&
-                            extractTimeFromISO(field.value) === time.value
-                              ? "bg-blue-100 border-blue-300"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handleTimeChange("startDateTime", time.value)
-                          }
-                        >
-                          {time.display}
-                        </div>
-                      ))}
+          render={({ field }) => {
+            const asDate = z.coerce.date().optional().parse(field.value);
+            return (
+              <FormItem>
+                <FormLabel>Start Time</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-600">
+                      Selected:{" "}
+                      {asDate?.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }) ?? "No time selected"}
                     </div>
-                  </ScrollArea>
-                </div>
-              </FormControl>
-              <FormDescription>
-                Select the appointment start time.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+                    <ScrollArea className="h-32 border rounded p-2">
+                      <div className="space-y-1">
+                        {timeOptions.map((time) => (
+                          <div
+                            key={time.value}
+                            className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                              extractTimeFromISO(field.value as string) ===
+                              time.value
+                                ? "bg-blue-100 border-blue-300"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              handleTimeChange("startDateTime", time.value)
+                            }>
+                            {time.display}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  Select the appointment start time.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField
           control={form.control}
           name="endDateTime"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Time</FormLabel>
-              <FormControl>
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    Selected:{" "}
-                    {selectedDate && field.value
-                      ? new Date(field.value).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })
-                      : "No time selected"}
-                  </div>
-                  <ScrollArea className="h-32 border rounded p-2">
-                    <div className="space-y-1">
-                      {timeOptions.map((time) => (
-                        <div
-                          key={time.value}
-                          className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                            field.value &&
-                            extractTimeFromISO(field.value) === time.value
-                              ? "bg-blue-100 border-blue-300"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handleTimeChange("endDateTime", time.value)
-                          }
-                        >
-                          {time.display}
-                        </div>
-                      ))}
+          render={({ field }) => {
+            const asDate = z.coerce.date().optional().parse(field.value);
+            return (
+              <FormItem>
+                <FormLabel>End Time</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-600">
+                      Selected:{" "}
+                      {asDate?.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }) ?? "No time selected"}
                     </div>
-                  </ScrollArea>
-                </div>
-              </FormControl>
-              <FormDescription>
-                Select the appointment end time.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+                    <ScrollArea className="h-32 border rounded p-2">
+                      <div className="space-y-1">
+                        {timeOptions.map((time) => (
+                          <div
+                            key={time.value}
+                            className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                              field.value &&
+                              extractTimeFromISO(field.value as string) ===
+                                time.value
+                                ? "bg-blue-100 border-blue-300"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              handleTimeChange("endDateTime", time.value)
+                            }>
+                            {time.display}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  Select the appointment end time.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField
@@ -262,8 +260,7 @@ export function AppointmentForm({
             !form.formState.isDirty ||
             !elder_id ||
             !selectedDate
-          }
-        >
+          }>
           {form.formState.isSubmitting ? "Creating..." : "Create Appointment"}
         </Button>
       </form>
