@@ -52,7 +52,7 @@ see [docs/tech-stack.md](./docs/tech-stack.md) for a more detailed overview of o
 
 2. Set up environment variables:
 
-   - Copy `.env.example` to `.env` in both frontend and backend packages
+   - Copy `.env.example` to `.env` in the root directory.
    - Fill in the required environment variables
 
 3. Start the development environment:
