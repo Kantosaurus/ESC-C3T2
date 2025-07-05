@@ -37,7 +37,8 @@ export default function LoginPage() {
                   .catch((err) => {
                     console.error("Failed to get Singpass auth URL:", err);
                   })
-              }>
+              }
+            >
               Login with Singpass
             </Button>
           </div>

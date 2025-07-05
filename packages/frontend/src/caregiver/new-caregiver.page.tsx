@@ -1,7 +1,8 @@
 import { http } from "@/lib/http";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback } from "react";
-import { useAfter } from "@/lib/use-after";
+import { useNavigate } from "react-router";
+import NewForm from "@/components/ui/new-form";
 
 function useNewCaregiver() {
   return useCallback((values: CaregiverFormType) => {
@@ -17,31 +18,21 @@ function useNewCaregiver() {
 
 export default function NewCaregiverPage() {
   const createNewCaregiver = useNewCaregiver();
-  const after = useAfter();
+  const navigate = useNavigate();
 
   const handleSubmit = useCallback(
     (values: CaregiverFormType) =>
       createNewCaregiver(values).then(() => {
-        after();
+        navigate("/dashboard");
       }),
-    [after, createNewCaregiver]
+    [navigate, createNewCaregiver]
   );
 
   return (
-    <>
-      <section className="bg-teal-100 text-teal-800">
-        <div className="mx-auto max-w-2xl p-8">
-          <h1 className="text-2xl font-bold mb-2">🏃‍♂️ New Caregiver Profile</h1>
-          <p>
-            Let us know more about you so we can better assist you in your
-            caregiving journey.
-          </p>
-        </div>
-      </section>
-
-      <section className="p-8 mx-auto max-w-2xl">
-        <CaregiverForm onSubmit={handleSubmit} />
-      </section>
-    </>
+    <NewForm
+      title="Create Your Caregiver Profile"
+      description="Let's create your profile so we can provide you with the best support and resources for your caregiving role."
+      body={<CaregiverForm onSubmit={handleSubmit} />}
+    />
   );
 }
