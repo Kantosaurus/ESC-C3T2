@@ -44,25 +44,21 @@ export default function EditElderPage() {
   const handleSubmit = async (values: ElderFormType) => {
     if (!elderId) return;
     try {
-      let addressDetails = values.address_details;
       // If address_details exists but no lat/lng, geocode
       if (
-        addressDetails &&
-        (addressDetails.latitude == null || addressDetails.longitude == null)
+        values.street_address &&
+        (values.latitude == null || values.longitude == null)
       ) {
-        const coords = await geocodeAddress(values.address);
+        const coords = await geocodeAddress(values.street_address);
         if (coords) {
-          addressDetails = {
-            ...addressDetails,
+          values = {
+            ...values,
             latitude: coords.latitude,
             longitude: coords.longitude,
           };
         }
       }
-      await updateElder(Number(elderId), {
-        ...values,
-        address_details: addressDetails,
-      });
+      await updateElder(Number(elderId), values);
       navigate(`/elder/${elderId}/profile`);
     } catch (error) {
       console.error("Failed to update elder:", error);
@@ -101,16 +97,19 @@ export default function EditElderPage() {
       .toISOString()
       .split("T")[0],
     gender: elderDetails.gender,
-    phone: elderDetails.phone || "",
-    address: elderDetails.address,
-    address_details: elderDetails.address_details,
+    phone: elderDetails.phone ?? undefined,
+    street_address: elderDetails.street_address ?? undefined,
+    unit_number: elderDetails.unit_number ?? undefined,
+    postal_code: elderDetails.postal_code ?? undefined,
+    latitude: elderDetails.latitude ?? undefined,
+    longitude: elderDetails.longitude ?? undefined,
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
@@ -120,7 +119,7 @@ export default function EditElderPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Profile
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900">
               Edit Elder Profile
             </h1>
           </div>

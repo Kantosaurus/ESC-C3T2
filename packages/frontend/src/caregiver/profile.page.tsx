@@ -5,7 +5,6 @@ import { useCallback, useState } from "react";
 import { http } from "@/lib/http";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { motion } from "motion/react";
 import {
   Calendar,
   Phone,
@@ -17,6 +16,7 @@ import {
   Clock,
   Star,
 } from "lucide-react";
+import Card from "@/components/ui/card";
 
 export default function ProfilePage() {
   const { caregiverDetails, isLoading: caregiverLoading } = useCaregiver();
@@ -44,7 +44,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your profile...</p>
         </div>
       </div>
@@ -71,8 +71,11 @@ export default function ProfilePage() {
       ? new Date(caregiverDetails.date_of_birth).toISOString().slice(0, 10)
       : "",
     phone: caregiverDetails.phone ?? undefined,
-    address: caregiverDetails.address ?? undefined,
-    address_details: caregiverDetails.address_details ?? undefined,
+    street_address: caregiverDetails.street_address ?? "",
+    postal_code: caregiverDetails.postal_code ?? "",
+    unit_number: caregiverDetails.unit_number ?? "",
+    longitude: caregiverDetails.longitude ?? undefined,
+    latitude: caregiverDetails.latitude ?? undefined,
   };
 
   // Helper functions
@@ -147,14 +150,10 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Overview Card */}
           <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+            <Card>
               {/* Profile Header */}
               <div className="text-center mb-6">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary flex items-center justify-center text-white text-4xl font-bold">
                   {getInitials(caregiverDetails.name)}
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-1">
@@ -173,7 +172,7 @@ export default function ProfilePage() {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
-                    <Users className="h-5 w-5 text-blue-600 mr-3" />
+                    <Users className="h-5 w-5 text-primary mr-3" />
                     <span className="text-gray-700">Elders in Care</span>
                   </div>
                   <span className="font-semibold text-gray-900">
@@ -212,52 +211,28 @@ export default function ProfilePage() {
 
                 {caregiverDetails.phone && (
                   <div className="flex items-center text-gray-600">
-                    <Phone className="h-4 w-4 mr-3 text-blue-600" />
+                    <Phone className="h-4 w-4 mr-3 text-primary" />
                     <span>{caregiverDetails.phone}</span>
                   </div>
                 )}
 
-                {caregiverDetails.address && (
+                {caregiverDetails.street_address && (
                   <div className="flex items-start text-gray-600">
-                    <MapPin className="h-4 w-4 mr-3 text-blue-600 mt-0.5" />
-                    <span className="text-sm">{caregiverDetails.address}</span>
-                  </div>
-                )}
-
-                {caregiverDetails.address_details && (
-                  <div className="flex items-start text-gray-600">
-                    <MapPin className="h-4 w-4 mr-3 text-green-600 mt-0.5" />
-                    <div className="text-sm">
-                      <div>
-                        {caregiverDetails.address_details.street_address}
-                      </div>
-                      {caregiverDetails.address_details.unit_number && (
-                        <div>
-                          Unit {caregiverDetails.address_details.unit_number}
-                        </div>
-                      )}
-                      <div>
-                        {caregiverDetails.address_details.city},{" "}
-                        {caregiverDetails.address_details.state}{" "}
-                        {caregiverDetails.address_details.postal_code}
-                      </div>
-                      <div>{caregiverDetails.address_details.country}</div>
-                    </div>
+                    <MapPin className="h-4 w-4 mr-3 text-primary mt-0.5" />
+                    <span className="text-sm">
+                      {caregiverDetails.street_address}
+                    </span>
                   </div>
                 )}
               </div>
-            </motion.div>
+            </Card>
           </div>
 
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Edit Form or Elders List */}
             {isEditing ? (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              <Card delay={0.1}>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   Edit Profile
                 </h3>
@@ -276,15 +251,11 @@ export default function ProfilePage() {
                   onSubmit={handleSubmit}
                   submitLabel="Update Profile"
                 />
-              </motion.div>
+              </Card>
             ) : (
               <>
                 {/* Elders in Care Section */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <Card delay={0.1}>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <Heart className="h-6 w-6 text-red-500 mr-3" />
@@ -295,7 +266,7 @@ export default function ProfilePage() {
                     <Button
                       onClick={() => navigate("/elder/new")}
                       size="sm"
-                      className="bg-blue-600 hover:bg-blue-700">
+                      className="bg-primary hover:bg-blue-700">
                       Add Elder
                     </Button>
                   </div>
@@ -303,21 +274,14 @@ export default function ProfilePage() {
                   {elderDetails && elderDetails.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {elderDetails.map((elder, index) => (
-                        <motion.div
-                          key={elder.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.5,
-                            delay: 0.1 + index * 0.1,
-                          }}
-                          className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 hover:shadow-md transition-shadow cursor-pointer"
+                        <Card
+                          delay={0.1 + index * 0.05}
                           onClick={() =>
                             navigate(`/elder/${elder.id}/profile`)
                           }>
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold mr-3">
+                              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold mr-3">
                                 {getInitials(elder.name)}
                               </div>
                               <div>
@@ -344,16 +308,16 @@ export default function ProfilePage() {
                                 {elder.phone}
                               </div>
                             )}
-                            {elder.address && (
+                            {elder.street_address && (
                               <div className="flex items-start">
                                 <MapPin className="h-3 w-3 mr-2 mt-0.5" />
                                 <span className="line-clamp-2">
-                                  {elder.address}
+                                  {elder.street_address}
                                 </span>
                               </div>
                             )}
                           </div>
-                        </motion.div>
+                        </Card>
                       ))}
                     </div>
                   ) : (
@@ -368,19 +332,15 @@ export default function ProfilePage() {
                       </p>
                       <Button
                         onClick={() => navigate("/elder/new")}
-                        className="bg-blue-600 hover:bg-blue-700">
+                        className="bg-primary hover:bg-blue-700">
                         Add Your First Elder
                       </Button>
                     </div>
                   )}
-                </motion.div>
+                </Card>
 
                 {/* Caregiving Statistics */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <Card delay={0.2}>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <Star className="h-6 w-6 text-yellow-500 mr-3" />
                     Caregiving Statistics
@@ -388,7 +348,7 @@ export default function ProfilePage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                      <div className="text-2xl font-bold text-primary mb-1">
                         {elderDetails?.length || 0}
                       </div>
                       <div className="text-sm text-blue-700">Total Elders</div>
@@ -459,7 +419,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   )}
-                </motion.div>
+                </Card>
               </>
             )}
           </div>

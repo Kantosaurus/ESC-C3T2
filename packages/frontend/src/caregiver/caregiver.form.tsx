@@ -1,8 +1,7 @@
-import { caregiverSchema, addressSchema, type Address } from "@carely/core";
+import { caregiverSchema } from "@carely/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AddressForm } from "@/components/ui/address-form";
+import { Loader } from "lucide-react";
 
 const caregiverFormSchema = z.object({
   name: caregiverSchema.shape.name,
@@ -28,8 +28,14 @@ const caregiverFormSchema = z.object({
       "Phone number must be exactly 8 digits and start with 9, 8, or 6"
     )
     .optional(),
-  address: caregiverSchema.shape.address.unwrap().unwrap().optional(),
-  address_details: addressSchema.partial().optional(),
+  street_address: caregiverSchema.shape.street_address
+    .unwrap()
+    .unwrap()
+    .optional(),
+  unit_number: caregiverSchema.shape.unit_number.unwrap().unwrap().optional(),
+  postal_code: caregiverSchema.shape.postal_code.unwrap().unwrap().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export type CaregiverFormType = z.infer<typeof caregiverFormSchema>;
@@ -43,46 +49,11 @@ export function CaregiverForm({
   onSubmit: (values: CaregiverFormType) => Promise<void>;
   submitLabel?: string;
 }) {
-  const [isVisible, setIsVisible] = useState(false);
   const form = useForm<CaregiverFormType>({
     resolver: zodResolver(caregiverFormSchema),
     defaultValues,
     mode: "onChange",
   });
-
-  useEffect(() => {
-    // Trigger entrance animation after component mounts
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleAddressChange = (
-    addressDetails: Partial<Address> | undefined | null
-  ) => {
-    if (!addressDetails) {
-      form.setValue("address_details", undefined);
-      form.setValue("address", undefined);
-      return;
-    }
-
-    form.setValue("address_details", addressDetails);
-
-    // Also update the legacy address field for backward compatibility
-    if (addressDetails) {
-      const fullAddress = [
-        addressDetails.street_address,
-        addressDetails.unit_number,
-        addressDetails.city,
-        addressDetails.state,
-        addressDetails.postal_code,
-        addressDetails.country,
-      ]
-        .filter(Boolean)
-        .join(", ");
-
-      form.setValue("address", fullAddress);
-    }
-  };
 
   return (
     <Form {...form}>
@@ -92,22 +63,10 @@ export function CaregiverForm({
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem
-                className={`transition-all duration-700 ease-out ${
-                  isVisible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "100ms" }}>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Full Name
-                </FormLabel>
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter your full name"
-                    className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-                    {...field}
-                  />
+                  <Input placeholder="Enter your full name" {...field} />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   This is the name that will be displayed in the app. You may
@@ -122,20 +81,11 @@ export function CaregiverForm({
             control={form.control}
             name="date_of_birth"
             render={({ field }) => (
-              <FormItem
-                className={`transition-all duration-700 ease-out ${
-                  isVisible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "120ms" }}>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Date of Birth
-                </FormLabel>
+              <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
                   <Input
                     type="date"
-                    className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}
                   />
@@ -149,16 +99,8 @@ export function CaregiverForm({
             control={form.control}
             name="gender"
             render={({ field }) => (
-              <FormItem
-                className={`transition-all duration-700 ease-out ${
-                  isVisible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "140ms" }}>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Gender
-                </FormLabel>
+              <FormItem>
+                <FormLabel>Gender</FormLabel>
                 <FormControl>
                   <div className="flex gap-3">
                     {[
@@ -166,20 +108,16 @@ export function CaregiverForm({
                       { value: "female", label: "Female" },
                       { value: "other", label: "Other" },
                     ].map((option) => (
-                      <button
+                      <Button
                         key={option.value}
                         type="button"
-                        className={`px-6 py-2 rounded-lg border text-base font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
-                          ${
-                            field.value === option.value
-                              ? "bg-blue-600 text-white border-blue-600 shadow"
-                              : "bg-white text-gray-700 border-gray-200 hover:bg-blue-50"
-                          }
-                        `}
+                        variant={
+                          field.value === option.value ? "default" : "outline"
+                        }
                         aria-pressed={field.value === option.value}
                         onClick={() => field.onChange(option.value)}>
                         {option.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </FormControl>
@@ -192,22 +130,10 @@ export function CaregiverForm({
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem
-                className={`transition-all duration-700 ease-out ${
-                  isVisible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "200ms" }}>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Phone Number
-                </FormLabel>
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter your phone number"
-                    className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-                    {...field}
-                  />
+                  <Input placeholder="Enter your phone number" {...field} />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   Optional. We will use this to contact you only in case of
@@ -218,37 +144,11 @@ export function CaregiverForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="address_details"
-            render={({ field }) => (
-              <FormItem
-                className={`transition-all duration-700 ease-out ${
-                  isVisible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "300ms" }}>
-                <FormControl>
-                  <AddressForm
-                    value={field.value}
-                    onChange={handleAddressChange}
-                  />
-                </FormControl>
-                <FormDescription className="text-gray-500 text-sm mt-2">
-                  Enter your address details. You can start typing to get
-                  suggestions from Google Maps.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <AddressForm />
         </div>
 
         <div
-          className={`pt-8 border-t border-gray-200/60 transition-all duration-700 ease-out ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`pt-8 border-t border-gray-200/60 transition-all duration-700`}
           style={{ transitionDelay: "400ms" }}>
           <Button
             type="submit"
@@ -257,26 +157,11 @@ export function CaregiverForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed rounded-xl">
+            className="w-full h-14 text-base font-semibold rounded-xl">
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Creating Profile...</span>
+                <Loader className="animate-spin h-5 w-5" />
+                <span>Submitting...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">

@@ -39,8 +39,11 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
       date_of_birth: true,
       gender: true,
       phone: true,
-      address: true,
-      address_details: true,
+      street_address: true,
+      unit_number: true,
+      postal_code: true,
+      latitude: true,
+      longitude: true,
     })
     .parse(req.body);
 
@@ -70,8 +73,11 @@ export const updateCaregiverSelfHandler = authenticated(async (req, res) => {
       date_of_birth: true,
       gender: true,
       phone: true,
-      address: true,
-      address_details: true,
+      street_address: true,
+      unit_number: true,
+      postal_code: true,
+      latitude: true,
+      longitude: true,
     })
     .parse(req.body);
 

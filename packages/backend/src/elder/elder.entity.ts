@@ -47,10 +47,10 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
     .query(
       `
         INSERT INTO elders (
-          name, date_of_birth, gender, phone, address,
-          street_address, unit_number, postal_code, city, state, country, latitude, longitude
+          name, date_of_birth, gender, phone,
+          street_address, unit_number, postal_code, latitude, longitude
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *;
       `,
       [
@@ -58,15 +58,11 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
         elderData.date_of_birth,
         elderData.gender,
         elderData.phone,
-        elderData.address,
-        elderData.address_details?.street_address || null,
-        elderData.address_details?.unit_number || null,
-        elderData.address_details?.postal_code || null,
-        elderData.address_details?.city || null,
-        elderData.address_details?.state || null,
-        elderData.address_details?.country || null,
-        elderData.address_details?.latitude || null,
-        elderData.address_details?.longitude || null,
+        elderData.street_address || null,
+        elderData.unit_number || null,
+        elderData.postal_code || null,
+        elderData.latitude || null,
+        elderData.longitude || null,
       ]
     )
     .then((result) => {
@@ -101,17 +97,13 @@ export const updateElder = (elderId: number, elderData: NewElderDto) =>
           date_of_birth = $2, 
           gender = $3, 
           phone = $4, 
-          address = $5,
-          street_address = $6, 
-          unit_number = $7, 
-          postal_code = $8, 
-          city = $9, 
-          state = $10, 
-          country = $11, 
-          latitude = $12, 
-          longitude = $13,
+          street_address = $5, 
+          unit_number = $6, 
+          postal_code = $7,
+          latitude = $8, 
+          longitude = $9,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $14
+        WHERE id = $10
         RETURNING *;
       `,
       [
@@ -119,15 +111,11 @@ export const updateElder = (elderId: number, elderData: NewElderDto) =>
         elderData.date_of_birth,
         elderData.gender,
         elderData.phone,
-        elderData.address,
-        elderData.address_details?.street_address || null,
-        elderData.address_details?.unit_number || null,
-        elderData.address_details?.postal_code || null,
-        elderData.address_details?.city || null,
-        elderData.address_details?.state || null,
-        elderData.address_details?.country || null,
-        elderData.address_details?.latitude || null,
-        elderData.address_details?.longitude || null,
+        elderData.street_address || null,
+        elderData.unit_number || null,
+        elderData.postal_code || null,
+        elderData.latitude || null,
+        elderData.longitude || null,
         elderId,
       ]
     )

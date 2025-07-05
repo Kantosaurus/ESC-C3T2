@@ -1,6 +1,6 @@
+import Card from "@/components/ui/card";
 import type { Elder } from "@carely/core";
 import { User, Calendar, MapPin, Phone } from "lucide-react";
-import { motion } from "motion/react";
 
 interface ElderCardProps {
   elder: Elder;
@@ -25,21 +25,8 @@ export const ElderCard = ({ elder, onClick, delay = 0 }: ElderCardProps) => {
     return age;
   };
 
-  const formatAddress = (address: string) => {
-    if (!address) return "No address provided";
-    return address.length > 50 ? address.substring(0, 50) + "..." : address;
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      className={`bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-6 hover:shadow-lg transition-all duration-200 ${
-        onClick ? "cursor-pointer hover:scale-[1.02]" : ""
-      }`}
-      onClick={onClick}
-    >
+    <Card onClick={onClick} delay={delay}>
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
@@ -65,7 +52,7 @@ export const ElderCard = ({ elder, onClick, delay = 0 }: ElderCardProps) => {
 
             <div className="flex items-start space-x-2 text-sm text-gray-600 dark:text-gray-400">
               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span className="truncate">{formatAddress(elder.address)}</span>
+              <span className="truncate">{elder.street_address}</span>
             </div>
 
             {elder.phone && (
@@ -87,6 +74,6 @@ export const ElderCard = ({ elder, onClick, delay = 0 }: ElderCardProps) => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </Card>
   );
 };

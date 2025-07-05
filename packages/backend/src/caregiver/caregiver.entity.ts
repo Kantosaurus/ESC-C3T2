@@ -16,18 +16,20 @@ export const insertCaregiver = (
     | "date_of_birth"
     | "gender"
     | "phone"
-    | "address"
-    | "address_details"
+    | "street_address"
+    | "unit_number"
+    | "postal_code"
+    | "latitude"
+    | "longitude"
   >
 ) =>
   db
     .query(
       `INSERT INTO caregivers (
-        id, name, date_of_birth, gender, phone, address, 
-        street_address, unit_number, postal_code, city, state, country, latitude, longitude,
-        created_at, updated_at
+        id, name, date_of_birth, gender, phone, 
+        street_address, unit_number, postal_code, latitude, longitude
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *`,
       [
         caregiverDetails.id,
@@ -35,15 +37,11 @@ export const insertCaregiver = (
         caregiverDetails.date_of_birth,
         caregiverDetails.gender,
         caregiverDetails.phone,
-        caregiverDetails.address,
-        caregiverDetails.address_details?.street_address || null,
-        caregiverDetails.address_details?.unit_number || null,
-        caregiverDetails.address_details?.postal_code || null,
-        caregiverDetails.address_details?.city || null,
-        caregiverDetails.address_details?.state || null,
-        caregiverDetails.address_details?.country || null,
-        caregiverDetails.address_details?.latitude || null,
-        caregiverDetails.address_details?.longitude || null,
+        caregiverDetails.street_address,
+        caregiverDetails.unit_number,
+        caregiverDetails.postal_code,
+        caregiverDetails.latitude,
+        caregiverDetails.longitude,
       ]
     )
     .then((result) => z.array(caregiverSchema).parse(result)[0]);
@@ -56,8 +54,11 @@ export const updateCaregiver = (
     | "date_of_birth"
     | "gender"
     | "phone"
-    | "address"
-    | "address_details"
+    | "street_address"
+    | "unit_number"
+    | "postal_code"
+    | "latitude"
+    | "longitude"
   >
 ) =>
   db
@@ -67,15 +68,11 @@ export const updateCaregiver = (
         date_of_birth = $3,
         gender = $4,
         phone = $5,
-        address = $6,
-        street_address = $7,
-        unit_number = $8,
-        postal_code = $9,
-        city = $10,
-        state = $11,
-        country = $12,
-        latitude = $13,
-        longitude = $14,
+        street_address = $6,
+        unit_number = $7,
+        postal_code = $8,
+        latitude = $9,
+        longitude = $10,
         updated_at = NOW()
       WHERE id = $1
       RETURNING *`,
@@ -85,15 +82,11 @@ export const updateCaregiver = (
         caregiverDetails.date_of_birth,
         caregiverDetails.gender,
         caregiverDetails.phone,
-        caregiverDetails.address,
-        caregiverDetails.address_details?.street_address || null,
-        caregiverDetails.address_details?.unit_number || null,
-        caregiverDetails.address_details?.postal_code || null,
-        caregiverDetails.address_details?.city || null,
-        caregiverDetails.address_details?.state || null,
-        caregiverDetails.address_details?.country || null,
-        caregiverDetails.address_details?.latitude || null,
-        caregiverDetails.address_details?.longitude || null,
+        caregiverDetails.street_address,
+        caregiverDetails.unit_number,
+        caregiverDetails.postal_code,
+        caregiverDetails.latitude,
+        caregiverDetails.longitude,
       ]
     )
     .then((result) => z.array(caregiverSchema).parse(result)[0]);
