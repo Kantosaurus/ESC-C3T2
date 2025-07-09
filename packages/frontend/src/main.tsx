@@ -12,8 +12,8 @@ import LandingPage from "./landing/landing.page.tsx";
 import NewElderPage from "./elder/new-elder-page.tsx";
 import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
-import NotesPage from "./notes/notes.page.tsx";
-import NewNotePage from "./notes/new-note.page.tsx";
+import NotesPage from "./note/notes.page.tsx";
+import NewNotePage from "./note/new-note.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

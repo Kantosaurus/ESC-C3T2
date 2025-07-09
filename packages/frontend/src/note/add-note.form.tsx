@@ -1,4 +1,4 @@
-import { notesSchema, type Elder } from "@carely/core";
+import { noteSchema } from "@carely/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -17,18 +17,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useDashboardData } from "../dashboard/use-dashboard-data";
-// import { type Notes } from "@carely/core/notes/notes.schema";
+import { useNavigate } from "react-router";
 
 const addNoteFormSchema = z.object({
-    elder_name: notesSchema.shape.elder_name,
-    header: notesSchema.shape.header,
-    content: notesSchema.shape.content,
+    header: noteSchema.shape.header,
+    content: noteSchema.shape.content.optional(),
+    assigned_elder_id: noteSchema.shape.assigned_elder_id,
 });
 
-export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
+// export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
+export type AddNoteFormType = z.input<typeof addNoteFormSchema>;
 
 export function AddNoteForm({
-    defaultValues = {},
+    defaultValues = { header: "", content: "", assigned_elder_id: "" }, // empty string keeps <select> empty
     onSubmit,
 }: {
     defaultValues?: Partial<AddNoteFormType>;
@@ -41,23 +42,38 @@ export function AddNoteForm({
         defaultValues,
     });
 
+    const navigate = useNavigate();
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8"> */}
+            <form
+                onSubmit={form.handleSubmit((values) => {
+                    console.log("Form returned values:", values); // log the returned values
+                    return onSubmit(values);
+                })}
+                className="space-y-8"
+            >
                 <FormField
                     control={form.control}
-                    name="elder_name"
+                    name="assigned_elder_id"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Name of Care Recipient</FormLabel>
                             <FormControl>
-                                <Select {...field} disabled={isLoadingRecipients}>
+                                <Select
+                                    {...field}
+                                    required
+                                    disabled={isLoadingRecipients}
+                                    value={field.value === undefined ? "" : Number(field.value)} // convert to number 
+                                //     onChange={e => field.onChange(Number(e.target.value))} 
+                                >
                                     <SelectOption value="">
-                                        {isLoadingRecipients ? "Loading..." : "Select a care recipient"}
+                                        {isLoadingRecipients ? "Loading…" : "Select a name"}
                                     </SelectOption>
-                                    {elderDetails?.map((elder: Elder) => (
-                                        <SelectOption key={elder.id} value={elder.name}>
-                                            {elder.name}
+                                    {elderDetails?.map(e => (
+                                        <SelectOption key={e.id} value={e.id}>
+                                            {e.name}
                                         </SelectOption>
                                     ))}
                                 </Select>
@@ -76,7 +92,7 @@ export function AddNoteForm({
                         <FormItem>
                             <FormLabel>Header</FormLabel>
                             <FormControl>
-                                <Input placeholder="Add note header" {...field} />
+                                <Input placeholder="Add note header" {...field} required />
                             </FormControl>
                             <FormDescription>
                                 Add a header for the top of the note to search for this note easily.
@@ -93,7 +109,7 @@ export function AddNoteForm({
                             <FormLabel>Content</FormLabel>
                             <FormControl>
                                 <Textarea
-                                 placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
+                                    placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
                                     rows={4}
                                     {...field}
                                     value={field.value || ""}
@@ -106,6 +122,10 @@ export function AddNoteForm({
                         </FormItem>
                     )}
                 />
+                <Button variant="outline" className="mr-2 bg-slate-100 onHover:bg-slate-200"
+                    type="button" onClick={() => navigate("/notes")}>
+                    Cancel
+                </Button>
                 <Button
                     type="submit"
                     disabled={form.formState.isSubmitting || !form.formState.isDirty}>

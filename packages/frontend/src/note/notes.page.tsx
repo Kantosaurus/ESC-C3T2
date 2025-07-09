@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
-import { NoteComponent } from "@/components/ui/note-component";
-import { NotesDetails } from "./use-notes-data";
+// import { NoteComponent } from "@/components/ui/note-component";
+import { NoteDetails } from "./use-notes-data";
 
 export default function NotesPage() {
 
@@ -15,9 +15,9 @@ export default function NotesPage() {
       <Link to="/notes/new">
         <Button size="lg">Add New Note</Button>
       </Link>
-      <section className="p-8 mx-auto max-w-2xl">
-        <NoteComponent />
-        <NotesDetails />
+      <section className="p-2 mx-auto max-w-2xl">
+        {/* <NoteComponent /> */}
+        <NoteDetails />
       </section>
     </>
   );

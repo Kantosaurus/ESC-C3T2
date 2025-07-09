@@ -1,10 +1,9 @@
 import { http } from "@/lib/http";
-//import { AddNoteForm } from "./add-note.form";
+import type { NewNoteDto } from "@carely/core";
 import { AddNoteForm, type AddNoteFormType } from "./add-note.form";
 import { useNavigate } from "react-router";
-import type { NewNotesDto } from "@carely/core";
 
-const addNewNote = (values: NewNotesDto) =>
+const addNewNote = (values: NewNoteDto ) =>
    http()
      .post("/api/notes/new", values)
      .then((res) => res.data)
@@ -15,10 +14,18 @@ const addNewNote = (values: NewNotesDto) =>
 
 export default function NewNotePage() {
     const navigate = useNavigate();
-    //const handleSubmit = async () => {
     const handleSubmit = async (values: AddNoteFormType) => {
-        await addNewNote(values);
-        // TODO: Handle form submission of data and link to backend API db
+    console.log("Submitting note with values:", values);
+    try {
+        const result = await addNewNote({
+            ...values,
+            assigned_elder_id: Number(values.assigned_elder_id),
+        });
+        console.log("addNewNote successfully returned with:", result);
+        navigate("/notes");
+    } catch (error) {
+        console.error("addNewNote threw an error:", error);
+    }
         navigate("/notes");
     };
 
@@ -34,7 +41,6 @@ export default function NewNotePage() {
             </section>
 
             <section className="p-8 mx-auto max-w-2xl">
-
                 <AddNoteForm onSubmit={handleSubmit} />
             </section>
         </>
