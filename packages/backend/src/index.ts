@@ -17,6 +17,7 @@ import { corsWithConfig } from "./misc/cors";
 import {
   createAppointmentHandler,
   getAppointmentsHandler,
+  deleteAppointmentHandler,
 } from "./appointment/appointment.handler";
 
 const app = express();
@@ -58,6 +59,8 @@ app.post("/api/elder/invite", createElderRelationshipHandler);
 
 app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
+
+app.post("/api/appointment/delete", deleteAppointmentHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

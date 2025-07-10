@@ -39,3 +39,18 @@ export const getAppointmentsForElder = (elder_id: number) =>
       }
       return z.array(appointmentSchema).parse(rows);
     });
+
+export const deleteAppointment = (
+  appt: Pick<Appointment, "elder_id" | "startDateTime" | "endDateTime">
+) =>
+  db
+    .query(
+      `DELETE FROM appointments WHERE elder_id = $1 AND startDateTime = $2 AND endDateTime = $3`,
+      [appt.elder_id, appt.startDateTime, appt.endDateTime]
+    )
+    .then((result) => {
+      console.log("Appointment deleted:", result);
+      if (result.rowCount == 0) {
+        throw new Error("Row not found or already deleted");
+      }
+    });
