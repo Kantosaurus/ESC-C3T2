@@ -10,7 +10,7 @@ export const getNotesDetails = (caregiverId: string) =>
             JOIN caregiver_elder ce ON n.assigned_elder_id = ce.elder_id
             JOIN elders e ON ce.elder_id = e.id
             WHERE ce.caregiver_id = $1
-            ORDER BY n.updated_at ASC`,
+            ORDER BY n.updated_at DESC`,
             [caregiverId]
         )
         .then((result) =>
