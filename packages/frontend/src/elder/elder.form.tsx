@@ -52,7 +52,7 @@ export function ElderForm({
   const handleAddressChange = (
     addressDetails: Partial<Address> | undefined | null
   ) => {
-    form.setValue("address_details", addressDetails as any);
+    form.setValue("address_details", addressDetails as Address | undefined);
 
     // Also update the legacy address field for backward compatibility
     if (addressDetails) {
