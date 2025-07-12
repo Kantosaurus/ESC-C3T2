@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Calendar, Users, Plus, User, LogOut } from "lucide-react";
+import { Calendar, Users, Plus, User, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import { useEldersDetails } from "@/elder/use-elder-details";
@@ -19,15 +19,49 @@ import {
   MobileNavMenu,
   MobileNavToggle,
   NavbarLogo,
-  NavbarButton,
 } from "@/components/ui/resizable-navbar";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const DashboardPage = () => {
   const { caregiverDetails, isLoading: caregiverLoading } = useCaregiver();
-  const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
+  const {
+    elderDetails,
+    isLoading: eldersLoading,
+    refetch: refetchElders,
+  } = useEldersDetails();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Dashboard - Elder Details:", elderDetails);
+    console.log("Dashboard - Elders Loading:", eldersLoading);
+    console.log("Dashboard - Caregiver Details:", caregiverDetails);
+    console.log("Dashboard - Caregiver Loading:", caregiverLoading);
+  }, [elderDetails, eldersLoading, caregiverDetails, caregiverLoading]);
+
+  // Refresh elders data when component mounts or when user navigates back
+  useEffect(() => {
+    refetchElders();
+  }, [refetchElders]);
+
+  useEffect(() => {
+    if (!avatarDropdownOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        avatarRef.current &&
+        !avatarRef.current.contains(event.target as Node)
+      ) {
+        setAvatarDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [avatarDropdownOpen]);
 
   const handleLogout = async () => {
     try {
@@ -47,7 +81,7 @@ const DashboardPage = () => {
   const navItems = [
     { name: "Dashboard", link: "/dashboard" },
     { name: "Elders", link: "/elder/new" },
-    { name: "Profile", link: "/caregiver/new" },
+    { name: "Profile", link: "/caregiver/profile" },
     { name: "Schedule", link: "#" },
   ];
 
@@ -90,6 +124,14 @@ const DashboardPage = () => {
     },
   ];
 
+  // Helper to get initials
+  const getInitials = (name?: string) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    if (parts.length === 1) return parts[0][0]?.toUpperCase() || "?";
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
       {/* Resizable Navbar */}
@@ -97,19 +139,32 @@ const DashboardPage = () => {
         <NavBody>
           <NavbarLogo />
           <NavItems items={navItems} />
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-neutral-600 dark:text-neutral-400 hidden md:block">
-              Welcome, {caregiverDetails?.name}
-            </span>
-            <NavbarButton
-              as="button"
-              variant="secondary"
-              onClick={handleLogout}
-              className="flex items-center"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </NavbarButton>
+          <div className="flex items-center space-x-4 relative">
+            {/* Avatar with dropdown */}
+            <div ref={avatarRef} className="relative">
+              <div
+                className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
+                onClick={() => setAvatarDropdownOpen((open) => !open)}
+              >
+                {getInitials(caregiverDetails?.name)}
+              </div>
+              {avatarDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 z-50 py-2">
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2 inline-block" /> Logout
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+                    onClick={() => navigate("/caregiver/profile")}
+                  >
+                    <User className="h-4 w-4 mr-2 inline-block" /> Profile
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </NavBody>
 
@@ -179,43 +234,6 @@ const DashboardPage = () => {
           />
         </div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-800 p-6 mb-8"
-        >
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button
-              onClick={() => navigate("/elder/new")}
-              className="w-full justify-start"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Elder
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/caregiver/new")}
-              className="w-full justify-start"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Update Profile
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule Care
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Users className="h-4 w-4 mr-2" />
-              Manage Team
-            </Button>
-          </div>
-        </motion.div>
-
         {/* Elders List */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -227,10 +245,25 @@ const DashboardPage = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Your Elders
             </h2>
-            <Button size="sm" onClick={() => navigate("/elder/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Elder
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={refetchElders}
+                disabled={eldersLoading}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${
+                    eldersLoading ? "animate-spin" : ""
+                  }`}
+                />
+                Refresh
+              </Button>
+              <Button size="sm" onClick={() => navigate("/elder/new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Elder
+              </Button>
+            </div>
           </div>
 
           {elderDetails && elderDetails.length > 0 ? (
@@ -239,7 +272,7 @@ const DashboardPage = () => {
                 <ElderCard
                   key={elder.id}
                   elder={elder}
-                  onClick={() => navigate(`/elder/${elder.id}/invite`)}
+                  onClick={() => navigate(`/elder/${elder.id}/profile`)}
                   delay={index * 0.1}
                 />
               ))}

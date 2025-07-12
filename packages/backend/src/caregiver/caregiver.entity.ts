@@ -47,3 +47,53 @@ export const insertCaregiver = (
       ]
     )
     .then((result) => z.array(caregiverSchema).parse(result)[0]);
+
+export const updateCaregiver = (
+  caregiverDetails: Pick<
+    Caregiver,
+    | "id"
+    | "name"
+    | "date_of_birth"
+    | "gender"
+    | "phone"
+    | "address"
+    | "address_details"
+  >
+) =>
+  db
+    .query(
+      `UPDATE caregivers SET
+        name = $2,
+        date_of_birth = $3,
+        gender = $4,
+        phone = $5,
+        address = $6,
+        street_address = $7,
+        unit_number = $8,
+        postal_code = $9,
+        city = $10,
+        state = $11,
+        country = $12,
+        latitude = $13,
+        longitude = $14,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *`,
+      [
+        caregiverDetails.id,
+        caregiverDetails.name,
+        caregiverDetails.date_of_birth,
+        caregiverDetails.gender,
+        caregiverDetails.phone,
+        caregiverDetails.address,
+        caregiverDetails.address_details?.street_address || null,
+        caregiverDetails.address_details?.unit_number || null,
+        caregiverDetails.address_details?.postal_code || null,
+        caregiverDetails.address_details?.city || null,
+        caregiverDetails.address_details?.state || null,
+        caregiverDetails.address_details?.country || null,
+        caregiverDetails.address_details?.latitude || null,
+        caregiverDetails.address_details?.longitude || null,
+      ]
+    )
+    .then((result) => z.array(caregiverSchema).parse(result)[0]);
