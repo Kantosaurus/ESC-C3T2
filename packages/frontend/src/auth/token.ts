@@ -8,7 +8,6 @@ export const setToken = (token: string) => {
 
 export const signOut = () => {
   localStorage.removeItem("carely-token");
-  window.location.href = "/login";
 };
 
 export const isTokenValid = () => {

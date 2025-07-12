@@ -5,10 +5,12 @@ import { singpassAuthUrlHandler } from "./auth/singpass/auth-url.handler";
 import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
+  updateCaregiverSelfHandler,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
   insertElderHandler,
+  updateElderHandler,
   getInviteLinkHandler,
   createElderRelationshipHandler,
   getElderDetailsHandler,
@@ -44,10 +46,12 @@ app.use(authMiddleware());
 
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post("/api/caregiver/self", insertCaregiverHandler);
+app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
 
 app.get("/api/elder/details", getEldersDetailsHandler);
 app.get("/api/elder/details/:elderId", getElderDetailsHandler);
 app.post("/api/elder/new", insertElderHandler);
+app.patch("/api/elder/:elderId", updateElderHandler);
 
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
