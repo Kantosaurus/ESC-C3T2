@@ -18,9 +18,8 @@ import {
   Activity,
   Navigation,
 } from "lucide-react";
-import { motion } from "motion/react";
-import type { Address } from "@carely/core";
 import { env } from "@/lib/env";
+import Card from "@/components/ui/card";
 
 interface InviteLinkResponse {
   inviteLink: string;
@@ -85,9 +84,8 @@ export default function ElderProfilePage() {
   useEffect(() => {
     if (!isMapLoaded || !elderDetails || !mapRef.current) return;
 
-    const addressDetails = elderDetails.address_details;
-    const latitude = addressDetails?.latitude;
-    const longitude = addressDetails?.longitude;
+    const latitude = elderDetails?.latitude;
+    const longitude = elderDetails?.longitude;
 
     if (latitude && longitude) {
       const map = new window.google.maps.Map(mapRef.current, {
@@ -139,17 +137,13 @@ export default function ElderProfilePage() {
   };
 
   const openInGoogleMaps = () => {
-    if (
-      elderDetails?.address_details?.latitude &&
-      elderDetails?.address_details?.longitude
-    ) {
-      const url = `https://www.google.com/maps?q=${elderDetails.address_details.latitude},${elderDetails.address_details.longitude}`;
+    if (elderDetails?.latitude && elderDetails?.longitude) {
+      const url = `https://www.google.com/maps?q=${elderDetails.latitude},${elderDetails.longitude}`;
       window.open(url, "_blank");
     } else {
       // Fallback to address search
-      const address = formatAddress(elderDetails?.address_details);
       const url = `https://www.google.com/maps/search/${encodeURIComponent(
-        address
+        elderDetails?.street_address ?? ""
       )}`;
       window.open(url, "_blank");
     }
@@ -169,23 +163,6 @@ export default function ElderProfilePage() {
     }
 
     return age;
-  };
-
-  const formatAddress = (
-    addressDetails: Partial<Address> | null | undefined
-  ) => {
-    if (!addressDetails) return elderDetails?.address || "No address provided";
-
-    const parts = [
-      addressDetails.street_address,
-      addressDetails.unit_number,
-      addressDetails.city,
-      addressDetails.state,
-      addressDetails.postal_code,
-      addressDetails.country,
-    ].filter(Boolean);
-
-    return parts.join(", ");
   };
 
   if (isLoading) {
@@ -217,9 +194,7 @@ export default function ElderProfilePage() {
     );
   }
 
-  const hasMapData =
-    elderDetails.address_details?.latitude &&
-    elderDetails.address_details?.longitude;
+  const hasMapData = elderDetails.latitude && elderDetails.longitude;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -242,7 +217,7 @@ export default function ElderProfilePage() {
             </div>
             <Button
               onClick={() => navigate(`/elder/${elderId}/edit`)}
-              className="bg-slate-900 hover:bg-slate-800 text-white">
+              variant="outline">
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -255,11 +230,7 @@ export default function ElderProfilePage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
+            <Card>
               <div className="flex items-center space-x-6 mb-8">
                 <div className="relative">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -329,19 +300,15 @@ export default function ElderProfilePage() {
                       Address
                     </p>
                     <p className="text-slate-900 font-semibold leading-relaxed">
-                      {formatAddress(elderDetails.address_details)}
+                      {elderDetails.street_address}
                     </p>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Card>
 
             {/* Map Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
+            <Card delay={0.1}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -391,14 +358,10 @@ export default function ElderProfilePage() {
                   </p>
                 </div>
               )}
-            </motion.div>
+            </Card>
 
             {/* Care Status */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
+            <Card delay={0.2}>
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
                   <Heart className="h-4 w-4 text-white" />
@@ -432,17 +395,13 @@ export default function ElderProfilePage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Invite Section */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6">
+            <Card horizontal delay={0.3}>
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <QrCode className="h-4 w-4 text-white" />
@@ -501,14 +460,10 @@ export default function ElderProfilePage() {
                   Generate Invite Link
                 </Button>
               )}
-            </motion.div>
+            </Card>
 
             {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6">
+            <Card horizontal delay={0.4}>
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center">
                   <Activity className="h-4 w-4 text-white" />
@@ -559,7 +514,7 @@ export default function ElderProfilePage() {
                   <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </button>
               </div>
-            </motion.div>
+            </Card>
           </div>
         </div>
       </div>

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import type { Address } from "@carely/core";
+import { addressSchema, type Address } from "@carely/core";
 import { Input } from "./input";
 import { Label } from "./label";
 import { env } from "@/lib/env";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod/v4";
+import { FormField, FormItem, FormLabel, FormMessage } from "./form";
+import { mergeRefs } from "@/lib/merge-refs";
 
 interface AddressFormProps {
-  value?: Partial<Address> | undefined | null;
-  onChange: (address: Partial<Address> | undefined | null) => void;
-  onValidationChange?: (isValid: boolean) => void;
   className?: string;
 }
 
@@ -57,12 +58,24 @@ declare global {
   }
 }
 
-export function AddressForm({
-  value,
-  onChange,
-  onValidationChange,
-  className,
-}: AddressFormProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _addressFormSchema = z.object({
+  street_address: addressSchema.shape.street_address
+    .unwrap()
+    .unwrap()
+    .optional(),
+  unit_number: addressSchema.shape.unit_number.unwrap().unwrap().optional(),
+  postal_code: addressSchema.shape.postal_code.unwrap().unwrap().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+});
+
+export type AddressFormType = z.infer<typeof _addressFormSchema>;
+export type AddressFormInput = z.input<typeof _addressFormSchema>;
+
+export function AddressForm({ className }: AddressFormProps) {
+  const form = useFormContext<AddressFormInput, unknown, AddressFormType>();
+
   const [isLoaded, setIsLoaded] = useState(false);
   const autocompleteRef = useRef<HTMLInputElement>(null);
   const autocompleteInstance = useRef<InstanceType<
@@ -132,14 +145,14 @@ export function AddressForm({
           addressComponents.route || ""
         }`.trim(),
         postal_code: addressComponents.postal_code || "",
-        city: addressComponents.locality || addressComponents.sublocality || "",
-        state: addressComponents.administrative_area_level_1 || "",
-        country: addressComponents.country || "",
         latitude: place.geometry.location.lat(),
         longitude: place.geometry.location.lng(),
       };
 
-      onChange(newAddress);
+      form.setValue("street_address", newAddress.street_address ?? undefined);
+      form.setValue("postal_code", newAddress.postal_code ?? undefined);
+      form.setValue("latitude", newAddress.latitude ?? undefined);
+      form.setValue("longitude", newAddress.longitude ?? undefined);
     });
 
     return () => {
@@ -149,32 +162,16 @@ export function AddressForm({
         );
       }
     };
-  }, [isLoaded, onChange]);
+  }, [form, isLoaded]);
 
-  // Validate address
-  useEffect(() => {
-    const hasRequiredFields = !!(
-      value?.street_address &&
-      value?.postal_code &&
-      value?.city &&
-      value?.state &&
-      value?.country
-    );
-
-    onValidationChange?.(hasRequiredFields);
-  }, [value, onValidationChange]);
-
-  const handleInputChange = (field: keyof Address, inputValue: string) => {
-    onChange({
-      ...(value ?? {}),
-      [field]: inputValue,
-    });
-  };
+  // watch latitude and longitude to update address
+  const latitude = form.watch("latitude");
+  const longitude = form.watch("longitude");
 
   // Google Map Preview Effect
   useEffect(() => {
     if (!isLoaded) return;
-    if (!value?.latitude || !value?.longitude) return;
+    if (!latitude || !longitude) return;
     const mapDiv = document.getElementById("address-map-preview");
     if (!mapDiv) return;
 
@@ -183,16 +180,16 @@ export function AddressForm({
 
     // Use the global google.maps types
     const map = new window.google.maps.Map(mapDiv, {
-      center: { lat: value.latitude, lng: value.longitude },
+      center: { lat: latitude, lng: longitude },
       zoom: 16,
       disableDefaultUI: true,
       gestureHandling: "none",
     });
     new window.google.maps.Marker({
-      position: { lat: value.latitude, lng: value.longitude },
+      position: { lat: latitude, lng: longitude },
       map,
     });
-  }, [isLoaded, value?.latitude, value?.longitude]);
+  }, [isLoaded, latitude, longitude]);
 
   if (!env.GOOGLE_MAPS_API_KEY) {
     return (
@@ -211,88 +208,52 @@ export function AddressForm({
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div>
-        <Label className="text-base font-semibold text-gray-900 mb-3 block">
-          Address
-        </Label>
-        <Input
-          ref={autocompleteRef}
-          placeholder="Start typing your address..."
-          value={value?.street_address ?? ""}
-          onChange={(e) => handleInputChange("street_address", e.target.value)}
-          className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
+    <>
+      <FormField
+        control={form.control}
+        name="street_address"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Address</FormLabel>
+            <Input
+              placeholder="Start typing your address..."
+              {...field}
+              ref={mergeRefs(field.ref, autocompleteRef)}
+            />
+            <p className="text-gray-500 text-sm mt-2">
+              Start typing to see address suggestions from Google Maps
+            </p>
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="unit_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Unit Number</FormLabel>
+              <Input placeholder="Apt, Suite, etc. (optional)" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-gray-500 text-sm mt-2">
-          Start typing to see address suggestions from Google Maps
-        </p>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-base font-semibold text-gray-900 mb-3 block">
-            Unit Number
-          </Label>
-          <Input
-            placeholder="Apt, Suite, etc. (optional)"
-            value={value?.unit_number ?? ""}
-            onChange={(e) => handleInputChange("unit_number", e.target.value)}
-            className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-          />
-        </div>
-
-        <div>
-          <Label className="text-base font-semibold text-gray-900 mb-3 block">
-            Postal Code
-          </Label>
-          <Input
-            placeholder="Enter postal code"
-            value={value?.postal_code ?? ""}
-            onChange={(e) => handleInputChange("postal_code", e.target.value)}
-            className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-base font-semibold text-gray-900 mb-3 block">
-            City
-          </Label>
-          <Input
-            placeholder="Enter city"
-            value={value?.city ?? ""}
-            onChange={(e) => handleInputChange("city", e.target.value)}
-            className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-          />
-        </div>
-
-        <div>
-          <Label className="text-base font-semibold text-gray-900 mb-3 block">
-            State/Province
-          </Label>
-          <Input
-            placeholder="Enter state/province"
-            value={value?.state ?? ""}
-            onChange={(e) => handleInputChange("state", e.target.value)}
-            className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-base font-semibold text-gray-900 mb-3 block">
-          Country
-        </Label>
-        <Input
-          placeholder="Enter country"
-          value={value?.country ?? ""}
-          onChange={(e) => handleInputChange("country", e.target.value)}
-          className="h-14 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-300 ease-out bg-white/50 backdrop-blur-sm hover:bg-white/70 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
+        <FormField
+          control={form.control}
+          name="postal_code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Postal Code</FormLabel>
+              <Input placeholder="Enter postal code" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
 
-      {value?.latitude && value?.longitude && (
+      {latitude && longitude && (
         <div className="rounded-lg border border-blue-200 overflow-hidden bg-blue-50">
           <div
             id="address-map-preview"
@@ -300,6 +261,6 @@ export function AddressForm({
           />
         </div>
       )}
-    </div>
+    </>
   );
 }

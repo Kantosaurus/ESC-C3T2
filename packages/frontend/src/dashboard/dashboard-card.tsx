@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
+import Card from "@/components/ui/card";
 
 interface DashboardCardProps {
   title: string;
@@ -24,20 +24,10 @@ export const DashboardCard = ({
   value,
   icon,
   color = "blue",
-  delay = 0,
   onClick,
-  className = "",
 }: DashboardCardProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      className={`bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-800 p-6 ${
-        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
-      } ${className}`}
-      onClick={onClick}
-    >
+    <Card onClick={onClick}>
       <div className="flex items-center">
         <div className="flex-shrink-0">
           <div className={colorClasses[color]}>{icon}</div>
@@ -51,6 +41,6 @@ export const DashboardCard = ({
           </p>
         </div>
       </div>
-    </motion.div>
+    </Card>
   );
 };

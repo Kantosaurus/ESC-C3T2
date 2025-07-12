@@ -24,9 +24,8 @@ export const EmptyState = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className="text-center py-8"
-    >
-      <div className="text-gray-400 dark:text-gray-500 mb-4">{icon}</div>
+      className="text-center py-8 flex flex-col items-center justify-center">
+      <div className="text-gray-400 dark:text-gray-500">{icon}</div>
       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
         {title}
       </h3>

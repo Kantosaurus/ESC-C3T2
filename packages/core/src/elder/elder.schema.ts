@@ -1,5 +1,5 @@
 import z from "zod/v4";
-import { addressSchema } from "../caregiver/caregiver.schema.js";
+import { addressSchema } from "../address/address.schema.js";
 
 export const elderSchema = z.object({
   id: z.coerce.number(),
@@ -10,10 +10,9 @@ export const elderSchema = z.object({
     .string()
     .max(15, "Phone number must be at most 15 characters long")
     .nullish(),
-  address: z.string().max(255, "Address must be at most 255 characters long"),
-  address_details: addressSchema.nullish(),
   created_at: z.date(),
   updated_at: z.date(),
+  ...addressSchema.shape,
 });
 
 export type Elder = z.infer<typeof elderSchema>;
@@ -23,11 +22,11 @@ export const newElderDtoSchema = elderSchema.pick({
   date_of_birth: true,
   gender: true,
   phone: true,
-  address: true,
-  address_details: true,
+  street_address: true,
+  unit_number: true,
+  postal_code: true,
+  longitude: true,
+  latitude: true,
 });
 
-export type NewElderDto = Pick<
-  Elder,
-  "name" | "date_of_birth" | "gender" | "phone" | "address" | "address_details"
->;
+export type NewElderDto = z.input<typeof newElderDtoSchema>;
