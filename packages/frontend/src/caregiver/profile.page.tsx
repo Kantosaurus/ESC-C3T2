@@ -126,8 +126,7 @@ export default function ProfilePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-gray-600 hover:text-gray-900"
-              >
+                className="text-gray-600 hover:text-gray-900">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
@@ -136,8 +135,7 @@ export default function ProfilePage() {
             <Button
               onClick={() => setIsEditing(!isEditing)}
               variant={isEditing ? "outline" : "default"}
-              className="flex items-center space-x-2"
-            >
+              className="flex items-center space-x-2">
               <Edit3 className="h-4 w-4" />
               <span>{isEditing ? "Cancel Edit" : "Edit Profile"}</span>
             </Button>
@@ -153,8 +151,7 @@ export default function ProfilePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
-            >
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
               {/* Profile Header */}
               <div className="text-center mb-6">
                 <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
@@ -260,8 +257,7 @@ export default function ProfilePage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
-              >
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   Edit Profile
                 </h3>
@@ -278,6 +274,7 @@ export default function ProfilePage() {
                 <CaregiverForm
                   defaultValues={formDefaults}
                   onSubmit={handleSubmit}
+                  submitLabel="Update Profile"
                 />
               </motion.div>
             ) : (
@@ -287,8 +284,7 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
-                >
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <Heart className="h-6 w-6 text-red-500 mr-3" />
@@ -299,8 +295,7 @@ export default function ProfilePage() {
                     <Button
                       onClick={() => navigate("/elder/new")}
                       size="sm"
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
+                      className="bg-blue-600 hover:bg-blue-700">
                       Add Elder
                     </Button>
                   </div>
@@ -317,8 +312,9 @@ export default function ProfilePage() {
                             delay: 0.1 + index * 0.1,
                           }}
                           className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 hover:shadow-md transition-shadow cursor-pointer"
-                          onClick={() => navigate(`/elder/${elder.id}/profile`)}
-                        >
+                          onClick={() =>
+                            navigate(`/elder/${elder.id}/profile`)
+                          }>
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center">
                               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold mr-3">
@@ -372,8 +368,7 @@ export default function ProfilePage() {
                       </p>
                       <Button
                         onClick={() => navigate("/elder/new")}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
+                        className="bg-blue-600 hover:bg-blue-700">
                         Add Your First Elder
                       </Button>
                     </div>
@@ -385,8 +380,7 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
-                >
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
                   <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <Star className="h-6 w-6 text-yellow-500 mr-3" />
                     Caregiving Statistics
@@ -451,8 +445,7 @@ export default function ProfilePage() {
                             ([range, count]) => (
                               <div
                                 key={range}
-                                className="flex justify-between items-center"
-                              >
+                                className="flex justify-between items-center">
                                 <span className="text-sm text-gray-600">
                                   {range} years
                                 </span>

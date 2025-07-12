@@ -32,9 +32,11 @@ export type ElderFormType = z.infer<typeof elderFormSchema>;
 export function ElderForm({
   defaultValues = {},
   onSubmit,
+  submitLabel = "Create Profile",
 }: {
   defaultValues?: Partial<ElderFormType>;
   onSubmit: (values: ElderFormType) => Promise<void>;
+  submitLabel?: string;
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const form = useForm<ElderFormType>({
@@ -85,8 +87,7 @@ export function ElderForm({
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "100ms" }}
-              >
+                style={{ transitionDelay: "100ms" }}>
                 <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
                   Full Name
                 </FormLabel>
@@ -116,8 +117,7 @@ export function ElderForm({
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "120ms" }}
-              >
+                style={{ transitionDelay: "120ms" }}>
                 <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
                   Date of Birth
                 </FormLabel>
@@ -144,8 +144,7 @@ export function ElderForm({
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "140ms" }}
-              >
+                style={{ transitionDelay: "140ms" }}>
                 <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
                   Gender
                 </FormLabel>
@@ -167,8 +166,7 @@ export function ElderForm({
                           }
                         `}
                         aria-pressed={field.value === option.value}
-                        onClick={() => field.onChange(option.value)}
-                      >
+                        onClick={() => field.onChange(option.value)}>
                         {option.label}
                       </button>
                     ))}
@@ -189,8 +187,7 @@ export function ElderForm({
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "200ms" }}
-              >
+                style={{ transitionDelay: "200ms" }}>
                 <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
                   Phone Number
                 </FormLabel>
@@ -220,8 +217,7 @@ export function ElderForm({
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "300ms" }}
-              >
+                style={{ transitionDelay: "300ms" }}>
                 <FormControl>
                   <AddressForm
                     value={field.value}
@@ -242,8 +238,7 @@ export function ElderForm({
           className={`pt-8 border-t border-gray-200/60 transition-all duration-700 ease-out ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
-          style={{ transitionDelay: "400ms" }}
-        >
+          style={{ transitionDelay: "400ms" }}>
           <Button
             type="submit"
             disabled={
@@ -251,8 +246,7 @@ export function ElderForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
-          >
+            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed rounded-xl">
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -279,8 +273,7 @@ export function ElderForm({
                   className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                  viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -288,7 +281,7 @@ export function ElderForm({
                     d="M13 7l5 5m0 0l-5 5m5-5H6"
                   />
                 </svg>
-                <span>Create Profile</span>
+                <span>{submitLabel}</span>
               </div>
             )}
           </Button>

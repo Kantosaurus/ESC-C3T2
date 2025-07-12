@@ -208,8 +208,7 @@ export default function ElderProfilePage() {
           </p>
           <Button
             onClick={() => navigate("/dashboard")}
-            className="bg-slate-900 hover:bg-slate-800"
-          >
+            className="bg-slate-900 hover:bg-slate-800">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -226,15 +225,14 @@ export default function ElderProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-              >
+                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
@@ -244,8 +242,7 @@ export default function ElderProfilePage() {
             </div>
             <Button
               onClick={() => navigate(`/elder/${elderId}/edit`)}
-              className="bg-slate-900 hover:bg-slate-800 text-white"
-            >
+              className="bg-slate-900 hover:bg-slate-800 text-white">
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -253,7 +250,7 @@ export default function ElderProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -262,8 +259,7 @@ export default function ElderProfilePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8"
-            >
+              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
               <div className="flex items-center space-x-6 mb-8">
                 <div className="relative">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -345,8 +341,7 @@ export default function ElderProfilePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8"
-            >
+              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -361,8 +356,7 @@ export default function ElderProfilePage() {
                     onClick={openInGoogleMaps}
                     variant="outline"
                     size="sm"
-                    className="border-slate-200 hover:bg-slate-50"
-                  >
+                    className="border-slate-200 hover:bg-slate-50">
                     <Navigation className="h-4 w-4 mr-2" />
                     Open in Maps
                   </Button>
@@ -404,8 +398,7 @@ export default function ElderProfilePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8"
-            >
+              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
                   <Heart className="h-4 w-4 text-white" />
@@ -449,8 +442,7 @@ export default function ElderProfilePage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6"
-            >
+              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <QrCode className="h-4 w-4 text-white" />
@@ -488,8 +480,7 @@ export default function ElderProfilePage() {
                       onClick={copyToClipboard}
                       variant="outline"
                       size="sm"
-                      className="flex-1 border-slate-200 hover:bg-slate-50"
-                    >
+                      className="flex-1 border-slate-200 hover:bg-slate-50">
                       <Copy className="h-4 w-4 mr-2" />
                       {copied ? "Copied!" : "Copy"}
                     </Button>
@@ -497,8 +488,7 @@ export default function ElderProfilePage() {
                       onClick={shareInviteLink}
                       variant="outline"
                       size="sm"
-                      className="flex-1 border-slate-200 hover:bg-slate-50"
-                    >
+                      className="flex-1 border-slate-200 hover:bg-slate-50">
                       <Share2 className="h-4 w-4 mr-2" />
                       Share
                     </Button>
@@ -507,8 +497,7 @@ export default function ElderProfilePage() {
               ) : (
                 <Button
                   onClick={generateInviteLink}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                >
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
                   Generate Invite Link
                 </Button>
               )}
@@ -519,8 +508,7 @@ export default function ElderProfilePage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6"
-            >
+              className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center">
                   <Activity className="h-4 w-4 text-white" />
@@ -533,8 +521,7 @@ export default function ElderProfilePage() {
               <div className="space-y-2">
                 <button
                   onClick={() => navigate(`/elder/${elderId}/tasks`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
-                >
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                       <Calendar className="h-4 w-4 text-blue-600" />
@@ -548,8 +535,7 @@ export default function ElderProfilePage() {
 
                 <button
                   onClick={() => navigate(`/elder/${elderId}/notes`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
-                >
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                       <User className="h-4 w-4 text-emerald-600" />
@@ -563,8 +549,7 @@ export default function ElderProfilePage() {
 
                 <button
                   onClick={() => navigate(`/elder/${elderId}/schedule`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
-                >
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Calendar className="h-4 w-4 text-purple-600" />

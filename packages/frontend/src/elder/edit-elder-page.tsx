@@ -110,14 +110,13 @@ export default function EditElderPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate(`/elder/${elderId}/profile`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
+              className="text-gray-600 hover:text-gray-900">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Profile
             </Button>
@@ -128,7 +127,7 @@ export default function EditElderPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
@@ -138,8 +137,11 @@ export default function EditElderPage() {
               Make changes to the elder's profile information below.
             </p>
           </div>
-
-          <ElderForm defaultValues={defaultValues} onSubmit={handleSubmit} />
+          <ElderForm
+            defaultValues={defaultValues}
+            onSubmit={handleSubmit}
+            submitLabel="Update Elder"
+          />
         </div>
       </div>
     </div>
