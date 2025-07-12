@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Calendar, Users, MessageSquare, BookOpen, MapPin } from "lucide-react";
 import { PointerHighlight } from "@/components/ui/pointer-highlight";
 import { Highlight } from "@/components/ui/hero-highlight";
