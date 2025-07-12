@@ -30,6 +30,17 @@ export const insertCaregiver = (
         street_address, unit_number, postal_code, latitude, longitude
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        date_of_birth = EXCLUDED.date_of_birth,
+        gender = EXCLUDED.gender,
+        phone = EXCLUDED.phone,
+        street_address = EXCLUDED.street_address,
+        unit_number = EXCLUDED.unit_number,
+        postal_code = EXCLUDED.postal_code,
+        latitude = EXCLUDED.latitude,
+        longitude = EXCLUDED.longitude,
+        updated_at = NOW()
       RETURNING *`,
       [
         caregiverDetails.id,
