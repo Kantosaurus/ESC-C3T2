@@ -51,7 +51,8 @@ const LandingPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}>
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
                 <h1 className="text-5xl font-light tracking-tight text-gray-900 dark:text-white sm:text-7xl whitespace-nowrap flex flex-col md:flex-row items-center gap-2">
                   <span className="flex flex-row gap-2">
                     Care{" "}
@@ -71,12 +72,14 @@ const LandingPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     href="/login"
-                    className="btn-primary">
+                    className="btn-primary"
+                  >
                     Use Carely for free
                   </motion.a>
                   <a
                     href="#features"
-                    className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
                     Learn more <span aria-hidden="true">→</span>
                   </a>
                 </div>
@@ -107,7 +110,8 @@ const LandingPage = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="group relative">
+                    className="group relative"
+                  >
                     <div className="absolute -inset-4 rounded-2xl bg-gray-50 dark:bg-neutral-900 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative">
                       <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
@@ -145,12 +149,14 @@ const LandingPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   href="/login"
-                  className="btn-primary">
+                  className="btn-primary"
+                >
                   Use Carely for free
                 </motion.a>
                 <a
                   href="#"
-                  className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
                   Learn more <span aria-hidden="true">→</span>
                 </a>
               </div>

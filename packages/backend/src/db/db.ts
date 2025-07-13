@@ -7,7 +7,7 @@ const pgp = pgplib();
 
 const connectionString =
   process.env.POSTGRES_CONNECTION_STRING ??
-  "postgres://postgres:postgres@localhost:5432/postgres";
+  "postgres://postgres:postgres@localhost:5432/esc_c3t2";
 
 const db = pgp(connectionString);
 

@@ -1,5 +1,9 @@
 import { caregiverSchema } from "@carely/core";
-import { getCaregiverDetails, insertCaregiver } from "./caregiver.entity";
+import {
+  getCaregiverDetails,
+  insertCaregiver,
+  updateCaregiver,
+} from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
 
 /**
@@ -30,7 +34,17 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
 
   const caregiverDetails = caregiverSchema
-    .pick({ name: true, phone: true, address: true })
+    .pick({
+      name: true,
+      date_of_birth: true,
+      gender: true,
+      phone: true,
+      street_address: true,
+      unit_number: true,
+      postal_code: true,
+      latitude: true,
+      longitude: true,
+    })
     .parse(req.body);
 
   const newCaregiver = await insertCaregiver({
@@ -44,4 +58,38 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
   }
 
   res.status(201).json(newCaregiver);
+});
+
+/**
+ * Handler to update the details of the authenticated caregiver.
+ * PATCH /api/caregiver/self
+ */
+export const updateCaregiverSelfHandler = authenticated(async (req, res) => {
+  const caregiverId = res.locals.user.userId;
+
+  const caregiverDetails = caregiverSchema
+    .pick({
+      name: true,
+      date_of_birth: true,
+      gender: true,
+      phone: true,
+      street_address: true,
+      unit_number: true,
+      postal_code: true,
+      latitude: true,
+      longitude: true,
+    })
+    .parse(req.body);
+
+  const updatedCaregiver = await updateCaregiver({
+    ...caregiverDetails,
+    id: caregiverId,
+  });
+
+  if (!updatedCaregiver) {
+    res.status(400).json({ error: "Failed to update caregiver" });
+    return;
+  }
+
+  res.status(200).json(updatedCaregiver);
 });
