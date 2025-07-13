@@ -9,6 +9,10 @@ export const elderSchema = z.object({
   phone: z
     .string()
     .max(15, "Phone number must be at most 15 characters long")
+    .regex(
+      /^[689]\d{7}$/,
+      "Phone number must be a valid Singapore number starting with 6, 8, or 9"
+    )
     .nullish(),
   created_at: z.date(),
   updated_at: z.date(),
