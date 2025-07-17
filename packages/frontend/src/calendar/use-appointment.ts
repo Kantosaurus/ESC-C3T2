@@ -47,3 +47,23 @@ export function useGetAppointments(elder_id: number | null) {
 
   return { appointments, error, isLoading, refetch: fetchAppointments };
 }
+
+export function useDeleteAppointment() {
+  return useCallback(
+    (
+      values: Pick<
+        AppointmentFormType,
+        "elder_id" | "startDateTime" | "endDateTime"
+      >
+    ) => {
+      return http()
+        .post("/api/appointment/delete", values)
+        .then((res) => res.data)
+        .catch((error) => {
+          console.error("Error deleting appointment:", error);
+          throw error;
+        });
+    },
+    []
+  );
+}

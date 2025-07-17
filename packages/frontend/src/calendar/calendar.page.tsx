@@ -13,7 +13,11 @@ import {
 import { useEldersDetails } from "@/elder/use-elder-details";
 import type { Elder } from "@carely/core";
 import { AppointmentForm, type AppointmentFormType } from "./appointment.form";
-import { useCreateAppointment, useGetAppointments } from "./use-appointment";
+import {
+  useCreateAppointment,
+  useGetAppointments,
+  useDeleteAppointment,
+} from "./use-appointment";
 
 export default function Calendarview() {
   const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
@@ -21,6 +25,7 @@ export default function Calendarview() {
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
   const { elderDetails, error, isLoading } = useEldersDetails();
+  const deleteAppointment = useDeleteAppointment();
 
   useEffect(() => {
     // Set the initial selected elder to the first elder if available
@@ -193,38 +198,52 @@ export default function Calendarview() {
                 </div>
               )}
 
-              {selectedDateAppointments.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">Existing Appointments:</h4>
-                  <div className="space-y-2">
-                    {selectedDateAppointments.map((appointment, index) => {
-                      const startTime = new Date(
-                        appointment.startDateTime
-                      ).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      });
-                      const endTime = new Date(
-                        appointment.endDateTime
-                      ).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      });
+              {selectedDateAppointments.map((appointment, index) => {
+                const startTime = new Date(
+                  appointment.startDateTime
+                ).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                const endTime = new Date(
+                  appointment.endDateTime
+                ).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
 
-                      return (
-                        <div key={index} className="p-3 bg-gray-50 rounded">
-                          <div className="font-medium">
-                            {startTime} - {endTime}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {appointment.details}
-                          </div>
-                        </div>
-                      );
-                    })}
+                const handleDelete = async () => {
+                  try {
+                    await deleteAppointment({
+                      elder_id: selectedElder.id,
+                      startDateTime: appointment.startDateTime,
+                      endDateTime: appointment.endDateTime,
+                    });
+                    await refetch(); // Refresh the list
+                  } catch (error) {
+                    console.error("Failed to delete appointment:", error);
+                  }
+                };
+
+                return (
+                  <div
+                    key={index}
+                    className="p-3 bg-gray-50 rounded flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium">
+                        {startTime} - {endTime}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {appointment.details}
+                      </div>
+                    </div>
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Delete
+                    </Button>
                   </div>
-                </div>
-              )}
+                );
+              })}
 
               {showForm && viewDate && selectedElder && (
                 <AppointmentForm
