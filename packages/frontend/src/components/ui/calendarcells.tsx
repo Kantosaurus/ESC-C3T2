@@ -6,19 +6,18 @@ import { cn } from "@/lib/utils";
 const calendarCellVariants = cva("border p-2 text-center select-none", {
   variants: {
     variant: {
-      default: "bg-white text-black",
+      default: "bg-white text-black cursor-pointer hover:bg-blue-100",
       empty: "bg-gray-200 text-gray-300",
-      header: "bg-gray-100 font-semibold cursor-default",
-      today: "bg-blue-500 text-white font-bold",
+      today: "font-bold text-blue-500",
     },
-    interactive: {
-      true: "cursor-pointer hover:bg-blue-100",
+    hasEvent: {
+      true: "bg-blue-100 border-blue-300",
       false: "",
     },
   },
   defaultVariants: {
     variant: "default",
-    interactive: false,
+    hasEvent: false,
   },
 });
 
@@ -29,20 +28,16 @@ export interface CalendarCellProps
 }
 
 const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
-  ({ className, variant, interactive, asChild = false, ...props }, ref) => {
+  ({ className, variant, hasEvent, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "div";
     return (
       <Comp
         ref={ref}
-        className={cn(
-          calendarCellVariants({ variant, interactive, className })
-        )}
+        className={cn(calendarCellVariants({ variant, hasEvent, className }))}
         {...props}
       />
     );
   }
 );
-
-CalendarCell.displayName = "CalendarCell";
 
 export { CalendarCell };

@@ -16,7 +16,6 @@ import {
   getElderDetailsHandler,
 } from "./elder/elder.handler";
 import { corsWithConfig } from "./misc/cors";
-
 import {
   createAppointmentHandler,
   getAppointmentsHandler,
@@ -61,8 +60,8 @@ app.patch("/api/elder/:elderId", updateElderHandler);
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
 
-app.post("/api/appointment", createAppointmentHandler);
-app.get("/api/appointments", getAppointmentsHandler);
+app.post("/api/appointment/new", createAppointmentHandler);
+app.get("/api/appointments/:elder_id", getAppointmentsHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);
