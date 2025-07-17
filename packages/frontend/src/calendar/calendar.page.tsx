@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,13 @@ export default function Calendarview() {
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
   const { elderDetails, error, isLoading } = useEldersDetails();
+
+  useEffect(() => {
+    // Set the initial selected elder to the first elder if available
+    if (elderDetails && elderDetails.length > 0) {
+      setSelectedElder(elderDetails[0]);
+    }
+  }, [elderDetails]);
 
   const [showForm, setShowForm] = useState(false);
 
@@ -62,8 +69,7 @@ export default function Calendarview() {
         onClick={() => {
           setViewDate(cellDate);
           setShowForm(false);
-        }}
-      >
+        }}>
         {day}
       </CalendarCell>
     );
@@ -102,8 +108,7 @@ export default function Calendarview() {
           <div className="mt-6">
             <label
               htmlFor="elder-select"
-              className="block text-sm font-medium mb-2"
-            >
+              className="block text-sm font-medium mb-2">
               Select Elder:
             </label>
             {isLoading ? (
@@ -116,13 +121,13 @@ export default function Calendarview() {
               </div>
             ) : (
               <Select
+                value={selectedElder?.id?.toString() || ""}
                 onValueChange={(value) => {
                   const elderObj = elderDetails?.find(
                     (elder) => elder.id.toString() === value
                   );
                   setSelectedElder(elderObj || null);
-                }}
-              >
+                }}>
                 <SelectTrigger className="w-full max-w-xs bg-white text-gray-900">
                   <SelectValue placeholder="Choose an elder..." />
                 </SelectTrigger>
