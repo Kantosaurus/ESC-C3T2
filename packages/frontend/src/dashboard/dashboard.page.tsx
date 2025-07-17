@@ -96,7 +96,7 @@ const DashboardPage = () => {
         ...msgs,
         { role: "ai", text: answer, timestamp: Date.now() },
       ]);
-    } catch (e) {
+    } catch {
       setMessages((msgs) => [
         ...msgs,
         {
@@ -291,8 +291,8 @@ const DashboardPage = () => {
           </div>
           <form
             className="fixed bottom-0 left-0 max-w-2xl mx-auto w-full right-0 flex justify-center bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent pt-6 pb-8"
-            onSubmit={(e) => {
-              e.preventDefault();
+            onSubmit={(_e) => {
+              _e.preventDefault();
               handleSend();
             }}
             autoComplete="off"
@@ -305,8 +305,8 @@ const DashboardPage = () => {
                 className="flex-1 rounded-full border border-gray-200 bg-white px-4 py-3 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition focus:border-blue-500 hover:border-blue-400"
                 placeholder="Type your message..."
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleInputKeyDown}
+                onChange={(_e) => setInputValue(_e.target.value)}
+                onKeyDown={(_e) => handleInputKeyDown(_e)}
                 disabled={chatLoading}
               />
               <button

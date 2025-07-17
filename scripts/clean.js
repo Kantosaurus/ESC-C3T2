@@ -1,4 +1,4 @@
-const pglib = require("pg-promise");
+import pglib from "pg-promise";
 
 const pgp = pglib();
 

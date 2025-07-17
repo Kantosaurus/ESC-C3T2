@@ -1,6 +1,10 @@
-const exec = require("child_process").execSync;
-const fs = require("fs");
-const path = require("path");
+import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const envBuildPath = path.join(__dirname, "..", ".env.build");
 const envFrontendPath = path.join(
@@ -23,7 +27,7 @@ if (fs.existsSync(envBuildPath)) {
 
 const buildPackage = (workspace) => {
   console.log(`Building package: ${workspace}`);
-  exec(`npm run build --workspace=${workspace}`, { stdio: "inherit" });
+  execSync(`npm run build --workspace=${workspace}`, { stdio: "inherit" });
   console.log(`✅ Finished building package: ${workspace}`);
 };
 
@@ -37,6 +41,4 @@ const buildAll = () => {
   buildFrontend();
 };
 
-if (require.main === module) {
-  buildAll();
-}
+buildAll();

@@ -2,9 +2,13 @@
  * This script allows us to start all dev environments concurrently
  * It looks for scripts in the root package.json that match dev-*
  */
-const fs = require("fs");
-const path = require("path");
-const concurrently = require("concurrently");
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import concurrently from "concurrently";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Copy VITE environment variables into the frontend folder
 const envPath = path.join(__dirname, "..", ".env");

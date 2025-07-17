@@ -1,5 +1,5 @@
-const { migrate } = require("postgres-migrations");
-const pg = require("pg");
+import { migrate } from "postgres-migrations";
+import pg from "pg";
 
 /**
  * Converts a PostgreSQL connection string into a configuration object.

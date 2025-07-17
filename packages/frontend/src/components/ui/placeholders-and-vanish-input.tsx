@@ -105,7 +105,7 @@ export function PlaceholdersAndVanishInput({
     }
 
     newDataRef.current = newData;
-  }, [value]);
+  }, [value, inputRef]);
 
   useEffect(() => {
     draw();
@@ -145,13 +145,14 @@ export function PlaceholdersAndVanishInput({
             }
           });
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         if (newDataRef.current.length > 0) {
           animateFrame(pos - 8);
         } else {
           setValue("");
           setAnimating(false);
-          if (onVanishComplete) onVanishComplete();
+          if (onVanishComplete) {
+            onVanishComplete();
+          }
         }
       });
     };
@@ -181,7 +182,9 @@ export function PlaceholdersAndVanishInput({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     vanishAndSubmit();
-    onSubmit && onSubmit(e);
+    if (onSubmit) {
+      onSubmit(e);
+    }
   };
   return (
     <form
@@ -202,7 +205,9 @@ export function PlaceholdersAndVanishInput({
         onChange={(e) => {
           if (!animating) {
             setValue(e.target.value);
-            onChange && onChange(e);
+            if (onChange) {
+              onChange(e);
+            }
           }
         }}
         onKeyDown={handleKeyDown}
