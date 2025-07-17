@@ -129,7 +129,8 @@ export default function ProfilePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-gray-600 hover:text-gray-900">
+                className="text-gray-600 hover:text-gray-900"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
@@ -138,7 +139,8 @@ export default function ProfilePage() {
             <Button
               onClick={() => setIsEditing(!isEditing)}
               variant={isEditing ? "outline" : "default"}
-              className="flex items-center space-x-2">
+              className="flex items-center space-x-2"
+            >
               <Edit3 className="h-4 w-4" />
               <span>{isEditing ? "Cancel Edit" : "Edit Profile"}</span>
             </Button>
@@ -147,6 +149,8 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Greeting Section and Profile Card removed, now on dashboard */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Overview Card */}
           <div className="lg:col-span-1">
@@ -266,7 +270,8 @@ export default function ProfilePage() {
                     <Button
                       onClick={() => navigate("/elder/new")}
                       size="sm"
-                      className="bg-primary hover:bg-blue-700">
+                      className="bg-primary hover:bg-blue-700"
+                    >
                       Add Elder
                     </Button>
                   </div>
@@ -276,9 +281,8 @@ export default function ProfilePage() {
                       {elderDetails.map((elder, index) => (
                         <Card
                           delay={0.1 + index * 0.05}
-                          onClick={() =>
-                            navigate(`/elder/${elder.id}/profile`)
-                          }>
+                          onClick={() => navigate(`/elder/${elder.id}/profile`)}
+                        >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center">
                               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold mr-3">
@@ -332,7 +336,8 @@ export default function ProfilePage() {
                       </p>
                       <Button
                         onClick={() => navigate("/elder/new")}
-                        className="bg-primary hover:bg-blue-700">
+                        className="bg-primary hover:bg-blue-700"
+                      >
                         Add Your First Elder
                       </Button>
                     </div>
@@ -405,7 +410,8 @@ export default function ProfilePage() {
                             ([range, count]) => (
                               <div
                                 key={range}
-                                className="flex justify-between items-center">
+                                className="flex justify-between items-center"
+                              >
                                 <span className="text-sm text-gray-600">
                                   {range} years
                                 </span>
