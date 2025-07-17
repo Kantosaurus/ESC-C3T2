@@ -1,8 +1,8 @@
 import { http } from "@/lib/http";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback } from "react";
-import { useNavigate } from "react-router";
 import NewForm from "@/components/ui/new-form";
+import { useAfter } from "@/lib/use-after";
 
 function useNewCaregiver() {
   return useCallback((values: CaregiverFormType) => {
@@ -18,14 +18,14 @@ function useNewCaregiver() {
 
 export default function NewCaregiverPage() {
   const createNewCaregiver = useNewCaregiver();
-  const navigate = useNavigate();
+  const after = useAfter();
 
   const handleSubmit = useCallback(
     (values: CaregiverFormType) =>
       createNewCaregiver(values).then(() => {
-        navigate("/dashboard");
+        after();
       }),
-    [navigate, createNewCaregiver]
+    [createNewCaregiver, after]
   );
 
   return (
