@@ -16,8 +16,8 @@ import ElderProfilePage from "./elder/profile.page.tsx";
 import EditElderPage from "./elder/edit-elder-page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import ProfilePage from "./caregiver/profile.page.tsx";
-import NotesPage from "./notes/notes.page.tsx";
-import NewNotePage from "./notes/new-note.page.tsx";
+import NotesPage from "./note/notes.page.tsx";
+import NewNotePage from "./note/new-note.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
