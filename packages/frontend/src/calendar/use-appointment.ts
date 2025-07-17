@@ -19,7 +19,7 @@ export function useGetAppointments(elder_id: number | null) {
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchAppointments = useCallback(() => {
     if (!elder_id) return;
 
     setIsLoading(true);
@@ -28,6 +28,7 @@ export function useGetAppointments(elder_id: number | null) {
       .then(
         (res) => {
           setAppointments(res.data);
+          setError(undefined);
         },
         (error) => {
           if (error.response?.status === 404) {
@@ -40,5 +41,9 @@ export function useGetAppointments(elder_id: number | null) {
       .finally(() => setIsLoading(false));
   }, [elder_id]);
 
-  return { appointments, error, isLoading };
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  return { appointments, error, isLoading, refetch: fetchAppointments };
 }

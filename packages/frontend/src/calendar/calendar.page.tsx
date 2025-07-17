@@ -35,6 +35,7 @@ export default function Calendarview() {
     appointments,
     error: appointmentsError,
     isLoading: appointmentsLoading,
+    refetch,
   } = useGetAppointments(selectedElder?.id || null);
 
   const year = currDate.getFullYear();
@@ -69,7 +70,8 @@ export default function Calendarview() {
         onClick={() => {
           setViewDate(cellDate);
           setShowForm(false);
-        }}>
+        }}
+      >
         {day}
       </CalendarCell>
     );
@@ -83,6 +85,7 @@ export default function Calendarview() {
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
       await addAppointment(values);
+      await refetch();
       setShowForm(false);
       setViewDate(null);
     } catch (error) {
@@ -108,7 +111,8 @@ export default function Calendarview() {
           <div className="mt-6">
             <label
               htmlFor="elder-select"
-              className="block text-sm font-medium mb-2">
+              className="block text-sm font-medium mb-2"
+            >
               Select Elder:
             </label>
             {isLoading ? (
@@ -127,7 +131,8 @@ export default function Calendarview() {
                     (elder) => elder.id.toString() === value
                   );
                   setSelectedElder(elderObj || null);
-                }}>
+                }}
+              >
                 <SelectTrigger className="w-full max-w-xs bg-white text-gray-900">
                   <SelectValue placeholder="Choose an elder..." />
                 </SelectTrigger>
