@@ -16,6 +16,8 @@ import ElderProfilePage from "./elder/profile.page.tsx";
 import EditElderPage from "./elder/edit-elder-page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import ProfilePage from "./caregiver/profile.page.tsx";
+import NotesPage from "./note/notes.page.tsx";
+import NewNotePage from "./note/new-note.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -36,6 +38,10 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/elder/:elderId/edit" element={<EditElderPage />} />
           <Route path="/elder/:id/invite" element={<InvitePage />} />
           <Route path="/invite" element={<AcceptInvitePage />} />
+
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/notes/new" element={<NewNotePage />} />
+
           <Route path="/calendar" element={<CalendarPage />} />
         </Route>
       </Routes>

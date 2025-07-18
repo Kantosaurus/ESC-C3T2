@@ -26,10 +26,13 @@ erDiagram
 
 		Note {
 			INT id PK "Primary key, unique identifier for the note"
-			INT elderId FK "Foreign key referencing Elder"
-			INT appointmentId FK "Foreign key referencing Appointment, optional"
-			DATETIME createdAt "Timestamp when the note was created"
-			JSONB content "Content of the note, stored as JSON"
+			String header "Header of the note"
+			TEXT content "Content description of the note"
+			TEXT caregiver_id FK "Foreign key, matches authentication provider's JWT sub"
+			INT assigned_elder_id "FK "Foreign key referencing Elder"
+			INT appointment_id FK "Foreign key referencing Appointment, optional"
+			DATETIME created_at "Timestamp when the note was created"
+			DATETIME updated_at "Timestamp when the note was updated"
 		}
 
 		Caregiver ||--o{ Elder : "has"

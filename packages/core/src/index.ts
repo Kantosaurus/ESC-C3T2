@@ -5,3 +5,4 @@ export * from "./elder/elder.schema.js";
 export * from "./elder/invite.dto.schema.js";
 export * from "./address/address.schema.js";
 export * from "./appointment/appointment.schema.js";
+export * from "./note/note.schema.js";
