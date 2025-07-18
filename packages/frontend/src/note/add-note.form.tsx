@@ -14,12 +14,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectOption } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useDashboardData } from "../dashboard/use-dashboard-data";
 import { useNavigate } from "react-router";
-import { useSpeechToText } from "../../../backend/src/note/Speech-to-text";
+import { useSpeechToText } from "./use-speech-to-text";
 import { useEffect } from "react";
+import { useEldersDetails } from "@/elder/use-elder-details";
 
 const addNoteFormSchema = z.object({
   header: noteSchema.shape.header,
@@ -28,23 +34,24 @@ const addNoteFormSchema = z.object({
 });
 
 // export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
-export type AddNoteFormType = z.input<typeof addNoteFormSchema>;
+export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
+export type AddNoteFormInput = z.input<typeof addNoteFormSchema>;
 
 export function AddNoteForm({
-  defaultValues = { header: "", content: "", assigned_elder_id: "" }, // empty string keeps <select> empty
   onSubmit,
 }: {
   defaultValues?: Partial<AddNoteFormType>;
   onSubmit: (values: AddNoteFormType) => Promise<void>;
 }) {
-  const { elderDetails, isLoading: isLoadingRecipients } = useDashboardData();
+  const { elderDetails, isLoading: isLoadingRecipients } = useEldersDetails();
 
-  const form = useForm<AddNoteFormType>({
+  const form = useForm<AddNoteFormInput, unknown, AddNoteFormType>({
     resolver: zodResolver(addNoteFormSchema),
-    defaultValues,
   });
 
   const navigate = useNavigate();
+
+  const elderId = form.watch("assigned_elder_id");
 
   const {
     transcript,
@@ -54,12 +61,20 @@ export function AddNoteForm({
     setTranscript,
   } = useSpeechToText();
 
+  useEffect(() => {
+    // Set the default value for assigned_elder_id if not already set
+    if (!elderId && elderDetails && elderDetails.length > 0) {
+      form.setValue("assigned_elder_id", elderDetails[0].id.toString());
+    }
+  }, [elderId, elderDetails, form]);
+
   // This updates the form content field every time speech is transcribed
   useEffect(() => {
     if (transcript) {
       form.setValue("content", form.getValues("content") + transcript);
       setTranscript(""); // clear internal transcript so future additions are new
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript]);
 
   return (
@@ -70,8 +85,7 @@ export function AddNoteForm({
           console.log("Form returned values:", values); // log the returned values
           return onSubmit(values);
         })}
-        className="space-y-8"
-      >
+        className="space-y-8">
         <FormField
           control={form.control}
           name="assigned_elder_id"
@@ -83,17 +97,17 @@ export function AddNoteForm({
                   {...field}
                   required
                   disabled={isLoadingRecipients}
-                  value={field.value === undefined ? "" : Number(field.value)} // convert to number
-                  //     onChange={e => field.onChange(Number(e.target.value))}
-                >
-                  <SelectOption value="">
-                    {isLoadingRecipients ? "Loading…" : "Select a name"}
-                  </SelectOption>
-                  {elderDetails?.map((e) => (
-                    <SelectOption key={e.id} value={e.id}>
-                      {e.name}
-                    </SelectOption>
-                  ))}
+                  value={field.value as string}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a care recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {elderDetails?.map((e) => (
+                      <SelectItem key={e.id.toString()} value={e.id.toString()}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormControl>
               <FormDescription>
@@ -129,8 +143,7 @@ export function AddNoteForm({
               <Button
                 type="button"
                 onClick={listening ? stopListening : startListening}
-                className={listening ? "bg-red-500" : "bg-green-500"}
-              >
+                className={listening ? "bg-red-500" : "bg-green-500"}>
                 {listening ? "Stop Voice" : "Start Voice"}
               </Button>
 
@@ -154,14 +167,12 @@ export function AddNoteForm({
           variant="outline"
           className="mr-2 bg-slate-100 onHover:bg-slate-200"
           type="button"
-          onClick={() => navigate("/notes")}
-        >
+          onClick={() => navigate("/notes")}>
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}
-        >
+          disabled={form.formState.isSubmitting || !form.formState.isDirty}>
           Done
         </Button>
       </form>

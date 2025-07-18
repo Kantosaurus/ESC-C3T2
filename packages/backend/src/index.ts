@@ -15,7 +15,7 @@ import {
   createElderRelationshipHandler,
   getElderDetailsHandler,
 } from "./elder/elder.handler";
-import { getNotesHandler, insertNotesHandler } from "#notes/notes.handler.js";
+import { getNotesHandler, insertNotesHandler } from "#note/note.handler.js";
 import { corsWithConfig } from "./misc/cors";
 import {
   createAppointmentHandler,
