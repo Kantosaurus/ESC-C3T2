@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 export function useSpeechToText() {
   const [transcript, setTranscript] = useState("");
@@ -10,7 +11,7 @@ export function useSpeechToText() {
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Your browser does not support Speech Recognition.");
+      toast.warning("Your browser does not support Speech Recognition.");
       return;
     }
 
