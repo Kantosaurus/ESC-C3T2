@@ -66,7 +66,7 @@ const DashboardPage = () => {
   const navItems = [
     { name: "Dashboard", link: "/dashboard" },
     { name: "Schedule", link: "#" },
-    { name: "Notes", link: "#" },
+    { name: "Notes", link: "/notes" },
   ];
 
   const focusBentoCards = [
