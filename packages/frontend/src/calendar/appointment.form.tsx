@@ -23,6 +23,7 @@ const appointmentFormSchema = z.object({
   endDateTime: z.coerce.date(),
   details: appointmentSchema.shape.details.unwrap().unwrap().optional(),
   elder_id: appointmentSchema.shape.elder_id,
+  name: z.string().nonempty("Appointment must have a name"),
 });
 
 export type AppointmentFormType = z.infer<typeof appointmentFormSchema>;
@@ -31,8 +32,8 @@ export type AppointmentFormInput = z.input<typeof appointmentFormSchema>;
 //every 5 mins frrom 6am to 10pm
 const generateTimeOptions = () => {
   const times = [];
-  for (let hour = 6; hour <= 22; hour++) {
-    for (let minute = 0; minute < 60; minute += 5) {
+  for (let hour = 6; hour < 21; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
@@ -88,22 +89,25 @@ export function AppointmentForm({
   onSubmit: (values: AppointmentFormType) => Promise<void>;
 }) {
   const form = useForm<AppointmentFormInput, unknown, AppointmentFormType>({
-    defaultValues: defaultValues,
+    defaultValues: {
+      name: "",
+      ...defaultValues,
+    },
     resolver: zodResolver(appointmentFormSchema),
   });
 
   useEffect(() => {
-    if (selectedDate) {
-      const startTime = defaultStart;
-      const endTime = defaultEnd;
-
+    if (!defaultValues && selectedDate) {
       form.setValue(
         "startDateTime",
-        constructISOString(selectedDate, startTime)
+        constructISOString(selectedDate, defaultStart)
       );
-      form.setValue("endDateTime", constructISOString(selectedDate, endTime));
+      form.setValue(
+        "endDateTime",
+        constructISOString(selectedDate, defaultEnd)
+      );
     }
-  }, [selectedDate, form]);
+  }, [selectedDate, defaultValues, form]);
 
   useEffect(() => {
     if (elder_id) {
@@ -122,7 +126,8 @@ export function AppointmentForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mt-4 p-4 border rounded bg-white shadow space-y-4">
+        className="mt-4 p-4 border rounded bg-white shadow space-y-4"
+      >
         <div className="space-y-2">
           <Label>Elder</Label>
           <div className="p-2 border rounded bg-gray-50">
@@ -170,7 +175,8 @@ export function AppointmentForm({
                             }`}
                             onClick={() =>
                               handleTimeChange("startDateTime", time.value)
-                            }>
+                            }
+                          >
                             {time.display}
                           </div>
                         ))}
@@ -219,7 +225,8 @@ export function AppointmentForm({
                             }`}
                             onClick={() =>
                               handleTimeChange("endDateTime", time.value)
-                            }>
+                            }
+                          >
                             {time.display}
                           </div>
                         ))}
@@ -234,6 +241,25 @@ export function AppointmentForm({
               </FormItem>
             );
           }}
+        />
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Appointment title (e.g. Doctor Visit)"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Short name or label for this appointment.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         <FormField
@@ -260,8 +286,15 @@ export function AppointmentForm({
             !form.formState.isDirty ||
             !elder_id ||
             !selectedDate
-          }>
-          {form.formState.isSubmitting ? "Creating..." : "Create Appointment"}
+          }
+        >
+          {form.formState.isSubmitting
+            ? defaultValues
+              ? "Saving..."
+              : "Creating..."
+            : defaultValues
+            ? "Save Changes"
+            : "Create Appointment"}
         </Button>
       </form>
     </Form>

@@ -4,5 +4,6 @@ CREATE TABLE appointments (
   startDateTime TIMESTAMP,
   endDateTime TIMESTAMP,
   details TEXT,
+  name TEXT,
   FOREIGN KEY (elder_id) REFERENCES elders(id)
 );

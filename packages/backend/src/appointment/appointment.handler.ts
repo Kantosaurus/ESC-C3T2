@@ -3,6 +3,7 @@ import {
   insertAppointment,
   getAppointmentsForElder,
   deleteAppointment,
+  updateAppointment,
 } from "./appointment.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -43,3 +44,27 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or already deleted" });
   }
 });
+
+export const updateAppointmentHandler = authenticated(async (req, res) => {
+  const apptToUpdate = z
+    .object({
+      elder_id: z.number(),
+      startDateTime: z.coerce.date(),
+      endDateTime: z.coerce.date(),
+      details: z.string().optional(),
+      name: z.string().optional(),
+    })
+    .refine((data) => data.details || data.name, {
+      message: "At least one of 'details' or 'name' must be provided",
+    })
+    .parse(req.body);
+
+  try {
+    const updatedAppt = await updateAppointment(apptToUpdate);
+    res.status(200).json(updatedAppt);
+  } catch (err) {
+    console.error("Update failed:", err);
+    res.status(404).json({ error: "Appointment not found or update failed" });
+  }
+});
+

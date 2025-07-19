@@ -5,15 +5,15 @@ import z from "zod/v4";
 export const insertAppointment = (
   appt: Pick<
     Appointment,
-    "elder_id" | "startDateTime" | "endDateTime" | "details"
+    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name" 
   >
 ) =>
   db
     .query(
-      `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details`,
-      [appt.elder_id, appt.startDateTime, appt.endDateTime, appt.details]
+      `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name)
+       VALUES ($1, $2, $3, $4,$5)
+       RETURNING id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name`,
+      [appt.elder_id, appt.startDateTime, appt.endDateTime, appt.details, appt.name]
     )
     .then((result) => {
       console.log("Insert Appointment:", result);
@@ -27,7 +27,7 @@ export const insertAppointment = (
 export const getAppointmentsForElder = (elder_id: number) =>
   db
     .query(
-      `SELECT id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details
+      `SELECT id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name
       FROM appointments
       WHERE elder_id = $1;`,
       [elder_id]
@@ -54,3 +54,31 @@ export const deleteAppointment = (
         throw new Error("Row not found or already deleted");
       }
     });
+
+export const updateAppointment = (
+  appt: Pick<Appointment, "elder_id" | "startDateTime" | "endDateTime" | "details" | "name">
+) =>
+  db
+    .query(
+      `UPDATE appointments
+       SET details = $1,
+           name = $2
+       WHERE elder_id = $3 AND startDateTime = $4 AND endDateTime = $5
+       RETURNING id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name`,
+      [
+        appt.details,
+        appt.name,
+        appt.elder_id,
+        appt.startDateTime,
+        appt.endDateTime,
+      ]
+    )
+    .then((result) => {
+      console.log("Appointment updated:", result);
+      const rows = result.rows || result;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        throw new Error("Appointment not found or update failed");
+      }
+      return appointmentSchema.parse(rows[0]);
+    });
+

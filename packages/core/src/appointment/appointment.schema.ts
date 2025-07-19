@@ -5,6 +5,7 @@ export const appointmentSchema = z.object({
   startDateTime: z.coerce.date(),
   endDateTime: z.coerce.date(),
   details: z.string().nullish(),
+  name: z.string()
 });
 
 export type Appointment = z.infer<typeof appointmentSchema>;
