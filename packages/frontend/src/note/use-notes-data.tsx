@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -19,6 +19,59 @@ export function NoteDetails() {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
+
+  // Get notes with elder headers at the top
+  const notesWithHeaders = useMemo(() => {
+    if (!NoteDetails || !elderDetails) return [];
+
+    // Group notes by elderid, using a Record(like a hashmap) to map elderId to note objects
+    const groupedNotesByElder = NoteDetails.reduce((accumulator, note) => {
+      const elderId = note.assigned_elder_id;
+      if (!accumulator[elderId]) {
+        accumulator[elderId] = [];
+      }
+      accumulator[elderId].push(note);
+      return accumulator;
+    }, {} as Record<number, Note[]>);
+
+    //Sort notes objs in desc order under each elder, most recent updated to the top
+    Object.keys(groupedNotesByElder).forEach(elderId => {
+      groupedNotesByElder[Number(elderId)].sort((a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+    });
+
+    const result: Array<{
+      note: Note;
+      matchingElder: Elder | undefined;
+      showElderHeading: boolean;
+    }> = [];
+
+    // Array to store final sorted notes with elder headings
+    const sortedElders = elderDetails.sort((elderA, elderB) => {
+      const elderANotes = groupedNotesByElder[elderA.id] || [];
+      const elderBNotes = groupedNotesByElder[elderB.id] || [];
+
+      // Get date where elder note is most recently updated
+      const elderAMostRecent = elderANotes[0]?.updated_at || '';
+      const elderBMostRecent = elderBNotes[0]?.updated_at || '';
+      return new Date(elderBMostRecent).getTime() - new Date(elderAMostRecent).getTime();
+    });
+
+    sortedElders.forEach(elder => {
+      const elderNotes = groupedNotesByElder[elder.id] || [];
+      elderNotes.forEach(note => {
+        result.push({
+          note,
+          matchingElder: elder,
+          // Only first note of each elder group shows heading
+          showElderHeading: elderNotes.indexOf(note) === 0,
+        });
+      });
+    });
+
+    return result;
+  }, [NoteDetails, elderDetails]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -73,16 +126,19 @@ export function NoteDetails() {
         </p>
       ) : (
         <ul className="space-y-4">
-          {NoteDetails?.map((note) => {
-            // Find the elder that matches the note's assigned elder id
-            const matchingElder = elderDetails?.find(elder => elder.id === note.assigned_elder_id);
-            return (
-              <li key={note.id} className="p-4 bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
+          {notesWithHeaders.map(({ note, matchingElder, showElderHeading }) => (
+            <div key={note.id}>
+              {showElderHeading && (
+                <h2 className="text-lg font-bold mt-6 mb-2">
+                  {matchingElder?.name}
+                </h2>
+              )}
+              <li className="p-4 bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
                 <p className="text-sm text-gray-600">
                   Assigned to: {matchingElder ? matchingElder.name : "Unknown"}
                 </p>
                 <p className="font-extrabold">{note.header}</p>
-                <p 
+                <p
                   className="text-sm text-gray-800 whitespace-pre-wrap"
                   style={{
                     display: '-webkit-box',
@@ -106,8 +162,8 @@ export function NoteDetails() {
                   {new Date(note.updated_at).toLocaleTimeString()}
                 </p>
               </li>
-            );
-          })}
+            </div>
+          ))}
         </ul>
       )}
     </>

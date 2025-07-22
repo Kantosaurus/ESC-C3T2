@@ -97,7 +97,10 @@ export function AddNoteForm({
                   {...field}
                   required
                   disabled={isLoadingRecipients}
-                  value={field.value as string}>
+                  value={field.value as string}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                  }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a care recipient" />
                   </SelectTrigger>
