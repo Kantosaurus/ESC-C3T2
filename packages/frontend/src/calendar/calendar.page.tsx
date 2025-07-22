@@ -3,7 +3,6 @@ import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
 import { DayView } from "@/components/ui/calendardayview";
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type { Appointment } from "@carely/core";
 import { MonthSelector } from "@/components/ui/calendarmonthselector";
@@ -15,6 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { useEldersDetails } from "@/elder/use-elder-details";
 import type { Elder } from "@carely/core";
@@ -46,9 +60,7 @@ export default function Calendarview() {
 
   const [showForm, setShowForm] = useState(false);
 
-  const { appointments, refetch } = useGetAppointments(
-    selectedElder?.id || null
-  );
+  const { appointments, refetch } = useGetAppointments(selectedElder?.id ?? -1);
 
   useEffect(() => {
     if (!appointments || searchQuery.trim() === "") {
@@ -144,7 +156,13 @@ export default function Calendarview() {
             viewDate.toDateString()
         )
       : [];
-
+  if (!selectedElder) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500 text-lg">Loading elder data...</p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col h-screen">
       <header className="bg-gray-100 py-2 px-4 flex items-center justify-between shadow-sm">
@@ -230,69 +248,58 @@ export default function Calendarview() {
             {calCells}
           </div>
         </div>
-        <AnimatePresence>
-          {viewDate && selectedElder && (
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.3 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-[600px] bg-white shadow-lg z-50 p-4 overflow-y-auto"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">
-                  Appointments on {viewDate.toDateString()}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {!showForm && (
-                    <Button onClick={() => setShowForm(true)}>
-                      Add Appointment
-                    </Button>
-                  )}
-                  <Button variant="ghost" onClick={() => setViewDate(null)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
+        <Sheet
+          open={!!viewDate && !!selectedElder}
+          onOpenChange={(open) => {
+            if (!open) setViewDate(null);
+          }}
+        >
+          <SheetContent
+            side="right"
+            className="!w-full sm:!w-[600px] max-w-full p-6 overflow-y-auto"
+          >
+            <div className="flex justify-between items-start mt-6 mb-4 gap-4">
+              <SheetHeader>
+                <SheetTitle className="text-lg">
+                  Appointments on {viewDate?.toDateString()}
+                </SheetTitle>
+              </SheetHeader>
 
+              <div>
+                {!showForm && (
+                  <Button onClick={() => setShowForm(true)}>
+                    Add Appointment
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="h-[800px] overflow-y-auto border rounded shadow-inner">
               <DayView
-                date={viewDate}
+                date={viewDate!}
                 appointments={selectedDateAppointments}
                 onSelect={(appt) => setSelectedAppointment(appt)}
               />
+            </div>
 
-              <AnimatePresence>
-                {showForm && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[999] bg-black/30 flex items-center justify-center"
-                  >
-                    <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg relative">
-                      <button
-                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg"
-                        onClick={() => setShowForm(false)}
-                      >
-                        ✕
-                      </button>
+            <Dialog open={showForm} onOpenChange={setShowForm}>
+              <DialogContent className="p-6 max-w-md">
+                <DialogHeader>
+                  <DialogTitle>New Appointment</DialogTitle>
+                </DialogHeader>
 
-                      <AppointmentForm
-                        selectedDate={viewDate}
-                        elder_id={selectedElder.id}
-                        elder_name={selectedElder.name}
-                        onSubmit={handleAppointmentSubmit}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <AppointmentForm
+                  selectedDate={viewDate!}
+                  elder_id={selectedElder!.id}
+                  elder_name={selectedElder!.name}
+                  onSubmit={handleAppointmentSubmit}
+                />
+              </DialogContent>
+            </Dialog>
+          </SheetContent>
+        </Sheet>
+
         {selectedAppointment && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
             <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-6 w-full max-w-md pointer-events-auto">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold">Appointment Details</h3>
@@ -331,9 +338,12 @@ export default function Calendarview() {
                     }
                   )}
                 </p>
-                <p>
-                  <strong>Details:</strong> {selectedAppointment.details}
-                </p>
+                <div>
+                  <strong>Details:</strong>
+                  <div className="max-h-32 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words mt-1 border border-gray-200 p-2 rounded bg-gray-50">
+                    {selectedAppointment.details}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-4 flex justify-end space-x-2">
@@ -367,61 +377,55 @@ export default function Calendarview() {
         )}
       </main>
 
-      <AnimatePresence>
-        {drawerOpen && (
-          <motion.aside
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-md p-4 flex flex-col"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Options</h2>
-              <button onClick={() => setDrawerOpen(false)} className="text-xl">
-                ✕
-              </button>
-            </div>
-            <div className="space-y-2">
-              <Button className="w-full" onClick={() => navigate("/dashboard")}>
-                Dashboard
-              </Button>
-              <Button
-                className="w-full"
-                onClick={() => alert("THIS DOES NOTHING YET LOL")}
-              >
-                Accept/Deny invites
-              </Button>
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetTrigger asChild>
+          <div className="hidden" />
+        </SheetTrigger>
 
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-1">
-                  Select Elder
-                </h3>
-                <Select
-                  value={selectedElder?.id?.toString() || ""}
-                  onValueChange={(value) => {
-                    const elderObj = elderDetails?.find(
-                      (elder) => elder.id.toString() === value
-                    );
-                    setSelectedElder(elderObj || null);
-                  }}
-                >
-                  <SelectTrigger className="bg-white text-gray-900 w-full">
-                    <SelectValue placeholder="Choose elder..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {elderDetails?.map((elder) => (
-                      <SelectItem key={elder.id} value={elder.id.toString()}>
-                        {elder.name} (ID: {elder.id})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <SheetContent side="left" className="w-64 p-4">
+          <SheetHeader>
+            <SheetTitle>Options</SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-2 mt-4">
+            <Button className="w-full" onClick={() => navigate("/dashboard")}>
+              Dashboard
+            </Button>
+            <Button
+              className="w-full"
+              onClick={() => alert("THIS DOES NOTHING YET LOL")}
+            >
+              Accept/Deny invites
+            </Button>
+
+            <div className="mb-4 mt-2">
+              <h3 className="text-sm font-medium text-gray-700 mb-1">
+                Select Elder
+              </h3>
+              <Select
+                value={selectedElder?.id?.toString() || ""}
+                onValueChange={(value) => {
+                  const elderObj = elderDetails?.find(
+                    (elder) => elder.id.toString() === value
+                  );
+                  setSelectedElder(elderObj || null);
+                }}
+              >
+                <SelectTrigger className="bg-white text-gray-900 w-full">
+                  <SelectValue placeholder="Choose elder..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {elderDetails?.map((elder) => (
+                    <SelectItem key={elder.id} value={elder.id.toString()}>
+                      {elder.name} (ID: {elder.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

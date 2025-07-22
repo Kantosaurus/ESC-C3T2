@@ -63,6 +63,7 @@ export function MonthSelector({
               }}
               defaultMonth={selected}
               captionLayout="dropdown"
+              hidden={{ before: new Date(2000, 0), after: new Date(2100, 11) }}
             />
           </div>,
           document.body
