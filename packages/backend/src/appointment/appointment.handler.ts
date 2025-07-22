@@ -3,7 +3,6 @@ import {
   insertAppointment,
   getAppointmentsForElder,
   deleteAppointment,
-  updateAppointment,
 } from "./appointment.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -11,6 +10,25 @@ import z from "zod/v4";
 export const createAppointmentHandler = authenticated(async (req, res) => {
   console.log("at createAppointmentHandler");
   const appt = appointmentSchema.parse(req.body);
+  const newStart = new Date(appt.startDateTime).getTime();
+  const newEnd = new Date(appt.endDateTime).getTime();
+  const existingAppts = await getAppointmentsForElder(appt.elder_id);
+
+  const isClashing = existingAppts?.some((exist) => {
+    const existingStart = new Date(exist.startDateTime).getTime();
+    const existingEnd = new Date(exist.endDateTime).getTime();
+    return newStart < existingEnd && newEnd > existingStart;
+  });
+  if (isClashing) {
+    return res.status(409).json({
+      error: "Appointment clashes with an existing appointment",
+    });
+  }
+  if (newStart >= newEnd)
+    return res.status(400).json({
+      error: "Appointment end must be after start",
+    });
+
   const newAppt = await insertAppointment(appt);
   res.status(201).json(newAppt);
 });
@@ -29,6 +47,7 @@ export const getAppointmentsHandler = authenticated(async (req, res) => {
 });
 
 export const deleteAppointmentHandler = authenticated(async (req, res) => {
+  console.log("at delete");
   const apptToDelete = z
     .object({
       elder_id: z.number(),
@@ -44,7 +63,7 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or already deleted" });
   }
 });
-
+/*
 export const updateAppointmentHandler = authenticated(async (req, res) => {
   const apptToUpdate = z
     .object({
@@ -67,4 +86,4 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or update failed" });
   }
 });
-
+*/

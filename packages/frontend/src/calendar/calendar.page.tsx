@@ -128,17 +128,6 @@ export default function Calendarview() {
 
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
-      const newStart = new Date(values.startDateTime).getTime();
-      const newEnd = new Date(values.endDateTime).getTime();
-      const isClashing = appointments?.some((appt) => {
-        const existingStart = new Date(appt.startDateTime).getTime();
-        const existingEnd = new Date(appt.endDateTime).getTime();
-        return newStart < existingEnd && newEnd > existingStart;
-      });
-      if (isClashing) {
-        alert("This appointment clashes with an existing one.");
-        return;
-      }
       await addAppointment(values);
       await refetch();
       setShowForm(false);

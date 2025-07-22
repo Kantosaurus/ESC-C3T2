@@ -21,7 +21,6 @@ import {
   createAppointmentHandler,
   getAppointmentsHandler,
   deleteAppointmentHandler,
-  editAppointmentHandler,
 } from "./appointment/appointment.handler";
 
 const app = express();
@@ -66,8 +65,6 @@ app.post("/api/elder/invite", createElderRelationshipHandler);
 app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
-
-
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);

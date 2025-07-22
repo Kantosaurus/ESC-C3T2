@@ -29,45 +29,48 @@ const appointmentFormSchema = z.object({
 export type AppointmentFormType = z.infer<typeof appointmentFormSchema>;
 export type AppointmentFormInput = z.input<typeof appointmentFormSchema>;
 
-//every 5 mins frrom 6am to 10pm
-const generateTimeOptions = () => {
-  const times = [];
-  for (let hour = 6; hour < 21; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const timeString = `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
-      const displayTime = new Date(2000, 0, 1, hour, minute).toLocaleTimeString(
-        [],
-        {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }
-      );
-      times.push({ value: timeString, display: displayTime });
-    }
+const generateHourOptions = () => {
+  const hrs = [];
+  for (let hour = 1; hour < 13; hour++) {
+    const hrString = `${hour.toString().padStart(2, "0")}`;
+
+    hrs.push({ value: hrString, display: hrString });
   }
-  return times;
+
+  return hrs;
 };
 
-const timeOptions = generateTimeOptions();
+const generateMinuteOptions = () => {
+  const mins = [];
+  for (let minute = 0; minute < 60; minute += 5) {
+    const minString = `${minute.toString().padStart(2, "0")}`;
+    mins.push({ value: minString, display: minString });
+  }
+  return mins;
+};
+
+const minuteOptions = generateMinuteOptions();
+const hourOptions = generateHourOptions();
 
 //default time values
-const defaultStart = "9:00";
-const defaultEnd = "10:00";
+const defaultMin = "00";
+const defaultStartHr = "9";
+const defaultEndHr = "10";
 
 // create string
-const constructISOString = (date: Date, timeString: string): string => {
-  const [hours, minutes] = timeString.split(":").map(Number);
+const constructISOString = (
+  date: Date,
+  hours: string,
+  minutes: string
+): string => {
   const newDate = new Date(date);
-  newDate.setHours(hours, minutes, 0, 0);
+  newDate.setHours(Number(hours), Number(minutes), 0, 0);
   return newDate.toISOString();
 };
 
 // get time
 const extractTimeFromISO = (isoString: string): string => {
-  if (!isoString) return defaultStart;
+  if (!isoString) return defaultStartHr + ":" + defaultMin;
   const date = new Date(isoString);
   return `${date.getHours().toString().padStart(2, "0")}:${date
     .getMinutes()
@@ -100,11 +103,11 @@ export function AppointmentForm({
     if (!defaultValues && selectedDate) {
       form.setValue(
         "startDateTime",
-        constructISOString(selectedDate, defaultStart)
+        constructISOString(selectedDate, defaultStartHr, defaultMin)
       );
       form.setValue(
         "endDateTime",
-        constructISOString(selectedDate, defaultEnd)
+        constructISOString(selectedDate, defaultEndHr, defaultMin)
       );
     }
   }, [selectedDate, defaultValues, form]);
@@ -115,10 +118,33 @@ export function AppointmentForm({
     }
   }, [elder_id, form]);
 
-  const handleTimeChange = (field: string, timeString: string) => {
+  const handleTimeChange = (
+    field: string,
+    hour: string | null,
+    minute: string | null,
+    ampm: string | null
+  ) => {
     if (selectedDate) {
-      const isoString = constructISOString(selectedDate, timeString);
-      form.setValue(field as keyof AppointmentFormType, isoString);
+      const existing = form.getValues(
+        field as "startDateTime" | "endDateTime"
+      ) as string | undefined;
+      const date = new Date(existing ?? selectedDate);
+      const actualAmpm = ampm ?? (date.getHours() >= 12 ? "PM" : "AM");
+      let newHour = hour !== null ? Number(hour) : date.getHours();
+
+      if (actualAmpm == "PM" && newHour < 12) {
+        newHour += 12;
+      } else if (actualAmpm == "AM" && newHour >= 12) {
+        newHour -= 12;
+      }
+
+      const newMinute = minute !== null ? Number(minute) : date.getMinutes();
+      const updatedISO = constructISOString(
+        selectedDate,
+        newHour.toString(),
+        newMinute.toString()
+      );
+      form.setValue(field as keyof AppointmentFormType, updatedISO);
     }
   };
 
@@ -162,26 +188,77 @@ export function AppointmentForm({
                         hour12: true,
                       }) ?? "No time selected"}
                     </div>
-                    <ScrollArea className="h-32 border rounded p-2">
-                      <div className="space-y-1">
-                        {timeOptions.map((time) => (
-                          <div
-                            key={time.value}
-                            className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                              extractTimeFromISO(field.value as string) ===
-                              time.value
-                                ? "bg-blue-100 border-blue-300"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              handleTimeChange("startDateTime", time.value)
-                            }
-                          >
-                            {time.display}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
+                    <div className="flex space-x-2">
+                      <ScrollArea className="h-32 w-2/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {hourOptions.map((hr) => (
+                            <div
+                              key={hr.value}
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                extractTimeFromISO(field.value as string) ===
+                                hr.value
+                                  ? "bg-blue-100 border-blue-300"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "startDateTime",
+                                  hr.value,
+                                  null,
+                                  null
+                                )
+                              }
+                            >
+                              {hr.display}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <ScrollArea className="h-32 w-2/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {minuteOptions.map((min) => (
+                            <div
+                              key={min.value}
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                extractTimeFromISO(field.value as string) ===
+                                min.value
+                                  ? "bg-blue-100 border-blue-300"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "startDateTime",
+                                  null,
+                                  min.value,
+                                  null
+                                )
+                              }
+                            >
+                              {min.display}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <ScrollArea className="h-32 w-1/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {["AM", "PM"].map((ampm) => (
+                            <div
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "startDateTime",
+                                  null,
+                                  null,
+                                  ampm
+                                )
+                              }
+                            >
+                              {ampm}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
                   </div>
                 </FormControl>
                 <FormDescription>
@@ -211,27 +288,77 @@ export function AppointmentForm({
                         hour12: true,
                       }) ?? "No time selected"}
                     </div>
-                    <ScrollArea className="h-32 border rounded p-2">
-                      <div className="space-y-1">
-                        {timeOptions.map((time) => (
-                          <div
-                            key={time.value}
-                            className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                              field.value &&
-                              extractTimeFromISO(field.value as string) ===
-                                time.value
-                                ? "bg-blue-100 border-blue-300"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              handleTimeChange("endDateTime", time.value)
-                            }
-                          >
-                            {time.display}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
+                    <div className="flex space-x-2">
+                      <ScrollArea className="h-32 w-2/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {hourOptions.map((hr) => (
+                            <div
+                              key={hr.value}
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                extractTimeFromISO(field.value as string) ===
+                                hr.value
+                                  ? "bg-blue-100 border-blue-300"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "endDateTime",
+                                  hr.value,
+                                  null,
+                                  null
+                                )
+                              }
+                            >
+                              {hr.display}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <ScrollArea className="h-32 w-2/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {minuteOptions.map((min) => (
+                            <div
+                              key={min.value}
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                extractTimeFromISO(field.value as string) ===
+                                min.value
+                                  ? "bg-blue-100 border-blue-300"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "endDateTime",
+                                  null,
+                                  min.value,
+                                  null
+                                )
+                              }
+                            >
+                              {min.display}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <ScrollArea className="h-32 w-1/5 border rounded p-2">
+                        <div className="space-y-1">
+                          {["AM", "PM"].map((ampm) => (
+                            <div
+                              className={`p-2 rounded cursor-pointer hover:bg-gray-100`}
+                              onClick={() =>
+                                handleTimeChange(
+                                  "endDateTime",
+                                  null,
+                                  null,
+                                  ampm
+                                )
+                              }
+                            >
+                              {ampm}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
                   </div>
                 </FormControl>
                 <FormDescription>

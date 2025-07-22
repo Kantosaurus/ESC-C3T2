@@ -5,7 +5,7 @@ import z from "zod/v4";
 export const insertAppointment = (
   appt: Pick<
     Appointment,
-    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name" 
+    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name"
   >
 ) =>
   db
@@ -13,7 +13,13 @@ export const insertAppointment = (
       `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name)
        VALUES ($1, $2, $3, $4,$5)
        RETURNING id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name`,
-      [appt.elder_id, appt.startDateTime, appt.endDateTime, appt.details, appt.name]
+      [
+        appt.elder_id,
+        appt.startDateTime,
+        appt.endDateTime,
+        appt.details,
+        appt.name,
+      ]
     )
     .then((result) => {
       console.log("Insert Appointment:", result);
@@ -34,6 +40,7 @@ export const getAppointmentsForElder = (elder_id: number) =>
     )
     .then((result) => {
       const rows = result.rows || result;
+      console.log("Fetched:", rows);
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
       }
@@ -45,7 +52,8 @@ export const deleteAppointment = (
 ) =>
   db
     .query(
-      `DELETE FROM appointments WHERE elder_id = $1 AND startDateTime = $2 AND endDateTime = $3`,
+      `DELETE FROM appointments 
+      WHERE elder_id = $1 AND startDateTime = $2 AND endDateTime = $3`,
       [appt.elder_id, appt.startDateTime, appt.endDateTime]
     )
     .then((result) => {
@@ -55,8 +63,12 @@ export const deleteAppointment = (
       }
     });
 
+/*
 export const updateAppointment = (
-  appt: Pick<Appointment, "elder_id" | "startDateTime" | "endDateTime" | "details" | "name">
+  appt: Pick<
+    Appointment,
+    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name"
+  >
 ) =>
   db
     .query(
@@ -81,4 +93,4 @@ export const updateAppointment = (
       }
       return appointmentSchema.parse(rows[0]);
     });
-
+*/

@@ -65,7 +65,7 @@ const DashboardPage = () => {
 
   const navItems = [
     { name: "Dashboard", link: "/dashboard" },
-    { name: "Schedule", link: "#" },
+    { name: "Calendar", link: "/calendar" },
     { name: "Notes", link: "#" },
   ];
 
@@ -128,19 +128,22 @@ const DashboardPage = () => {
             <div ref={avatarRef} className="relative">
               <div
                 className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
-                onClick={() => setAvatarDropdownOpen((open) => !open)}>
+                onClick={() => setAvatarDropdownOpen((open) => !open)}
+              >
                 {getInitials(caregiverDetails?.name)}
               </div>
               {avatarDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 z-50 py-2">
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={() => navigate("/caregiver/profile")}>
+                    onClick={() => navigate("/caregiver/profile")}
+                  >
                     <User className="h-4 w-4 mr-2 inline-block" /> Profile
                   </button>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={handleLogout}>
+                    onClick={handleLogout}
+                  >
                     <LogOut className="h-4 w-4 mr-2 inline-block" /> Logout
                   </button>
                 </div>
@@ -164,7 +167,8 @@ const DashboardPage = () => {
                   key={index}
                   href={item.link}
                   className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}>
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   {item.name}
                 </a>
               ))}
@@ -177,7 +181,8 @@ const DashboardPage = () => {
                     handleLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </button>
@@ -224,7 +229,8 @@ const DashboardPage = () => {
                 size="sm"
                 variant="outline"
                 onClick={refetchElders}
-                disabled={eldersLoading}>
+                disabled={eldersLoading}
+              >
                 <RefreshCw
                   className={`h-4 w-4 mr-2 ${
                     eldersLoading ? "animate-spin" : ""
@@ -266,7 +272,8 @@ const DashboardPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-8">
+          className="mt-8"
+        >
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Care Resources
