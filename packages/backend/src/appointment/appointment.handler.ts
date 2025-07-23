@@ -9,6 +9,8 @@ import {
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
 
+import type { Request, Response } from "express";
+
 export const createAppointmentHandler = authenticated(async (req, res) => {
   console.log("at createAppointmentHandler");
   const appt = appointmentSchema.parse(req.body);
@@ -94,6 +96,29 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
     })
     .parse(req.body);
 
+  const start = new Date(apptToUpdate.startDateTime).getTime();
+  const end = new Date(apptToUpdate.endDateTime).getTime();
+  const existingAppts = await getAppointmentsForElder(apptToUpdate.elder_id);
+
+  const isClashing = existingAppts?.some((exist) => {
+    if (exist.appt_id == apptToUpdate.appt_id) return false;
+    const existingStart = new Date(exist.startDateTime).getTime();
+    const existingEnd = new Date(exist.endDateTime).getTime();
+    return start < existingEnd && end > existingStart;
+  });
+
+  if (isClashing) {
+    return res.status(409).json({
+      error: "Appointment clashes with an existing appointment",
+    });
+  }
+
+  if (start >= end) {
+    return res.status(400).json({
+      error: "Appointment end must be after start",
+    });
+  }
+
   try {
     const updatedAppt = await updateAppointment(apptToUpdate);
     res.status(200).json(updatedAppt);
@@ -102,3 +127,33 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or update failed" });
   }
 });
+
+//unwrapped appointment handler 4 testing purposes
+export const _createAppointmentHandler = async (
+  req: Request,
+  res: Response
+) => {
+  console.log("at createAppointmentHandler");
+  const appt = appointmentSchema.parse(req.body);
+  const newStart = new Date(appt.startDateTime).getTime();
+  const newEnd = new Date(appt.endDateTime).getTime();
+  const existingAppts = await getAppointmentsForElder(appt.elder_id);
+
+  const isClashing = existingAppts?.some((exist) => {
+    const existingStart = new Date(exist.startDateTime).getTime();
+    const existingEnd = new Date(exist.endDateTime).getTime();
+    return newStart < existingEnd && newEnd > existingStart;
+  });
+  if (isClashing) {
+    return res.status(409).json({
+      error: "Appointment clashes with an existing appointment",
+    });
+  }
+  if (newStart >= newEnd)
+    return res.status(400).json({
+      error: "Appointment end must be after start",
+    });
+
+  const newAppt = await insertAppointment(appt);
+  res.status(201).json(newAppt);
+};
