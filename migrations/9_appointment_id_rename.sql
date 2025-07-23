@@ -1,0 +1,1 @@
+ALTER TABLE appointments RENAME id to appt_id;

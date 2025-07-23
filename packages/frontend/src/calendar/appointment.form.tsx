@@ -21,9 +21,11 @@ import { Label } from "@/components/ui/label";
 const appointmentFormSchema = z.object({
   startDateTime: z.coerce.date(),
   endDateTime: z.coerce.date(),
-  details: appointmentSchema.shape.details.unwrap().unwrap().optional(),
+  details: z.string().nullish(),
   elder_id: appointmentSchema.shape.elder_id,
   name: z.string().nonempty("Appointment must have a name"),
+  loc: z.string().nullish(),
+  appt_id: z.number().optional(),
 });
 
 export type AppointmentFormType = z.infer<typeof appointmentFormSchema>;
@@ -396,7 +398,11 @@ export function AppointmentForm({
             <FormItem>
               <FormLabel>Details</FormLabel>
               <FormControl>
-                <Input placeholder="Additional details..." {...field} />
+                <Input
+                  placeholder="Additional details..."
+                  {...field}
+                  value={field.value ?? ""}
+                />
               </FormControl>
               <FormDescription>
                 Optional details for the appointment.
@@ -406,14 +412,31 @@ export function AppointmentForm({
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="loc"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Address"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormDescription>
+                Optional location for the appointment.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button
           type="submit"
-          disabled={
-            form.formState.isSubmitting ||
-            !form.formState.isDirty ||
-            !elder_id ||
-            !selectedDate
-          }
+          variant="outline"
+          disabled={form.formState.isSubmitting || !elder_id || !selectedDate}
         >
           {form.formState.isSubmitting
             ? defaultValues

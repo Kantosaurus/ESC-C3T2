@@ -2,7 +2,9 @@ import { appointmentSchema } from "@carely/core";
 import {
   insertAppointment,
   getAppointmentsForElder,
+  getAppointmentForElder,
   deleteAppointment,
+  updateAppointment,
 } from "./appointment.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -46,6 +48,20 @@ export const getAppointmentsHandler = authenticated(async (req, res) => {
   res.json(appts);
 });
 
+export const getAppointmentHandler = authenticated(async (req, res) => {
+  console.log("at getAppointmentHandler");
+
+  const { elder_id, appt_id } = z
+    .object({
+      elder_id: z.string().transform((val) => parseInt(val, 10)),
+      appt_id: z.string().transform((val) => parseInt(val, 10)),
+    })
+    .parse(req.params);
+
+  const appts = await getAppointmentForElder(elder_id, appt_id);
+  res.json(appts);
+});
+
 export const deleteAppointmentHandler = authenticated(async (req, res) => {
   console.log("at delete");
   const apptToDelete = z
@@ -63,18 +79,18 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or already deleted" });
   }
 });
-/*
+
 export const updateAppointmentHandler = authenticated(async (req, res) => {
+  console.log("at update");
   const apptToUpdate = z
     .object({
       elder_id: z.number(),
       startDateTime: z.coerce.date(),
       endDateTime: z.coerce.date(),
-      details: z.string().optional(),
-      name: z.string().optional(),
-    })
-    .refine((data) => data.details || data.name, {
-      message: "At least one of 'details' or 'name' must be provided",
+      details: z.string().nullish(),
+      name: z.string(),
+      loc: z.string().nullish(),
+      appt_id: z.number(),
     })
     .parse(req.body);
 
@@ -86,4 +102,3 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
     res.status(404).json({ error: "Appointment not found or update failed" });
   }
 });
-*/

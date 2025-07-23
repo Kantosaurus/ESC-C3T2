@@ -5,20 +5,21 @@ import z from "zod/v4";
 export const insertAppointment = (
   appt: Pick<
     Appointment,
-    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name"
+    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name" | "loc"
   >
 ) =>
   db
     .query(
-      `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name)
-       VALUES ($1, $2, $3, $4,$5)
-       RETURNING id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name`,
+      `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name, loc)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING appt_id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name, loc`,
       [
         appt.elder_id,
         appt.startDateTime,
         appt.endDateTime,
         appt.details,
         appt.name,
+        appt.loc,
       ]
     )
     .then((result) => {
@@ -33,7 +34,7 @@ export const insertAppointment = (
 export const getAppointmentsForElder = (elder_id: number) =>
   db
     .query(
-      `SELECT id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name
+      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc
       FROM appointments
       WHERE elder_id = $1;`,
       [elder_id]
@@ -45,6 +46,20 @@ export const getAppointmentsForElder = (elder_id: number) =>
         throw new Error("Invalid format");
       }
       return z.array(appointmentSchema).parse(rows);
+    });
+
+export const getAppointmentForElder = (elder_id: number, appt_id: number) =>
+  db
+    .query(
+      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc
+      FROM appointments
+      WHERE elder_id = $1 AND appt_id = $2;`,
+      [elder_id, appt_id]
+    )
+    .then((result) => {
+      console.log("Fetched appointment:", result);
+
+      return z.array(appointmentSchema).parse(result);
     });
 
 export const deleteAppointment = (
@@ -63,26 +78,36 @@ export const deleteAppointment = (
       }
     });
 
-/*
 export const updateAppointment = (
   appt: Pick<
     Appointment,
-    "elder_id" | "startDateTime" | "endDateTime" | "details" | "name"
+    | "name"
+    | "details"
+    | "startDateTime"
+    | "endDateTime"
+    | "loc"
+    | "elder_id"
+    | "appt_id"
   >
 ) =>
   db
     .query(
       `UPDATE appointments
-       SET details = $1,
-           name = $2
-       WHERE elder_id = $3 AND startDateTime = $4 AND endDateTime = $5
-       RETURNING id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name`,
+       SET name = $1,
+           details = $2,
+           startDateTime = $3,
+           endDateTime = $4,
+           loc = $5
+       WHERE elder_id = $6 AND appt_id = $7
+       RETURNING appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc`,
       [
-        appt.details,
         appt.name,
-        appt.elder_id,
+        appt.details,
         appt.startDateTime,
         appt.endDateTime,
+        appt.loc,
+        appt.elder_id,
+        appt.appt_id,
       ]
     )
     .then((result) => {
@@ -93,4 +118,3 @@ export const updateAppointment = (
       }
       return appointmentSchema.parse(rows[0]);
     });
-*/

@@ -7,6 +7,8 @@ export const appointmentSchema = z.object({
   endDateTime: z.coerce.date(),
   details: z.string().nullish(),
   name: z.string(),
+  loc: z.string().nullish(),
+  accepted: z.string().nullish(),
 });
 
 export type Appointment = z.infer<typeof appointmentSchema>;

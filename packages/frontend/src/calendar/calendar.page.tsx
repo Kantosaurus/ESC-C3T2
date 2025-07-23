@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  CalendarPlus,
+} from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
 import { DayView } from "@/components/ui/calendardayview";
@@ -26,8 +33,10 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { useEldersDetails } from "@/elder/use-elder-details";
@@ -37,7 +46,10 @@ import {
   useCreateAppointment,
   useGetAppointments,
   useDeleteAppointment,
+  useUpdateAppointment,
 } from "./use-appointment";
+import AppointmentDetailsPage from "./appointment.details";
+import UpdateAppointmentForm from "./update.appointment.form";
 
 export default function Calendarview() {
   const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
@@ -51,14 +63,15 @@ export default function Calendarview() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Appointment[]>([]);
+  const [sheetView, setSheetView] = useState<
+    "dayview" | "details" | "form" | "update"
+  >("dayview");
 
   useEffect(() => {
     if (elderDetails && elderDetails.length > 0) {
       setSelectedElder(elderDetails[0]);
     }
   }, [elderDetails]);
-
-  const [showForm, setShowForm] = useState(false);
 
   const { appointments, refetch } = useGetAppointments(selectedElder?.id ?? -1);
 
@@ -118,7 +131,6 @@ export default function Calendarview() {
         key={day}
         onClick={() => {
           setViewDate(cellDate);
-          setShowForm(false);
         }}
         eventLabel={dayAppointments.map(
           (appt) =>
@@ -142,10 +154,22 @@ export default function Calendarview() {
     try {
       await addAppointment(values);
       await refetch();
-      setShowForm(false);
       setViewDate(null);
+      setSheetView("dayview");
     } catch (error) {
       console.error("Error creating appointment:", error);
+    }
+  };
+
+  const updateAppointment = useUpdateAppointment();
+
+  const handleUpdateSubmit = async (values: AppointmentFormType) => {
+    try {
+      await updateAppointment(values);
+      await refetch();
+      setSheetView("dayview");
+    } catch (error) {
+      console.error("Error updating appointment:", error);
     }
   };
   const selectedDateAppointments =
@@ -159,7 +183,7 @@ export default function Calendarview() {
   if (!selectedElder) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500 text-lg">Loading elder data...</p>
+        <p className="text-gray-500 text-lg">Please add an elder first</p>
       </div>
     );
   }
@@ -189,6 +213,10 @@ export default function Calendarview() {
               <ChevronRightIcon className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+        <div className="text-center left-1/2 -translate-x-1/2 absolute">
+          {" "}
+          {selectedElder.name}'s Appointments
         </div>
 
         <div className="relative">
@@ -251,130 +279,131 @@ export default function Calendarview() {
         <Sheet
           open={!!viewDate && !!selectedElder}
           onOpenChange={(open) => {
-            if (!open) setViewDate(null);
+            if (!open) {
+              setViewDate(null);
+              setSheetView("dayview");
+            }
           }}
         >
           <SheetContent
             side="right"
             className="!w-full sm:!w-[600px] max-w-full p-6 overflow-y-auto"
           >
-            <div className="flex justify-between items-start mt-6 mb-4 gap-4">
-              <SheetHeader>
-                <SheetTitle className="text-lg">
-                  Appointments on {viewDate?.toDateString()}
-                </SheetTitle>
-              </SheetHeader>
+            <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10 mb-1">
+              <div className="grid grid-cols-3 items-center py-2">
+                <div className="flex justify-start">
+                  {!(sheetView == "dayview") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSheetView("dayview")}
+                      className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                  )}
+                </div>
+                <div className="flex justify-center font-semibold">
+                  {viewDate?.toDateString()}
+                </div>
+                <div className="flex justify-end">
+                  {sheetView == "dayview" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSheetView("form")}
+                    >
+                      <CalendarPlus />
+                      Add Appointment
+                    </Button>
+                  )}
 
-              <div>
-                {!showForm && (
-                  <Button onClick={() => setShowForm(true)}>
-                    Add Appointment
-                  </Button>
-                )}
+                  {sheetView == "details" && selectedAppointment && (
+                    <div className="flex gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">
+                            <Trash2 />
+                            Delete
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete the appointment
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4">
+                            <Button
+                              className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                              onClick={async () => {
+                                if (!selectedElder) return;
+                                await deleteAppointment({
+                                  elder_id: selectedElder.id,
+                                  startDateTime:
+                                    selectedAppointment.startDateTime,
+                                  endDateTime: selectedAppointment.endDateTime,
+                                });
+                                await refetch();
+                                setSelectedAppointment(null);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        onClick={() => setSheetView("update")}
+                        variant="outline"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="h-[800px] overflow-y-auto border rounded shadow-inner">
-              <DayView
-                date={viewDate!}
-                appointments={selectedDateAppointments}
-                onSelect={(appt) => setSelectedAppointment(appt)}
-              />
-            </div>
+            <div className="h-11/12 overflow-y-auto">
+              {sheetView == "dayview" && (
+                <DayView
+                  date={viewDate!}
+                  appointments={selectedDateAppointments}
+                  onSelect={(appt) => {
+                    setSelectedAppointment(appt);
+                    setSheetView("details");
+                  }}
+                />
+              )}
 
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogContent className="p-6 max-w-md">
-                <DialogHeader>
-                  <DialogTitle>New Appointment</DialogTitle>
-                </DialogHeader>
-
+              {sheetView == "form" && (
                 <AppointmentForm
                   selectedDate={viewDate!}
                   elder_id={selectedElder!.id}
                   elder_name={selectedElder!.name}
                   onSubmit={handleAppointmentSubmit}
                 />
-              </DialogContent>
-            </Dialog>
+              )}
+
+              {sheetView == "details" && selectedAppointment?.appt_id && (
+                <AppointmentDetailsPage
+                  elder={selectedElder}
+                  appt_id={selectedAppointment.appt_id}
+                />
+              )}
+              {sheetView == "update" && selectedAppointment?.appt_id && (
+                <UpdateAppointmentForm
+                  elder={selectedElder}
+                  appt={selectedAppointment}
+                  onSubmit={handleUpdateSubmit}
+                ></UpdateAppointmentForm>
+              )}
+            </div>
           </SheetContent>
         </Sheet>
-
-        {selectedAppointment && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
-            <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-6 w-full max-w-md pointer-events-auto">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">Appointment Details</h3>
-                <button
-                  onClick={() => setSelectedAppointment(null)}
-                  className="text-gray-500 hover:text-gray-700 text-lg"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                <p>
-                  <strong>Name:</strong> {selectedAppointment.name}
-                </p>
-                <p>
-                  <strong>Date:</strong>{" "}
-                  {new Date(
-                    selectedAppointment.startDateTime
-                  ).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Time:</strong>{" "}
-                  {new Date(
-                    selectedAppointment.startDateTime
-                  ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  –{" "}
-                  {new Date(selectedAppointment.endDateTime).toLocaleTimeString(
-                    [],
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  )}
-                </p>
-                <div>
-                  <strong>Details:</strong>
-                  <div className="max-h-32 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words mt-1 border border-gray-200 p-2 rounded bg-gray-50">
-                    {selectedAppointment.details}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => {
-                    //THANK YOU RYAN YOU ARE SO COOL
-                    alert("RYAN ALL U BUDDY");
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                  onClick={async () => {
-                    if (!selectedElder) return;
-                    await deleteAppointment({
-                      elder_id: selectedElder.id,
-                      startDateTime: selectedAppointment.startDateTime,
-                      endDateTime: selectedAppointment.endDateTime,
-                    });
-                    await refetch();
-                    setSelectedAppointment(null);
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
