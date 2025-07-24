@@ -51,6 +51,7 @@ import {
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
 import { toast } from "sonner";
+import type { AxiosError } from "axios";
 
 export default function Calendarview() {
   const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
@@ -58,7 +59,6 @@ export default function Calendarview() {
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
   const { elderDetails } = useEldersDetails();
-  const deleteAppointment = useDeleteAppointment();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -68,13 +68,63 @@ export default function Calendarview() {
     "dayview" | "details" | "form" | "update"
   >("dayview");
 
+  //handlers
+  const { appointments, refetch } = useGetAppointments(selectedElder?.id ?? -1);
+  const addAppointment = useCreateAppointment();
+  const handleAppointmentSubmit = async (values: AppointmentFormType) => {
+    try {
+      await addAppointment(values);
+      await refetch();
+      setViewDate(null);
+      setSheetView("dayview");
+      toast.success("Appointment created");
+    } catch (error) {
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
+  const updateAppointment = useUpdateAppointment();
+
+  const handleUpdateSubmit = async (values: AppointmentFormType) => {
+    try {
+      await updateAppointment(values);
+      await refetch();
+      setSheetView("dayview");
+      toast.success("Appointment updated");
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
+  const deleteAppointment = useDeleteAppointment();
+  const handleDeleteAppointment = async (
+    values: Pick<AppointmentFormType, "elder_id" | "appt_id">
+  ) => {
+    try {
+      await deleteAppointment(values);
+      await refetch();
+      setSelectedAppointment(null);
+      setSheetView("dayview");
+      toast.success("Appointment deleted");
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
+  //render
   useEffect(() => {
     if (elderDetails && elderDetails.length > 0) {
       setSelectedElder(elderDetails[0]);
     }
   }, [elderDetails]);
-
-  const { appointments, refetch } = useGetAppointments(selectedElder?.id ?? -1);
 
   useEffect(() => {
     if (!appointments || searchQuery.trim() === "") {
@@ -147,30 +197,7 @@ export default function Calendarview() {
   }
   const prevMonth = () => setCurrDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrDate(new Date(year, month + 1, 1));
-  const addAppointment = useCreateAppointment();
-  const handleAppointmentSubmit = async (values: AppointmentFormType) => {
-    try {
-      await addAppointment(values);
-      await refetch();
-      setViewDate(null);
-      setSheetView("dayview");
-    } catch (error) {
-      console.error("Error creating appointment:", error);
-      toast("your mum gay");
-    }
-  };
 
-  const updateAppointment = useUpdateAppointment();
-
-  const handleUpdateSubmit = async (values: AppointmentFormType) => {
-    try {
-      await updateAppointment(values);
-      await refetch();
-      setSheetView("dayview");
-    } catch (error) {
-      console.error("Error updating appointment:", error);
-    }
-  };
   const selectedDateAppointments =
     viewDate && appointments
       ? appointments.filter(
@@ -182,7 +209,11 @@ export default function Calendarview() {
   if (!selectedElder) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500 text-lg">Please add an elder first</p>
+        <p className="text-gray-500 text-lg">
+          <Button onClick={() => navigate("/elder/new")}>
+            Please add an elder here first
+          </Button>
+        </p>
       </div>
     );
   }
@@ -306,7 +337,10 @@ export default function Calendarview() {
                   )}
                 </div>
                 <div className="flex justify-center font-semibold">
-                  {viewDate?.toDateString()}
+                  {sheetView == "dayview" && viewDate?.toDateString()}
+                  {sheetView == "details" && "Details"}
+                  {sheetView == "form" && "Create"}
+                  {sheetView == "update" && "Update"}
                 </div>
                 <div className="flex justify-end">
                   {sheetView == "dayview" && (
@@ -330,7 +364,9 @@ export default function Calendarview() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogTitle>
+                              Delete {selectedAppointment.name}?
+                            </DialogTitle>
                             <DialogDescription>
                               This action cannot be undone. This will
                               permanently delete the appointment
@@ -341,14 +377,10 @@ export default function Calendarview() {
                               className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
                               onClick={async () => {
                                 if (!selectedElder) return;
-                                await deleteAppointment({
-                                  elder_id: selectedElder.id,
-                                  startDateTime:
-                                    selectedAppointment.startDateTime,
-                                  endDateTime: selectedAppointment.endDateTime,
+                                handleDeleteAppointment({
+                                  elder_id: selectedAppointment.elder_id,
+                                  appt_id: selectedAppointment.appt_id,
                                 });
-                                await refetch();
-                                setSelectedAppointment(null);
                               }}
                             >
                               Delete

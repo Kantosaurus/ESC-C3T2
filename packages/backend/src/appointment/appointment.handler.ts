@@ -69,8 +69,7 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
   const apptToDelete = z
     .object({
       elder_id: z.number(),
-      startDateTime: z.coerce.date(),
-      endDateTime: z.coerce.date(),
+      appt_id: z.number(),
     })
     .parse(req.body);
   try {

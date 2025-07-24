@@ -82,12 +82,7 @@ export function useGetAppointment(elder_id: number, appt_id: number) {
 
 export function useDeleteAppointment() {
   return useCallback(
-    (
-      values: Pick<
-        AppointmentFormType,
-        "elder_id" | "startDateTime" | "endDateTime"
-      >
-    ) => {
+    (values: Pick<AppointmentFormType, "elder_id" | "appt_id">) => {
       return http()
         .post("/api/appointment/delete", values)
         .then((res) => res.data)
@@ -103,7 +98,7 @@ export function useDeleteAppointment() {
 export function useUpdateAppointment() {
   return useCallback((values: AppointmentFormType) => {
     return http()
-      .post("/api/appointment/update", values)
+      .patch("/api/appointment/update", values)
       .then((res) => res.data)
       .catch((error) => {
         console.error("Error updating appointment:", error);

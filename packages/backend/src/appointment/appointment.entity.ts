@@ -63,13 +63,13 @@ export const getAppointmentForElder = (elder_id: number, appt_id: number) =>
     });
 
 export const deleteAppointment = (
-  appt: Pick<Appointment, "elder_id" | "startDateTime" | "endDateTime">
+  appt: Pick<Appointment, "elder_id" | "appt_id">
 ) =>
   db
     .query(
       `DELETE FROM appointments 
-      WHERE elder_id = $1 AND startDateTime = $2 AND endDateTime = $3`,
-      [appt.elder_id, appt.startDateTime, appt.endDateTime]
+      WHERE elder_id = $1 AND appt_id = $2`,
+      [appt.elder_id, appt.appt_id]
     )
     .then((result) => {
       console.log("Appointment deleted:", result);

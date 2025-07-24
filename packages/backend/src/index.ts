@@ -68,7 +68,7 @@ app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
 app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
-app.post("/api/appointment/update", updateAppointmentHandler);
+app.patch("/api/appointment/update", updateAppointmentHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
