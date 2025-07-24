@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
-export function MonthSelector({
+export function MiniCalendar({
   selected,
   onSelect,
 }: {
@@ -33,41 +32,35 @@ export function MonthSelector({
 
   return (
     <div className="relative inline-block text-center">
-      <button
+      <Button
         ref={buttonRef}
-        onClick={() => setShowCalendar((prev) => !prev)}
+        variant="ghost"
         className="text-sm font-medium text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition flex items-center gap-1"
+        onClick={() => setShowCalendar((prev) => !prev)}
       >
         {selected.toLocaleString("default", { month: "long", year: "numeric" })}
-      </button>
+      </Button>
 
-      {showCalendar &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            className="absolute z-[9999] mt-2 bg-white border rounded shadow p-2"
-            style={{
-              position: "absolute",
-              top: buttonRef.current?.getBoundingClientRect().bottom ?? 0,
-              left: buttonRef.current?.getBoundingClientRect().left ?? 0,
+      {showCalendar && (
+        <div
+          ref={dropdownRef}
+          className="absolute z-50 mt-2 bg-white border rounded shadow p-2"
+        >
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(date) => {
+              if (date) {
+                onSelect(date);
+                setShowCalendar(false);
+              }
             }}
-          >
-            <DayPicker
-              mode="single"
-              selected={selected}
-              onSelect={(date) => {
-                if (date) {
-                  onSelect(date);
-                  setShowCalendar(false);
-                }
-              }}
-              defaultMonth={selected}
-              captionLayout="dropdown"
-              hidden={{ before: new Date(2000, 0), after: new Date(2100, 11) }}
-            />
-          </div>,
-          document.body
-        )}
+            captionLayout="dropdown"
+            fromYear={2000}
+            toYear={2100}
+          />
+        </div>
+      )}
     </div>
   );
 }

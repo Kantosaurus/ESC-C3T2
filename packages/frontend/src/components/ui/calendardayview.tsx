@@ -46,6 +46,7 @@ export function DayView({
         const end = new Date(appt.endDateTime);
         const top = getMinutesSinceStart(start) * pxPerMinute;
         const height = getDuration(start, end) * pxPerMinute;
+        const showTime = height >= 40;
 
         return (
           <div
@@ -55,17 +56,19 @@ export function DayView({
             onClick={() => onSelect?.(appt)}
           >
             <div className="text-blue-700 font-medium">{appt.name}</div>
-            <div className="text-blue-800 font-semibold">
-              {start.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              –{" "}
-              {end.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
+            {showTime && (
+              <div className="text-blue-800 font-semibold">
+                {start.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                –{" "}
+                {end.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            )}
           </div>
         );
       })}

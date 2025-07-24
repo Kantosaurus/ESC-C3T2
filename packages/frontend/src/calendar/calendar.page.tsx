@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { DayView } from "@/components/ui/calendardayview";
 import { useNavigate } from "react-router-dom";
 import type { Appointment } from "@carely/core";
-import { MonthSelector } from "@/components/ui/calendarmonthselector";
+import { MiniCalendar } from "@/components/ui/calendar-mini";
 
 import {
   Select,
@@ -204,7 +204,7 @@ export default function Calendarview() {
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
             <div className="w-[140px] text-center relative">
-              <MonthSelector
+              <MiniCalendar
                 selected={currDate}
                 onSelect={(date) => setCurrDate(date)}
               />
