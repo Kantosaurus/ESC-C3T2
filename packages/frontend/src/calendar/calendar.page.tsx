@@ -50,6 +50,7 @@ import {
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
+import { toast } from "sonner";
 
 export default function Calendarview() {
   const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
@@ -144,12 +145,9 @@ export default function Calendarview() {
       </CalendarCell>
     );
   }
-
   const prevMonth = () => setCurrDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrDate(new Date(year, month + 1, 1));
-
   const addAppointment = useCreateAppointment();
-
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
       await addAppointment(values);
@@ -158,6 +156,7 @@ export default function Calendarview() {
       setSheetView("dayview");
     } catch (error) {
       console.error("Error creating appointment:", error);
+      toast("your mum gay");
     }
   };
 
@@ -242,6 +241,8 @@ export default function Calendarview() {
                   onClick={() => {
                     setSelectedAppointment(result);
                     setSearchQuery("");
+                    setViewDate(new Date(result.startDateTime));
+                    setSheetView("details");
                   }}
                 >
                   <div className="font-medium">{result.name}</div>
