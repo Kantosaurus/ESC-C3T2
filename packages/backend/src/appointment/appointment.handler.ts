@@ -5,7 +5,11 @@ import {
   getAppointmentForElder,
   deleteAppointment,
   updateAppointment,
+  getPendingAppointments,
+  acceptAppointment,
 } from "./appointment.entity";
+
+import { getCaregiverDetails } from "#caregiver/caregiver.entity.js";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
 
@@ -47,6 +51,10 @@ export const getAppointmentsHandler = authenticated(async (req, res) => {
     .parse(req.params);
 
   const appts = await getAppointmentsForElder(elder_id);
+  if (!appts) {
+    return res.status(404).json({ error: "No appointments found" });
+  }
+
   res.json(appts);
 });
 
@@ -74,6 +82,7 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
     .parse(req.body);
   try {
     await deleteAppointment(apptToDelete);
+
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("Delete failed:", err);
@@ -125,6 +134,56 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
     console.error("Update failed:", err);
     res.status(404).json({ error: "Appointment not found or update failed" });
   }
+});
+
+export const getPendingAppointmentsHandler = authenticated(async (req, res) => {
+  try {
+    const caregiver_id = res.locals.user.userId;
+    const appts = await getPendingAppointments(caregiver_id);
+    res.json(appts);
+  } catch (error) {
+    console.error("Failed to fetch pending appointments:", error);
+  }
+});
+
+export const acceptAppointmentHandler = authenticated(async (req, res) => {
+  console.log("at accept appointment");
+  let caregiver_id = null;
+
+  const { elder_id, appt_id, undo } = z
+    .object({
+      elder_id: z.number(),
+      appt_id: z.number(),
+      undo: z.boolean(),
+    })
+    .parse(req.body);
+  try {
+    if (!undo) {
+      caregiver_id = res.locals.user.userId;
+    }
+
+    const appt = await acceptAppointment(caregiver_id, elder_id, appt_id);
+    res.json(appt);
+  } catch (error) {
+    console.error("Failed to accept appointment:", error);
+  }
+});
+
+export const getCaregiverById = authenticated(async (req, res) => {
+  const { caregiver_id } = z
+    .object({
+      caregiver_id: z.string(),
+    })
+    .parse(req.params);
+
+  const caregiver = await getCaregiverDetails(caregiver_id);
+
+  if (!caregiver) {
+    res.status(404).json({ error: "Caregiver not found" });
+    return;
+  }
+
+  res.json(caregiver);
 });
 
 //unwrapped appointment handler 4 testing purposes

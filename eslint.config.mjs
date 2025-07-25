@@ -8,5 +8,10 @@ export default tseslint.config(
   tseslint.configs.recommended,
   {
     ignores: ["./**/*.js"],
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: ".",
+      },
+    },
   }
 );

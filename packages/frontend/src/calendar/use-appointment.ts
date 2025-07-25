@@ -1,6 +1,8 @@
 import { useCallback, useState, useEffect } from "react";
 import { type AppointmentFormType } from "./appointment.form";
 import { http } from "@/lib/http";
+import type { Appointment } from "@carely/core/dist/appointment/appointment.schema";
+import type { Caregiver } from "@carely/core";
 
 export function useCreateAppointment() {
   return useCallback((values: AppointmentFormType) => {
@@ -49,13 +51,11 @@ export function useGetAppointments(elder_id: number | null) {
 }
 
 export function useGetAppointment(elder_id: number, appt_id: number) {
-  const [appointment, setAppointment] = useState<AppointmentFormType | null>(
-    null
-  );
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchAppointment = useCallback(() => {
     if (!elder_id) return;
 
     setIsLoading(true);
@@ -77,7 +77,16 @@ export function useGetAppointment(elder_id: number, appt_id: number) {
       .finally(() => setIsLoading(false));
   }, [elder_id, appt_id]);
 
-  return { appointment, error, isLoading };
+  useEffect(() => {
+    fetchAppointment();
+  }, [fetchAppointment]);
+
+  return {
+    appointment,
+    error,
+    isLoading,
+    refetchAppointment: fetchAppointment,
+  };
 }
 
 export function useDeleteAppointment() {
@@ -105,4 +114,89 @@ export function useUpdateAppointment() {
         throw error;
       });
   }, []);
+}
+
+export function useGetPendingAppointments() {
+  const [pending, setPending] = useState<Appointment[]>();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchAppointments = useCallback(() => {
+    setIsLoading(true);
+    http()
+      .get(`/api/appointment/pending`)
+      .then(
+        (res) => {
+          setPending(res.data);
+          setError(undefined);
+        },
+        (error) => {
+          if (error.response?.status === 404) {
+            setError("Appointments not found");
+          } else {
+            setError("Failed to fetch appointments");
+          }
+        }
+      )
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  return { pending, error, isLoading, refetchPending: fetchAppointments };
+}
+
+export function useAcceptAppointment() {
+  return useCallback(
+    (values: {
+      elder_id: number;
+      appt_id: number | undefined;
+      undo: boolean;
+    }) => {
+      return http()
+        .post("/api/appointment/accept", values)
+        .then((res) => res.data)
+        .catch((error) => {
+          console.error("Error accepting appointment:", error);
+          throw error;
+        });
+    },
+    []
+  );
+}
+
+export function useGetCaregiver(caregiver_id: string | null | undefined) {
+  const [caregiver, setCaregiver] = useState<Caregiver>();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchCaregiver = useCallback(() => {
+    if (!caregiver_id) return;
+    setIsLoading(true);
+
+    http()
+      .get(`/api/caregiver/${caregiver_id}`)
+      .then(
+        (res) => {
+          setCaregiver(res.data);
+          setError(undefined);
+        },
+        (error) => {
+          if (error.response?.status === 404) {
+            setError("Caregiver not found");
+          } else {
+            setError("Failed to fetch caregiver");
+          }
+        }
+      )
+      .finally(() => setIsLoading(false));
+  }, [caregiver_id]);
+
+  useEffect(() => {
+    fetchCaregiver();
+  }, [fetchCaregiver]);
+
+  return { caregiver, error, isLoading, refetchPending: fetchCaregiver };
 }

@@ -6,6 +6,7 @@ import {
   Trash2,
   ArrowLeft,
   CalendarPlus,
+  Inbox,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -22,13 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 import {
   Dialog,
@@ -47,6 +42,7 @@ import {
   useGetAppointments,
   useDeleteAppointment,
   useUpdateAppointment,
+  useGetPendingAppointments,
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
@@ -61,20 +57,33 @@ export default function Calendarview() {
   const { elderDetails } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Appointment[]>([]);
+  const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>(
+    []
+  );
   const [sheetView, setSheetView] = useState<
     "dayview" | "details" | "form" | "update"
   >("dayview");
+  const [showPending, setShowPending] = useState(false);
 
   //handlers
-  const { appointments, refetch } = useGetAppointments(selectedElder?.id ?? -1);
+  const { appointments, refetch } = useGetAppointments(
+    selectedElder?.id ?? null
+  );
+  const { pending, refetchPending } = useGetPendingAppointments();
+  useEffect(() => {
+    if (pending) {
+      setPendingAppointments(pending);
+    }
+  }, [pending]);
+
   const addAppointment = useCreateAppointment();
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
       await addAppointment(values);
       await refetch();
+      await refetchPending();
       setViewDate(null);
       setSheetView("dayview");
       toast.success("Appointment created");
@@ -86,7 +95,6 @@ export default function Calendarview() {
   };
 
   const updateAppointment = useUpdateAppointment();
-
   const handleUpdateSubmit = async (values: AppointmentFormType) => {
     try {
       await updateAppointment(values);
@@ -118,6 +126,9 @@ export default function Calendarview() {
       toast.error(message);
     }
   };
+
+  const findElder = (id: number) =>
+    elderDetails?.find((elder) => elder.id === id);
 
   //render
   useEffect(() => {
@@ -210,7 +221,7 @@ export default function Calendarview() {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-gray-500 text-lg">
-          <Button onClick={() => navigate("/elder/new")}>
+          <Button variant="outline" onClick={() => navigate("/elder/new")}>
             Please add an elder here first
           </Button>
         </p>
@@ -223,11 +234,11 @@ export default function Calendarview() {
         <div className="flex items-center gap-2">
           <button
             className="text-gray-600 hover:text-gray-800 text-2xl"
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => navigate("/dashboard")}
           >
-            ☰
+            <ArrowLeft />
           </button>
-          <h1 className="text-lg font-semibold">Calendar</h1>
+          <h1 className="text-lg font-semibold">Dashboard</h1>
 
           <div className="ml-4 flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={prevMonth}>
@@ -244,13 +255,43 @@ export default function Calendarview() {
             </Button>
           </div>
         </div>
-        <div className="text-center left-1/2 -translate-x-1/2 absolute">
-          {" "}
-          {selectedElder.name}'s Appointments
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <span className="mt-2 text-lg font-medium">Appointments for</span>
+          <div className="mt-2">
+            <Select
+              value={selectedElder?.id?.toString() || ""}
+              onValueChange={(value) => {
+                const elderObj = elderDetails?.find(
+                  (elder) => elder.id.toString() === value
+                );
+                setSelectedElder(elderObj || null);
+              }}
+            >
+              <SelectTrigger className="text-lg font-medium">
+                <SelectValue placeholder="Choose elder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {elderDetails?.map((elder) => (
+                  <SelectItem key={elder.id} value={elder.id.toString()}>
+                    {elder.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-
         <div className="relative">
           <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setShowPending((prev) => !prev);
+                refetchPending();
+              }}
+              variant="outline"
+            >
+              <Inbox></Inbox> {pendingAppointments.length > 0 && "!"}
+            </Button>
+
             <input
               type="text"
               placeholder="Search appointments..."
@@ -261,6 +302,69 @@ export default function Calendarview() {
             <Button variant="outline" size="sm" onClick={goToToday}>
               Today
             </Button>
+          </div>
+          <div className="relative -translate-x-64">
+            {showPending && (
+              <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg border border-gray-200 rounded-lg z-50 overflow-hidden">
+                {pendingAppointments.length > 0 ? (
+                  <div className="max-h-64 overflow-y-auto">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-900">
+                        Pending Appointments ({pendingAppointments.length})
+                      </h3>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {pendingAppointments.map((result) => (
+                        <div
+                          key={result.appt_id}
+                          className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors duration-150 ease-in-out"
+                          onClick={() => {
+                            setSelectedAppointment(result);
+                            setSelectedElder(
+                              findElder(result.elder_id) || null
+                            );
+                            setSearchQuery("");
+                            setViewDate(new Date(result.startDateTime));
+                            setSheetView("details");
+                            setShowPending(false);
+                          }}
+                        >
+                          <div className="flex flex-col space-y-1">
+                            <div className="text-sm font-medium text-gray-900">
+                              {result.name}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              for {findElder(result.elder_id)?.name}
+                            </div>
+                            {result.startDateTime && (
+                              <div className="text-xs text-gray-500">
+                                {new Date(
+                                  result.startDateTime
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-4 py-8 text-center">
+                    <div className="text-gray-400 text-sm">
+                      No pending appointments
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      All appointments are accepted
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {searchResults.length > 0 && (
@@ -438,56 +542,6 @@ export default function Calendarview() {
           </SheetContent>
         </Sheet>
       </main>
-
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetTrigger asChild>
-          <div className="hidden" />
-        </SheetTrigger>
-
-        <SheetContent side="left" className="w-64 p-4">
-          <SheetHeader>
-            <SheetTitle>Options</SheetTitle>
-          </SheetHeader>
-
-          <div className="space-y-2 mt-4">
-            <Button className="w-full" onClick={() => navigate("/dashboard")}>
-              Dashboard
-            </Button>
-            <Button
-              className="w-full"
-              onClick={() => alert("THIS DOES NOTHING YET LOL")}
-            >
-              Accept/Deny invites
-            </Button>
-
-            <div className="mb-4 mt-2">
-              <h3 className="text-sm font-medium text-gray-700 mb-1">
-                Select Elder
-              </h3>
-              <Select
-                value={selectedElder?.id?.toString() || ""}
-                onValueChange={(value) => {
-                  const elderObj = elderDetails?.find(
-                    (elder) => elder.id.toString() === value
-                  );
-                  setSelectedElder(elderObj || null);
-                }}
-              >
-                <SelectTrigger className="bg-white text-gray-900 w-full">
-                  <SelectValue placeholder="Choose elder..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {elderDetails?.map((elder) => (
-                    <SelectItem key={elder.id} value={elder.id.toString()}>
-                      {elder.name} (ID: {elder.id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
