@@ -23,8 +23,8 @@ export default function Modal({
   const deleteNote = useDeleteNote();
 
   const handleDeleteNote = async () => {
-    /*const confirmDelete = window.confirm("Are you sure you want to delete this note?")
-      if (!confirmDelete) return;*/
+    const confirmDelete = window.confirm("Are you sure you want to delete this note?")
+      if (!confirmDelete) return;
 
     try {
       console.log("Deleting Note:", note);
