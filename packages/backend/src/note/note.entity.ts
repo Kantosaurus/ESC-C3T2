@@ -2,7 +2,6 @@ import { Note, noteSchema } from "@carely/core";
 import z from "zod/v4";
 import { db } from "../db/db";
 
-// Extend the noteSchema with elder name by joining with the elders table 
 export const getNotesDetails = (caregiverId: string) =>
     db
         .query(
@@ -13,12 +12,7 @@ export const getNotesDetails = (caregiverId: string) =>
             ORDER BY n.updated_at DESC`,
             [caregiverId]
         )
-        .then((result) =>
-            z.array(
-                noteSchema.extend({
-                    elder_name: z.string(),
-                })
-            ).parse(result)
+        .then((result) => z.array(noteSchema).parse(result)
         );
 
 export const getNoteDetails = (noteId: number) =>
