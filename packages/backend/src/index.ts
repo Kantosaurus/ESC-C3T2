@@ -15,7 +15,12 @@ import {
   createElderRelationshipHandler,
   getElderDetailsHandler,
 } from "./elder/elder.handler";
-import { getNotesHandler, insertNotesHandler } from "#note/note.handler.js";
+import {
+  deleteNotesHandler,
+  getNotesHandler,
+  insertNotesHandler,
+  updateNotesHandler,
+} from "#note/note.handler.js";
 import { corsWithConfig } from "./misc/cors";
 import {
   createAppointmentHandler,
@@ -68,6 +73,8 @@ app.post("/api/appointment/delete", deleteAppointmentHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
+app.post("/api/notes/delete", deleteNotesHandler);
+app.post("/api/notes/edit", updateNotesHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

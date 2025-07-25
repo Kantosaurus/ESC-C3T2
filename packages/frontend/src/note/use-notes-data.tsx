@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -6,7 +6,19 @@ import type { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router";
 import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
+import Modal from "./notes-modal";
 
+export function useDeleteNote() {
+  return useCallback((note: { id: number }) => {
+    return http()
+      .post("/api/notes/delete", note)
+      .then((res) => res.data)
+      .catch((error) => {
+        console.error("Failed to delete note:", error);
+        throw error;
+      });
+  }, []);
+}
 /**
  * Get all notes that the caregiver is associated with.
  */
@@ -19,6 +31,25 @@ export function NoteDetails() {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
+  const [isOpen, setisOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
+  const toggle = () => {
+    setisOpen(!isOpen);
+  };
+
+  const handleOpenModal = (note: Note) => {
+    setSelectedNote(note);
+    setisOpen(true);
+  };
+
+  const onDelete = (deletedNote: Note) => {
+    setNoteDetails((prev) =>
+      prev?.filter((note) => note.id !== deletedNote.id)
+    );
+    setSelectedNote(null);
+    setisOpen(false);
+  };
 
   // Get notes with elder headers at the top
   const notesWithHeaders = useMemo(() => {
@@ -35,9 +66,10 @@ export function NoteDetails() {
     }, {} as Record<number, Note[]>);
 
     //Sort notes objs in desc order under each elder, most recent updated to the top
-    Object.keys(groupedNotesByElder).forEach(elderId => {
-      groupedNotesByElder[Number(elderId)].sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    Object.keys(groupedNotesByElder).forEach((elderId) => {
+      groupedNotesByElder[Number(elderId)].sort(
+        (a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
     });
 
@@ -53,14 +85,17 @@ export function NoteDetails() {
       const elderBNotes = groupedNotesByElder[elderB.id] || [];
 
       // Get date where elder note is most recently updated
-      const elderAMostRecent = elderANotes[0]?.updated_at || '';
-      const elderBMostRecent = elderBNotes[0]?.updated_at || '';
-      return new Date(elderBMostRecent).getTime() - new Date(elderAMostRecent).getTime();
+      const elderAMostRecent = elderANotes[0]?.updated_at || "";
+      const elderBMostRecent = elderBNotes[0]?.updated_at || "";
+      return (
+        new Date(elderBMostRecent).getTime() -
+        new Date(elderAMostRecent).getTime()
+      );
     });
 
-    sortedElders.forEach(elder => {
+    sortedElders.forEach((elder) => {
       const elderNotes = groupedNotesByElder[elder.id] || [];
-      elderNotes.forEach(note => {
+      elderNotes.forEach((note) => {
         result.push({
           note,
           matchingElder: elder,
@@ -82,10 +117,10 @@ export function NoteDetails() {
       http().get("/api/elder/details", { signal: controller.signal }),
     ])
       .then(
-        ([noteRes, elderRes]:
-          [AxiosResponse<Note[]>,
-            AxiosResponse<Elder[]>]
-        ) => {
+        ([noteRes, elderRes]: [
+          AxiosResponse<Note[]>,
+          AxiosResponse<Elder[]>
+        ]) => {
           setNoteDetails(noteRes.data);
           setElderDetails(elderRes.data);
         },
@@ -99,7 +134,7 @@ export function NoteDetails() {
 
     return () => {
       controller.abort();
-    }
+    };
   }, []);
 
   if (isLoading) return <div>Loading...</div>;
@@ -109,7 +144,9 @@ export function NoteDetails() {
     return (
       <div className="p-10 mx-auto">
         <div className="bg-gray-50 rounded-lg shadow-md p-6 text-center border border-gray-200">
-          <p className="text-gray-600 mb-4">Need an elder to assign for notes</p>
+          <p className="text-gray-600 mb-4">
+            Need an elder to assign for notes
+          </p>
           <Button onClick={() => navigate("/dashboard")} className="mt-4">
             Add an Elder profile to continue
           </Button>
@@ -141,15 +178,17 @@ export function NoteDetails() {
                 <p
                   className="text-sm text-gray-800 whitespace-pre-wrap"
                   style={{
-                    display: '-webkit-box',
+                    display: "-webkit-box",
                     WebkitLineClamp: 5,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
                   }}
                 >
                   {note.content}
                 </p>
-                <p className="text-xs text-gray-500">Created By: {caregiverDetails?.name || "Unknown"}</p>
+                <p className="text-xs text-gray-500">
+                  Created By: {caregiverDetails?.name || "Unknown"}
+                </p>
                 {/* Date format as DD/MM/YYYY */}
                 <p className="text-xs text-gray-500">
                   Created at:{" "}
@@ -161,9 +200,19 @@ export function NoteDetails() {
                   {new Date(note.updated_at).toLocaleDateString("en-GB")}{" "}
                   {new Date(note.updated_at).toLocaleTimeString()}
                 </p>
+                <Button onClick={() => handleOpenModal(note)}>open me</Button>
               </li>
             </div>
           ))}
+
+          {selectedNote && (
+            <Modal
+              isOpen={isOpen}
+              toggle={toggle}
+              note={selectedNote}
+              onDelete={onDelete}
+            ></Modal>
+          )}
         </ul>
       )}
     </>
