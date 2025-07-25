@@ -35,7 +35,7 @@ export function MiniCalendar({
       <Button
         ref={buttonRef}
         variant="ghost"
-        className="text-sm font-medium text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition flex items-center gap-1"
+        className="text-sm font-semibold text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-100 transition-all duration-200 flex items-center gap-2 bg-transparent hover:bg-slate-100 border-0"
         onClick={() => setShowCalendar((prev) => !prev)}
       >
         {selected.toLocaleString("default", { month: "long", year: "numeric" })}
@@ -44,7 +44,7 @@ export function MiniCalendar({
       {showCalendar && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 mt-2 bg-white border rounded shadow p-2"
+          className="absolute z-50 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl p-4 animate-in fade-in-0 zoom-in-95 duration-200"
         >
           <Calendar
             mode="single"
@@ -58,6 +58,7 @@ export function MiniCalendar({
             captionLayout="dropdown"
             fromYear={2000}
             toYear={2100}
+            className="rounded-lg"
           />
         </div>
       )}

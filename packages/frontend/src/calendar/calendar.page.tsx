@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   CalendarPlus,
   Inbox,
+  Search,
+  Clock,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -48,9 +50,10 @@ import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
+import { cn } from "@/lib/utils";
 
 export default function Calendarview() {
-  const days = ["Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun"];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const [currDate, setCurrDate] = useState(new Date());
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
@@ -219,329 +222,421 @@ export default function Calendarview() {
       : [];
   if (!selectedElder) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500 text-lg">
-          <Button variant="outline" onClick={() => navigate("/elder/new")}>
-            Please add an elder here first
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto bg-slate-200 rounded-full flex items-center justify-center">
+            <CalendarPlus className="w-8 h-8 text-slate-400" />
+          </div>
+          <p className="text-slate-600 text-lg font-medium">No elders found</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/elder/new")}
+            className="bg-white hover:bg-slate-50"
+          >
+            Add your first elder
           </Button>
-        </p>
+        </div>
       </div>
     );
   }
   return (
-    <div className="flex flex-col h-screen">
-      <header className="bg-gray-100 py-2 px-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <button
-            className="text-gray-600 hover:text-gray-800 text-2xl"
-            onClick={() => navigate("/dashboard")}
-          >
-            <ArrowLeft />
-          </button>
-          <h1 className="text-lg font-semibold">Dashboard</h1>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Modern Header */}
+      <header
+        className={cn(
+          "bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-20 transition-all duration-300",
+          !!viewDate && !!selectedElder && "backdrop-blur-xl bg-white/30"
+        )}
+      >
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left Section */}
+            <div className="flex items-center gap-6">
+              <button
+                className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900"
+                onClick={() => navigate("/dashboard")}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
 
-          <div className="ml-4 flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={prevMonth}>
-              <ChevronLeftIcon className="h-4 w-4" />
-            </Button>
-            <div className="w-[140px] text-center relative">
-              <MiniCalendar
-                selected={currDate}
-                onSelect={(date) => setCurrDate(date)}
-              />
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-semibold text-slate-900">
+                  Calendar
+                </h1>
+                <div className="h-4 w-px bg-slate-300"></div>
+                <span className="text-slate-600">for</span>
+                <Select
+                  value={selectedElder?.id?.toString() || ""}
+                  onValueChange={(value) => {
+                    const elderObj = elderDetails?.find(
+                      (elder) => elder.id.toString() === value
+                    );
+                    setSelectedElder(elderObj || null);
+                  }}
+                >
+                  <SelectTrigger className="w-auto border-0 bg-transparent text-slate-900 font-medium hover:bg-slate-100 px-3 py-1">
+                    <SelectValue placeholder="Choose elder..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {elderDetails?.map((elder) => (
+                      <SelectItem key={elder.id} value={elder.id.toString()}>
+                        {elder.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={nextMonth}>
-              <ChevronRightIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <span className="mt-2 text-lg font-medium">Appointments for</span>
-          <div className="mt-2">
-            <Select
-              value={selectedElder?.id?.toString() || ""}
-              onValueChange={(value) => {
-                const elderObj = elderDetails?.find(
-                  (elder) => elder.id.toString() === value
-                );
-                setSelectedElder(elderObj || null);
-              }}
-            >
-              <SelectTrigger className="text-lg font-medium">
-                <SelectValue placeholder="Choose elder..." />
-              </SelectTrigger>
-              <SelectContent>
-                {elderDetails?.map((elder) => (
-                  <SelectItem key={elder.id} value={elder.id.toString()}>
-                    {elder.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="relative">
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => {
-                setShowPending((prev) => !prev);
-                refetchPending();
-              }}
-              variant="outline"
-            >
-              <Inbox></Inbox> {pendingAppointments.length > 0 && "!"}
-            </Button>
 
-            <input
-              type="text"
-              placeholder="Search appointments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <Button variant="outline" size="sm" onClick={goToToday}>
-              Today
-            </Button>
-          </div>
-          <div className="relative -translate-x-64">
-            {showPending && (
-              <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg border border-gray-200 rounded-lg z-50 overflow-hidden">
-                {pendingAppointments.length > 0 ? (
-                  <div className="max-h-64 overflow-y-auto">
-                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                      <h3 className="text-sm font-medium text-gray-900">
-                        Pending Appointments ({pendingAppointments.length})
+            {/* Center Section - Calendar Navigation */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={prevMonth}
+                className="h-9 w-9 rounded-lg hover:bg-slate-100"
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </Button>
+
+              <div className="relative">
+                <MiniCalendar
+                  selected={currDate}
+                  onSelect={(date) => setCurrDate(date)}
+                />
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={nextMonth}
+                className="h-9 w-9 rounded-lg hover:bg-slate-100"
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search appointments..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-64 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+
+                {searchResults.length > 0 && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl border border-slate-200 rounded-xl z-50 overflow-hidden">
+                    <div className="p-3 bg-slate-50 border-b border-slate-200">
+                      <h3 className="text-sm font-medium text-slate-900">
+                        Search Results ({searchResults.length})
                       </h3>
                     </div>
-                    <div className="divide-y divide-gray-100">
-                      {pendingAppointments.map((result) => (
+                    <div className="max-h-64 overflow-y-auto">
+                      {searchResults.map((result) => (
                         <div
-                          key={result.appt_id}
-                          className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors duration-150 ease-in-out"
+                          key={`${result.startDateTime}-${result.name}`}
+                          className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-b-0"
                           onClick={() => {
                             setSelectedAppointment(result);
-                            setSelectedElder(
-                              findElder(result.elder_id) || null
-                            );
                             setSearchQuery("");
                             setViewDate(new Date(result.startDateTime));
                             setSheetView("details");
-                            setShowPending(false);
                           }}
                         >
-                          <div className="flex flex-col space-y-1">
-                            <div className="text-sm font-medium text-gray-900">
-                              {result.name}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              for {findElder(result.elder_id)?.name}
-                            </div>
-                            {result.startDateTime && (
-                              <div className="text-xs text-gray-500">
+                          <div className="flex items-start gap-3">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-slate-900 truncate">
+                                {result.name}
+                              </div>
+                              <div className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                                <Clock className="w-3 h-3" />
                                 {new Date(
                                   result.startDateTime
-                                ).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
+                                ).toLocaleDateString()}{" "}
+                                –{" "}
+                                {new Date(
+                                  result.startDateTime
+                                ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 })}
                               </div>
-                            )}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="px-4 py-8 text-center">
-                    <div className="text-gray-400 text-sm">
-                      No pending appointments
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      All appointments are accepted
-                    </div>
+                )}
+              </div>
+
+              {/* Pending Appointments */}
+              <div className="relative">
+                <Button
+                  onClick={() => {
+                    setShowPending((prev) => !prev);
+                    refetchPending();
+                  }}
+                  variant="outline"
+                  className="relative bg-white hover:bg-slate-50 border-slate-200"
+                >
+                  <Inbox className="w-4 h-4 mr-2" />
+                  Pending
+                  {pendingAppointments.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {pendingAppointments.length}
+                    </span>
+                  )}
+                </Button>
+
+                {showPending && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl border border-slate-200 rounded-xl z-50 overflow-hidden">
+                    {pendingAppointments.length > 0 ? (
+                      <div className="max-h-64 overflow-y-auto">
+                        <div className="p-3 bg-slate-50 border-b border-slate-200">
+                          <h3 className="text-sm font-medium text-slate-900">
+                            Pending Appointments ({pendingAppointments.length})
+                          </h3>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                          {pendingAppointments.map((result) => (
+                            <div
+                              key={result.appt_id}
+                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
+                              onClick={() => {
+                                setSelectedAppointment(result);
+                                setSelectedElder(
+                                  findElder(result.elder_id) || null
+                                );
+                                setSearchQuery("");
+                                setViewDate(new Date(result.startDateTime));
+                                setSheetView("details");
+                                setShowPending(false);
+                              }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-slate-900 truncate">
+                                    {result.name}
+                                  </div>
+                                  <div className="text-sm text-slate-500 mt-1">
+                                    for {findElder(result.elder_id)?.name}
+                                  </div>
+                                  {result.startDateTime && (
+                                    <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {new Date(
+                                        result.startDateTime
+                                      ).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <Inbox className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                        <div className="text-slate-500 text-sm font-medium">
+                          No pending appointments
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">
+                          All appointments are accepted
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {searchResults.length > 0 && (
-            <div className="absolute right-0 mt-1 w-64 bg-white shadow-md border rounded z-50">
-              {searchResults.map((result) => (
-                <div
-                  key={`${result.startDateTime}-${result.name}`}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                  onClick={() => {
-                    setSelectedAppointment(result);
-                    setSearchQuery("");
-                    setViewDate(new Date(result.startDateTime));
-                    setSheetView("details");
-                  }}
-                >
-                  <div className="font-medium">{result.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(result.startDateTime).toLocaleDateString()} –{" "}
-                    {new Date(result.startDateTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </div>
-              ))}
+              {/* Today Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToToday}
+                className="bg-white hover:bg-slate-50 border-slate-200"
+              >
+                Today
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
-      <main className="p-6 w-full flex-grow flex flex-col overflow-visible">
-        <div className="flex flex-col flex-grow overflow-hidden">
-          <div className="grid grid-cols-7 h-10 bg-gray-200 border border-gray-300">
+      {/* Calendar Grid */}
+      <main className="flex-1 p-6 overflow-hidden">
+        <div className="h-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Calendar Header */}
+          <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
             {days.map((day) => (
               <div
                 key={day}
-                className="text-center text-xs font-medium text-gray-500 py-2 border-r border-b border-gray-300"
+                className="text-center text-sm font-medium text-slate-600 py-4 px-2"
               >
                 {day}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 flex-grow bg-gray-200 border border-gray-300">
-            {calCells}
-          </div>
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 h-full">{calCells}</div>
         </div>
-        <Sheet
-          open={!!viewDate && !!selectedElder}
-          onOpenChange={(open) => {
-            if (!open) {
-              setViewDate(null);
-              setSheetView("dayview");
-            }
-          }}
-        >
-          <SheetContent
-            side="right"
-            className="!w-full sm:!w-[600px] max-w-full p-6 overflow-y-auto"
-          >
-            <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10 mb-1">
-              <div className="grid grid-cols-3 items-center py-2">
-                <div className="flex justify-start">
-                  {!(sheetView == "dayview") && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSheetView("dayview")}
-                      className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back
-                    </Button>
-                  )}
-                </div>
-                <div className="flex justify-center font-semibold">
-                  {sheetView == "dayview" && viewDate?.toDateString()}
-                  {sheetView == "details" && "Details"}
-                  {sheetView == "form" && "Create"}
-                  {sheetView == "update" && "Update"}
-                </div>
-                <div className="flex justify-end">
-                  {sheetView == "dayview" && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setSheetView("form")}
-                    >
-                      <CalendarPlus />
-                      Add Appointment
-                    </Button>
-                  )}
+      </main>
 
-                  {sheetView == "details" && selectedAppointment && (
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline">
-                            <Trash2 />
+      {/* Sheet for Day View */}
+      <Sheet
+        open={!!viewDate && !!selectedElder}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewDate(null);
+            setSheetView("dayview");
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="!w-full sm:!w-[600px] max-w-full p-0 overflow-hidden"
+        >
+          <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
+            <div className="grid grid-cols-3 items-center py-4 px-6">
+              <div className="flex justify-start">
+                {!(sheetView == "dayview") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSheetView("dayview")}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
+                  </Button>
+                )}
+              </div>
+              <div className="flex justify-center font-semibold text-slate-900">
+                {sheetView == "dayview" && viewDate?.toDateString()}
+                {sheetView == "details" && "Details"}
+                {sheetView == "form" && "Create"}
+                {sheetView == "update" && "Update"}
+              </div>
+              <div className="flex justify-end">
+                {sheetView == "dayview" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setSheetView("form")}
+                    className="bg-white hover:bg-slate-50"
+                  >
+                    <CalendarPlus className="w-4 h-4 mr-2" />
+                    Add Appointment
+                  </Button>
+                )}
+
+                {sheetView == "details" && selectedAppointment && (
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="bg-white hover:bg-slate-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>
+                            Delete {selectedAppointment.name}?
+                          </DialogTitle>
+                          <DialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete the appointment
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4">
+                          <Button
+                            className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                            onClick={async () => {
+                              if (!selectedElder) return;
+                              handleDeleteAppointment({
+                                elder_id: selectedAppointment.elder_id,
+                                appt_id: selectedAppointment.appt_id,
+                              });
+                            }}
+                          >
                             Delete
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              Delete {selectedAppointment.name}?
-                            </DialogTitle>
-                            <DialogDescription>
-                              This action cannot be undone. This will
-                              permanently delete the appointment
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4">
-                            <Button
-                              className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                              onClick={async () => {
-                                if (!selectedElder) return;
-                                handleDeleteAppointment({
-                                  elder_id: selectedAppointment.elder_id,
-                                  appt_id: selectedAppointment.appt_id,
-                                });
-                              }}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        onClick={() => setSheetView("update")}
-                        variant="outline"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      onClick={() => setSheetView("update")}
+                      variant="outline"
+                      className="bg-white hover:bg-slate-50"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="h-11/12 overflow-y-auto">
-              {sheetView == "dayview" && (
-                <DayView
-                  date={viewDate!}
-                  appointments={selectedDateAppointments}
-                  onSelect={(appt) => {
-                    setSelectedAppointment(appt);
-                    setSheetView("details");
-                  }}
-                />
-              )}
+          </div>
+          <div className="h-full overflow-y-auto p-6">
+            {sheetView == "dayview" && (
+              <DayView
+                date={viewDate!}
+                appointments={selectedDateAppointments}
+                onSelect={(appt) => {
+                  setSelectedAppointment(appt);
+                  setSheetView("details");
+                }}
+              />
+            )}
 
-              {sheetView == "form" && (
-                <AppointmentForm
-                  selectedDate={viewDate!}
-                  elder_id={selectedElder!.id}
-                  elder_name={selectedElder!.name}
-                  onSubmit={handleAppointmentSubmit}
-                />
-              )}
+            {sheetView == "form" && (
+              <AppointmentForm
+                selectedDate={viewDate!}
+                elder_id={selectedElder!.id}
+                elder_name={selectedElder!.name}
+                onSubmit={handleAppointmentSubmit}
+              />
+            )}
 
-              {sheetView == "details" && selectedAppointment?.appt_id && (
-                <AppointmentDetailsPage
-                  elder={selectedElder}
-                  appt_id={selectedAppointment.appt_id}
-                />
-              )}
-              {sheetView == "update" && selectedAppointment?.appt_id && (
-                <UpdateAppointmentForm
-                  elder={selectedElder}
-                  appt={selectedAppointment}
-                  onSubmit={handleUpdateSubmit}
-                ></UpdateAppointmentForm>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
-      </main>
+            {sheetView == "details" && selectedAppointment?.appt_id && (
+              <AppointmentDetailsPage
+                elder={selectedElder}
+                appt_id={selectedAppointment.appt_id}
+              />
+            )}
+            {sheetView == "update" && selectedAppointment?.appt_id && (
+              <UpdateAppointmentForm
+                elder={selectedElder}
+                appt={selectedAppointment}
+                onSubmit={handleUpdateSubmit}
+              ></UpdateAppointmentForm>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Backdrop blur overlay when sheet is open */}
+      {!!viewDate && !!selectedElder && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-10 pointer-events-none" />
+      )}
     </div>
   );
 }
