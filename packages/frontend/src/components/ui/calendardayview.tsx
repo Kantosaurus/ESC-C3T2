@@ -8,8 +8,8 @@ export function DayView({
   appointments: Appointment[];
   onSelect?: (appt: Appointment) => void;
 }) {
-  const startHour = 6;
-  const endHour = 22;
+  const startHour = 0;
+  const endHour = 24;
   const totalMinutes = (endHour - startHour) * 60;
   const pxPerMinute = 1.5;
 
