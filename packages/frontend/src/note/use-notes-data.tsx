@@ -211,6 +211,7 @@ export function NoteDetails() {
               toggle={toggle}
               note={selectedNote}
               onDelete={onDelete}
+              elderDetails={elderDetails}
             ></Modal>
           )}
         </ul>

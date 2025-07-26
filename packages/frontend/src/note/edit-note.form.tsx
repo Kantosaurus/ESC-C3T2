@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { useSpeechToText } from "./use-speech-to-text";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
 
 const editNoteFormSchema = z.object({
@@ -49,6 +49,13 @@ export function EditNoteForm({
   const navigate = useNavigate();
 
   const elderId = form.watch("assigned_elder_id");
+  
+  const assignedElderName = useMemo(() => {
+    if (!elderDetails.length || elderId == null) return "Loading...";
+    const elder = elderDetails?.find((e) => e.id === elderId)
+    return elder?.name ?? "Unknown";
+  }, [elderDetails, elderId])
+    
 
   const {
     transcript,
@@ -80,9 +87,6 @@ export function EditNoteForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript]);
-
-  const assignedElderName =
-    elderDetails?.find((e) => e.id.toString() === elderId)?.name || "Unknown";
 
   return (
     <Form {...form}>

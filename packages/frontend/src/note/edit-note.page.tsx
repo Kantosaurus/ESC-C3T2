@@ -2,8 +2,7 @@ import { http } from "@/lib/http";
 import { EditNoteForm, type EditNoteFormType } from "./edit-note.form";
 import { useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
-import { useCallback, useEffect } from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Note } from "@carely/core";
 
 const useEditNote = () => {

@@ -4,6 +4,7 @@ import { useDeleteNote } from "./use-notes-data";
 import { Button } from "@/components/ui/button";
 import type { Note } from "@carely/core";
 import {Edit} from "lucide-react";
+import type { Elder } from "@carely/core";
 
 interface ModalType {
   children?: ReactNode;
@@ -11,6 +12,7 @@ interface ModalType {
   toggle: () => void;
   onDelete: (note: Note) => void;
   note: Note;
+  elderDetails: Elder[];
 }
 
 export default function Modal({
@@ -19,6 +21,7 @@ export default function Modal({
   note,
   onDelete,
   children,
+  elderDetails,
 }: ModalType) {
   const navigate = useNavigate();
   const deleteNote = useDeleteNote();
@@ -58,7 +61,7 @@ export default function Modal({
           Edit note
         </Button>
         <p className="mt-4 text-sm text-gray-600">
-          Assigned to: {note.assigned_elder_id}
+          Assigned to: {elderDetails.find((e) => e.id === note.assigned_elder_id)?.name || "Unknown"}
         </p>
         <p className="font-extrabold">{note.header}</p>
         <p className="text-sm text-gray-800">{note.content}</p>
