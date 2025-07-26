@@ -149,8 +149,8 @@ export default function NotesPage() {
           <div className="p-8 mx-auto max-w-2xl flex justify-between items-center">
           </div>
         </section>
-        <section className="p-2 mx-auto max-w-2xl">
-          <div className="p-8 mx-auto max-w-2xl">
+        <section className="p-2 mx-auto max-w-3xl">
+          <div className="p-8 mx-auto max-w-3xl">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold">Notes List</h1>
               {elderDetails && elderDetails.length > 0 && (

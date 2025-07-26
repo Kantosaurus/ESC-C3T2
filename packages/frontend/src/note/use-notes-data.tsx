@@ -200,7 +200,7 @@ export function NoteDetails() {
                   {new Date(note.updated_at).toLocaleDateString("en-GB")}{" "}
                   {new Date(note.updated_at).toLocaleTimeString()}
                 </p>
-                <Button onClick={() => handleOpenModal(note)}>open me</Button>
+                <Button className="mt-4" onClick={() => handleOpenModal(note)}>Open me</Button>
               </li>
             </div>
           ))}

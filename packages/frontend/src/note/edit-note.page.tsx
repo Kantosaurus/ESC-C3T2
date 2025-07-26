@@ -52,9 +52,9 @@ export default function EditNotePage() {
     <>
       <section className="bg-indigo-100 text-indigo-800">
         <div className="p-8 mx-auto max-w-2xl">
-          <h1 className="text-2xl font-bold mb-2">Add New Note</h1>
+          <h1 className="text-2xl font-bold mb-2">Edit Note</h1>
           <p>
-            Add in details for reminders, tasks, or any other notes you want to
+            Edit the note details for reminders, tasks, or any other notes you want to
             keep track of.
           </p>
         </div>
