@@ -5,6 +5,7 @@ import {
   updateCaregiver,
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
+import z from "zod/v4";
 
 /**
  * Handler to get the details of the authenticated caregiver.
@@ -16,6 +17,25 @@ export const getCaregiverSelfHandler = authenticated(async (req, res) => {
 
   // Assuming you have a function to get a caregiver by ID
   const caregiver = await getCaregiverDetails(caregiverId);
+
+  if (!caregiver) {
+    res.status(404).json({ error: "Caregiver not found" });
+    return;
+  }
+
+  res.json(caregiver);
+});
+
+export const getCaregiverById = authenticated(async (req, res) => {
+  const { caregiver_id } = z
+    .object({
+      caregiver_id: z.string(),
+    })
+    .parse(req.params);
+
+  console.log("caregiverid: ", caregiver_id);
+
+  const caregiver = await getCaregiverDetails(caregiver_id);
 
   if (!caregiver) {
     res.status(404).json({ error: "Caregiver not found" });

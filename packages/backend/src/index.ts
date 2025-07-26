@@ -6,6 +6,7 @@ import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
   updateCaregiverSelfHandler,
+  getCaregiverById,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
@@ -20,8 +21,13 @@ import { corsWithConfig } from "./misc/cors";
 import {
   createAppointmentHandler,
   getAppointmentsHandler,
+  getAppointmentHandler,
   deleteAppointmentHandler,
+  updateAppointmentHandler,
+  getPendingAppointmentsHandler,
+  acceptAppointmentHandler,
 } from "./appointment/appointment.handler";
+import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -54,6 +60,8 @@ app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post("/api/caregiver/self", insertCaregiverHandler);
 app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
 
+app.get("/api/caregiver/:caregiver_id", getCaregiverById);
+
 app.get("/api/elder/details", getEldersDetailsHandler);
 app.get("/api/elder/details/:elderId", getElderDetailsHandler);
 app.post("/api/elder/new", insertElderHandler);
@@ -62,12 +70,18 @@ app.patch("/api/elder/:elderId", updateElderHandler);
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
 
+app.post("/api/appointment/accept", acceptAppointmentHandler);
 app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
+app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
+app.patch("/api/appointment/update", updateAppointmentHandler);
+app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
+
+app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

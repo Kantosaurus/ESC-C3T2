@@ -3,11 +3,11 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  tseslint.configs.recommended,
+export default [
   {
-    ignores: ["**/*.js", "**/dist/**"],
+    ignores: ["dist/**", "**/*.js"],
+  },
+  ...tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, {
     languageOptions: {
       globals: {
         URL: "readonly",
@@ -16,5 +16,5 @@ export default tseslint.config(
         tsconfigRootDir: ".",
       },
     },
-  }
-);
+  }),
+];
