@@ -1,5 +1,12 @@
-import { motion } from "motion/react";
-import { Calendar, Users, Plus, User, LogOut, RefreshCw } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Plus,
+  User,
+  LogOut,
+  RefreshCw,
+  HeartHandshakeIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import { useEldersDetails } from "@/elder/use-elder-details";
@@ -7,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 import { DashboardCard } from "./dashboard-card";
 import { ElderCard } from "./elder-card";
 import { EmptyState } from "./empty-state";
-import { FocusBento } from "@/components/ui/focus-bento";
 import {
   Navbar,
   NavBody,
@@ -18,9 +24,9 @@ import {
   MobileNavToggle,
   NavbarLogo,
 } from "@/components/ui/resizable-navbar";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { signOut } from "@/auth/token";
-import Card from "@/components/ui/card";
+import UpcomingAppointments from "./upcoming-appointments";
 
 const DashboardPage = () => {
   const { caregiverDetails, isLoading: caregiverLoading } = useCaregiver();
@@ -29,6 +35,13 @@ const DashboardPage = () => {
     isLoading: eldersLoading,
     refetch: refetchElders,
   } = useEldersDetails();
+  const elderNames = useMemo(() => {
+    const names: Record<string, string> = {};
+    elderDetails?.forEach((elder) => {
+      names[elder.id] = elder.name;
+    });
+    return names;
+  }, [elderDetails]);
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
@@ -69,45 +82,6 @@ const DashboardPage = () => {
     { name: "Notes", link: "#" },
   ];
 
-  const focusBentoCards = [
-    {
-      title: "Guidebook",
-      src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop&crop=center",
-      description: "Essential caregiving guidelines and best practices",
-      className: "md:col-span-2 md:row-span-2",
-    },
-    {
-      title: "Transcription",
-      src: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=600&fit=crop&crop=center",
-      description: "Convert voice notes to text for better documentation",
-      className: "md:col-span-1 md:row-span-1",
-    },
-    {
-      title: "Notes",
-      src: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop&crop=center",
-      description: "Keep track of important care notes and observations",
-      className: "md:col-span-1 md:row-span-2",
-    },
-    {
-      title: "Training",
-      src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&crop=center",
-      description: "Enhance your caregiving skills with professional training",
-      className: "md:col-span-2 md:row-span-1",
-    },
-    {
-      title: "Counselling",
-      src: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=600&fit=crop&crop=center",
-      description: "Get emotional support and professional counselling",
-      className: "md:col-span-1 md:row-span-1",
-    },
-    {
-      title: "IM-OK",
-      src: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop&crop=center",
-      description: "Quick health status check and emergency alerts",
-      className: "md:col-span-2 md:row-span-1",
-    },
-  ];
-
   // Helper to get initials
   const getInitials = (name?: string) => {
     if (!name) return "?";
@@ -116,8 +90,15 @@ const DashboardPage = () => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const getGreetingByTime = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) return "Morning";
+    if (hours < 18) return "Afternoon";
+    return "Evening";
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:bg-neutral-950">
       {/* Resizable Navbar */}
       <Navbar>
         <NavBody>
@@ -128,22 +109,19 @@ const DashboardPage = () => {
             <div ref={avatarRef} className="relative">
               <div
                 className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
-                onClick={() => setAvatarDropdownOpen((open) => !open)}
-              >
+                onClick={() => setAvatarDropdownOpen((open) => !open)}>
                 {getInitials(caregiverDetails?.name)}
               </div>
               {avatarDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 z-50 py-2">
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={() => navigate("/caregiver/profile")}
-                  >
+                    onClick={() => navigate("/caregiver/profile")}>
                     <User className="h-4 w-4 mr-2 inline-block" /> Profile
                   </button>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                    onClick={handleLogout}
-                  >
+                    onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2 inline-block" /> Logout
                   </button>
                 </div>
@@ -167,8 +145,7 @@ const DashboardPage = () => {
                   key={index}
                   href={item.link}
                   className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  onClick={() => setMobileMenuOpen(false)}>
                   {item.name}
                 </a>
               ))}
@@ -181,8 +158,7 @@ const DashboardPage = () => {
                     handleLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                >
+                  className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </button>
@@ -193,9 +169,16 @@ const DashboardPage = () => {
       </Navbar>
 
       {/* Main Content with top padding for fixed navbar */}
-      <div className="pt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="pt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-10">
+        <div className="w-full flex flex-row items-center justify-center">
+          <HeartHandshakeIcon className="inline-block mr-2 h-7 w-7" />
+          <h1 className="text-3xl font-medium">
+            Good {getGreetingByTime()},{" "}
+            {caregiverDetails?.name.split(" ")[0] || "Caregiver"}
+          </h1>
+        </div>
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           <DashboardCard
             title="Total Elders"
             value={elderDetails?.length || 0}
@@ -206,40 +189,40 @@ const DashboardPage = () => {
             title="Today's Tasks"
             value={0}
             icon={<Calendar className="h-8 w-8" />}
-            color="green"
             delay={0.1}
           />
           <DashboardCard
+            className="col-span-2 md:col-span-1"
             title="Care Status"
             value="Active"
             icon={<User className="h-8 w-8" />}
-            color="purple"
             delay={0.2}
           />
         </div>
 
+        {/**Upcoming events card */}
+        <UpcomingAppointments elderNames={elderNames} />
+
         {/* Elders List */}
-        <Card delay={0.4}>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Your Elders
+        <div>
+          <div className="flex justify-between items-end">
+            <h2 className="font-semibold flex flex-row items-center mb-3 text-xs text-muted-foreground">
+              <HeartHandshakeIcon className="inline-block mr-1 h-3 w-3" />
+              Elders Under Your Care
             </h2>
-            <div className="flex gap-2">
+            <div className="flex flex-row gap-2 mb-2">
               <Button
-                size="sm"
+                size="xs"
                 variant="outline"
                 onClick={refetchElders}
-                disabled={eldersLoading}
-              >
+                disabled={eldersLoading}>
                 <RefreshCw
-                  className={`h-4 w-4 mr-2 ${
-                    eldersLoading ? "animate-spin" : ""
-                  }`}
+                  className={`h-2 w-2 ${eldersLoading ? "animate-spin" : ""}`}
                 />
                 Refresh
               </Button>
-              <Button size="sm" onClick={() => navigate("/elder/new")}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button size="xs" onClick={() => navigate("/elder/new")}>
+                <Plus className="h-2 w-2" />
                 Add Elder
               </Button>
             </div>
@@ -265,25 +248,7 @@ const DashboardPage = () => {
               onAction={() => navigate("/elder/new")}
             />
           )}
-        </Card>
-
-        {/* Focus Bento */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-8"
-        >
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Care Resources
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Access essential tools and resources for better caregiving
-            </p>
-          </div>
-          <FocusBento cards={focusBentoCards} />
-        </motion.div>
+        </div>
       </div>
     </div>
   );

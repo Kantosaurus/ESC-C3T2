@@ -27,6 +27,7 @@ import {
   getPendingAppointmentsHandler,
   acceptAppointmentHandler,
 } from "./appointment/appointment.handler";
+import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -79,6 +80,8 @@ app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
+
+app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);
