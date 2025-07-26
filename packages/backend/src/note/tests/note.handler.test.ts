@@ -3,7 +3,7 @@ import { db } from "../../db/db";
 import { getNotesHandler, insertNotesHandler } from "../note.handler";
 import type { Request, Response, NextFunction } from "express";
 
-// Integration tests: check note handlers + schema validation + actual database connection
+// Integration tests (bottom-up): using sql queries on actual db + schema validation + handler functions 
 // Requires running docker container with postgres database
 describe("note.handler integration tests", () => {
     beforeAll(async () => {
