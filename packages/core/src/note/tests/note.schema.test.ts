@@ -31,7 +31,7 @@ describe("noteSchema zod validation unit tests", () => {
     });
     // Invalid tests
     it("invalid note schema with invalid id type", () => {
-        const validNote: Note = {
+        const invalidNote: Note = {
             id: "12abc", // Invalid id type, should be a number
             header: "Test",
             content: "some content",
@@ -40,12 +40,12 @@ describe("noteSchema zod validation unit tests", () => {
             created_at: new Date(),
             updated_at: new Date(),
         };
-        const result = noteSchema.safeParse(validNote);
+        const result = noteSchema.safeParse(invalidNote);
         expect(result.success).toBe(false);
     });
 
     it("invalid note schema with header that exceed maximum characters", ()=>{
-        const validNote: Note = {
+        const invalidNote: Note = {
             id: "6", // Valid coerced string into number
             header: "Test header that is way too long, which exceeds the maximum length of 80 characters......      ....... . .. . . . . . . . .. .......",
             content: "some content", 
@@ -54,7 +54,7 @@ describe("noteSchema zod validation unit tests", () => {
             created_at: new Date(),
             updated_at: new Date(),
         };
-        const result = noteSchema.safeParse(validNote);
+        const result = noteSchema.safeParse(invalidNote);
         expect(result.success).toBe(false);
     });
 });
