@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner.tsx";
 import ProfilePage from "./caregiver/profile.page.tsx";
 import NotesPage from "./note/notes.page.tsx";
 import NewNotePage from "./note/new-note.page.tsx";
+import EditNotePage from "./note/edit-note.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -41,6 +42,7 @@ createRoot(document.getElementById("root")!).render(
 
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/notes/new" element={<NewNotePage />} />
+          <Route path="/notes/edit" element={<EditNotePage />} />
 
           <Route path="/calendar" element={<CalendarPage />} />
         </Route>

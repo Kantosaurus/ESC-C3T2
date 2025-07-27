@@ -78,8 +78,9 @@ const DashboardPage = () => {
 
   const navItems = [
     { name: "Dashboard", link: "/dashboard" },
+    { name: "Schedule", link: "#" },
+    { name: "Notes", link: "/notes" },
     { name: "Calendar", link: "/calendar" },
-    { name: "Notes", link: "#" },
   ];
 
   // Helper to get initials

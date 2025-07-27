@@ -16,7 +16,12 @@ import {
   createElderRelationshipHandler,
   getElderDetailsHandler,
 } from "./elder/elder.handler";
-import { getNotesHandler, insertNotesHandler } from "#note/note.handler.js";
+import {
+  deleteNotesHandler,
+  getNotesHandler,
+  insertNotesHandler,
+  updateNotesHandler,
+} from "#note/note.handler.js";
 import { corsWithConfig } from "./misc/cors";
 import {
   createAppointmentHandler,
@@ -80,6 +85,8 @@ app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
+app.post("/api/notes/delete", deleteNotesHandler);
+app.post("/api/notes/edit", updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 

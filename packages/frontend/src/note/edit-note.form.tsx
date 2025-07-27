@@ -14,44 +14,48 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { useSpeechToText } from "./use-speech-to-text";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
 
-const addNoteFormSchema = z.object({
+const editNoteFormSchema = z.object({
+  id: noteSchema.shape.id,
   header: noteSchema.shape.header,
   content: noteSchema.shape.content.optional(),
   assigned_elder_id: noteSchema.shape.assigned_elder_id,
 });
 
 // export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
-export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
-export type AddNoteFormInput = z.input<typeof addNoteFormSchema>;
+export type EditNoteFormType = z.infer<typeof editNoteFormSchema>;
+export type EditNoteFormInput = z.input<typeof editNoteFormSchema>;
 
-export function AddNoteForm({
+export function EditNoteForm({
+  defaultValues,
   onSubmit,
 }: {
-  defaultValues?: Partial<AddNoteFormType>;
-  onSubmit: (values: AddNoteFormType) => Promise<void>;
+  defaultValues: Partial<EditNoteFormType>;
+  onSubmit: (values: EditNoteFormType) => Promise<void>;
 }) {
-  const { elderDetails, isLoading: isLoadingRecipients } = useEldersDetails();
+  const result = useEldersDetails();
+  const elderDetails = result?.elderDetails ?? [];
 
-  const form = useForm<AddNoteFormInput, unknown, AddNoteFormType>({
-    resolver: zodResolver(addNoteFormSchema),
+  const form = useForm<EditNoteFormInput, unknown, EditNoteFormType>({
+    resolver: zodResolver(editNoteFormSchema),
+    defaultValues,
   });
 
   const navigate = useNavigate();
 
   const elderId = form.watch("assigned_elder_id");
+  
+  const assignedElderName = useMemo(() => {
+    if (!elderDetails.length || elderId == null) return "Loading...";
+    const elder = elderDetails?.find((e) => e.id === elderId)
+    return elder?.name ?? "Unknown";
+  }, [elderDetails, elderId])
+    
 
   const {
     transcript,
@@ -63,10 +67,17 @@ export function AddNoteForm({
 
   useEffect(() => {
     // Set the default value for assigned_elder_id if not already set
-    if (!elderId && elderDetails && elderDetails.length > 0) {
+    if (!defaultValues?.assigned_elder_id && elderDetails.length > 0) {
       form.setValue("assigned_elder_id", elderDetails[0].id.toString());
     }
   }, [elderId, elderDetails, form]);
+
+  useEffect(() => {
+    // Reset the form values if form is mounted before data is ready
+    if (defaultValues) {
+      form.reset(defaultValues);
+    }
+  }, [defaultValues, form]);
 
   // This updates the form content field every time speech is transcribed
   useEffect(() => {
@@ -87,41 +98,17 @@ export function AddNoteForm({
         })}
         className="space-y-8"
       >
-        <FormField
-          control={form.control}
-          name="assigned_elder_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name of Care Recipient</FormLabel>
-              <FormControl>
-                <Select
-                  {...field}
-                  required
-                  disabled={isLoadingRecipients}
-                  value={field.value as string}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a care recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {elderDetails?.map((e) => (
-                      <SelectItem key={e.id.toString()} value={e.id.toString()}>
-                        {e.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormDescription>
-                Select the care recipient's name that this note is related to.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormItem>
+          <FormLabel>Name of Care Recipient</FormLabel>
+          <p className="text-md font-semibold">{assignedElderName}</p>
+          <FormDescription>
+            You cannot modify the care recipient that this note is related to.
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+        <input type="hidden" {...form.register("assigned_elder_id")} />
+        <input type="hidden" {...form.register("id")} />
+
         <FormField
           control={form.control}
           name="header"
@@ -181,7 +168,7 @@ export function AddNoteForm({
           type="submit"
           disabled={form.formState.isSubmitting || !form.formState.isDirty}
         >
-          Done
+          Save changes
         </Button>
       </form>
     </Form>

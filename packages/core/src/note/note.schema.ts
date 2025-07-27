@@ -2,7 +2,7 @@ import z from "zod/v4";
 
 export const noteSchema = z.object({
   id: z.coerce.number(),
-  header: z.string().max(30, "Header must be at most 30 characters long"),
+  header: z.string().max(80, "Header must be at most 80 characters long"),
   content: z
     .string()
     .max(5000, "Content must be at most 5000 characters long")
