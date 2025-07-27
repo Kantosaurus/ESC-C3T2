@@ -13,7 +13,7 @@ import {
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
 import { authenticated } from "../auth/guard";
-import { jwtSecret } from "../auth/secret";
+import { getJwtSecret } from "../auth/secret";
 import { JOSEError } from "jose/errors";
 
 /**
@@ -111,7 +111,7 @@ export const getInviteLinkHandler = authenticated(async (req, res) => {
     .setSubject(elderId.toString())
     .setExpirationTime("1h")
     .setSubject(`invite-${elderId}`)
-    .sign(jwtSecret);
+    .sign(getJwtSecret());
 
   const url = new URL(
     "/invite",
@@ -145,7 +145,7 @@ export const createElderRelationshipHandler = authenticated(
       const caregiverId = res.locals.user.userId;
       const token = atob(decodeURIComponent(z.string().parse(req.body.token)));
       // Verify the JWT token, extracting the elder ID from it
-      const { sub: elderId } = await jwtVerify(token, jwtSecret).then(
+      const { sub: elderId } = await jwtVerify(token, getJwtSecret()).then(
         ({ payload }) =>
           z
             .object({
