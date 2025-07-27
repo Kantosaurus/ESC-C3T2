@@ -94,19 +94,21 @@ export function validateSecretWithDetails(secret: string): {
     );
   }
 
-  // Entropy calculation
+  // Entropy calculation (only if character types are sufficient)
   const entropy = calculateEntropy(secret);
   let strength: "weak" | "medium" | "strong" = "weak";
 
-  if (entropy < 3.5) {
-    errors.push("Secret has insufficient entropy");
-  } else if (entropy < 4.0) {
-    warnings.push(
-      "Secret has moderate entropy, consider increasing complexity"
-    );
-    strength = "medium";
-  } else {
-    strength = "strong";
+  if (characterTypes >= 3) {
+    if (entropy < 3.5) {
+      errors.push("Secret has insufficient entropy");
+    } else if (entropy < 4.0) {
+      warnings.push(
+        "Secret has moderate entropy, consider increasing complexity"
+      );
+      strength = "medium";
+    } else {
+      strength = "strong";
+    }
   }
 
   return {

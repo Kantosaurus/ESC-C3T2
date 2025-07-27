@@ -39,7 +39,7 @@ export function EditNoteForm({
   onSubmit: (values: EditNoteFormType) => Promise<void>;
 }) {
   const result = useEldersDetails();
-  const elderDetails = result?.elderDetails ?? [];
+  const elderDetails = useMemo(() => result?.elderDetails ?? [], [result?.elderDetails]);
 
   const form = useForm<EditNoteFormInput, unknown, EditNoteFormType>({
     resolver: zodResolver(editNoteFormSchema),
@@ -52,9 +52,9 @@ export function EditNoteForm({
   
   const assignedElderName = useMemo(() => {
     if (!elderDetails.length || elderId == null) return "Loading...";
-    const elder = elderDetails?.find((e) => e.id === elderId)
+    const elder = elderDetails?.find((e) => e.id === elderId);
     return elder?.name ?? "Unknown";
-  }, [elderDetails, elderId])
+  }, [elderDetails, elderId]);
     
 
   const {
@@ -70,7 +70,7 @@ export function EditNoteForm({
     if (!defaultValues?.assigned_elder_id && elderDetails.length > 0) {
       form.setValue("assigned_elder_id", elderDetails[0].id.toString());
     }
-  }, [elderId, elderDetails, form]);
+  }, [defaultValues?.assigned_elder_id, elderDetails, form]);
 
   useEffect(() => {
     // Reset the form values if form is mounted before data is ready

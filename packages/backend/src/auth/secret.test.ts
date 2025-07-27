@@ -156,7 +156,7 @@ describe("JWT Secret Management", () => {
       );
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain(
-        "Secret must contain at least 3 character types"
+        "Secret must contain at least 3 character types (lowercase, uppercase, numbers, special characters)"
       );
     });
 

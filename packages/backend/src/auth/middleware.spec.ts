@@ -10,6 +10,7 @@ describe("Auth Middleware", async () => {
     res = {
       status: vi.fn().mockReturnThis(),
       send: vi.fn(),
+      json: vi.fn(),
       locals: {},
     } as unknown as Response;
     next = vi.fn();

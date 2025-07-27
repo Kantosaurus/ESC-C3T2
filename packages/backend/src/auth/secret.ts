@@ -2,7 +2,7 @@ import crypto from "crypto";
 
 /**
  * JWT Secret Management
- * 
+ *
  * This module handles JWT secret generation, validation, and rotation.
  * It ensures secrets meet security requirements and provides rotation capabilities.
  */
@@ -23,27 +23,42 @@ function validateSecret(secret: string): { isValid: boolean; error?: string } {
   }
 
   if (secret === "your_jwt_secret_here") {
-    return { isValid: false, error: "Default JWT secret cannot be used in production" };
+    return {
+      isValid: false,
+      error: "Default JWT secret cannot be used in production",
+    };
   }
 
   if (secret.length < MIN_SECRET_LENGTH) {
-    return { isValid: false, error: `JWT secret must be at least ${MIN_SECRET_LENGTH} characters long` };
+    return {
+      isValid: false,
+      error: `JWT secret must be at least ${MIN_SECRET_LENGTH} characters long`,
+    };
   }
 
   if (secret.length > MAX_SECRET_LENGTH) {
-    return { isValid: false, error: `JWT secret cannot exceed ${MAX_SECRET_LENGTH} characters` };
+    return {
+      isValid: false,
+      error: `JWT secret cannot exceed ${MAX_SECRET_LENGTH} characters`,
+    };
   }
 
   // Check for sufficient entropy (at least 3 character types)
   const hasLower = /[a-z]/.test(secret);
   const hasUpper = /[A-Z]/.test(secret);
   const hasNumber = /\d/.test(secret);
-  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(secret);
-  
-  const characterTypes = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
-  
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(secret);
+
+  const characterTypes = [hasLower, hasUpper, hasNumber, hasSpecial].filter(
+    Boolean
+  ).length;
+
   if (characterTypes < 3) {
-    return { isValid: false, error: "JWT secret must contain at least 3 character types (lowercase, uppercase, numbers, special characters)" };
+    return {
+      isValid: false,
+      error:
+        "JWT secret must contain at least 3 character types (lowercase, uppercase, numbers, special characters)",
+    };
   }
 
   return { isValid: true };
@@ -54,7 +69,7 @@ function validateSecret(secret: string): { isValid: boolean; error?: string } {
  * @returns A secure random secret
  */
 function generateSecureSecret(): string {
-  return crypto.randomBytes(32).toString('base64url');
+  return crypto.randomBytes(32).toString("base64url");
 }
 
 /**
@@ -64,18 +79,24 @@ function generateSecureSecret(): string {
  */
 export function getJwtSecret(): Uint8Array {
   const secret = process.env.CARELY_JWT_SECRET;
-  
+
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('CARELY_JWT_SECRET environment variable is required in production');
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CARELY_JWT_SECRET environment variable is required in production"
+      );
     }
-    
+
     // In development, generate a secure secret and log it
     const generatedSecret = generateSecureSecret();
-    console.warn('⚠️  No JWT secret found. Generated secure secret for development.');
-    console.warn('⚠️  Set CARELY_JWT_SECRET environment variable for production use.');
+    console.warn(
+      "⚠️  No JWT secret found. Generated secure secret for development."
+    );
+    console.warn(
+      "⚠️  Set CARELY_JWT_SECRET environment variable for production use."
+    );
     console.warn(`⚠️  Generated secret: ${generatedSecret}`);
-    
+
     return new TextEncoder().encode(generatedSecret);
   }
 
@@ -93,7 +114,7 @@ export function getJwtSecret(): Uint8Array {
  */
 export function getJwtRotationSecret(): Uint8Array {
   const rotationSecret = process.env.CARELY_JWT_ROTATION_SECRET;
-  
+
   if (!rotationSecret) {
     // If no rotation secret is set, use the main secret
     return getJwtSecret();
@@ -111,18 +132,24 @@ export function getJwtRotationSecret(): Uint8Array {
  * Validates if a secret rotation is needed
  * @returns Object indicating if rotation is needed and why
  */
-export function checkSecretRotation(): { needsRotation: boolean; reason?: string } {
+export function checkSecretRotation(): {
+  needsRotation: boolean;
+  reason?: string;
+} {
   const secretAge = process.env.CARELY_JWT_SECRET_AGE;
-  
+
   if (!secretAge) {
     return { needsRotation: true, reason: "Secret age not tracked" };
   }
 
   const ageInDays = parseInt(secretAge, 10);
-  const maxAgeDays = parseInt(process.env.CARELY_JWT_MAX_AGE_DAYS || '90', 10);
-  
+  const maxAgeDays = parseInt(process.env.CARELY_JWT_MAX_AGE_DAYS || "90", 10);
+
   if (ageInDays > maxAgeDays) {
-    return { needsRotation: true, reason: `Secret is ${ageInDays} days old (max: ${maxAgeDays})` };
+    return {
+      needsRotation: true,
+      reason: `Secret is ${ageInDays} days old (max: ${maxAgeDays})`,
+    };
   }
 
   return { needsRotation: false };

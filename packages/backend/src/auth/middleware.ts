@@ -1,7 +1,11 @@
 import { RequestHandler } from "express";
 import { authorizationHeaderSchema, jwtPayloadSchema } from "@carely/core";
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
-import { getJwtSecret, getJwtRotationSecret, checkSecretRotation } from "./secret";
+import {
+  getJwtSecret,
+  getJwtRotationSecret,
+  checkSecretRotation,
+} from "./secret";
 
 const JWKS = createRemoteJWKSet(
   new URL(
@@ -34,7 +38,7 @@ export const authMiddleware =
               // If current secret fails, try with rotation secret
               try {
                 return await jwtVerify(jwt, getJwtRotationSecret());
-              } catch (rotationError) {
+              } catch {
                 // If both fail, throw the original error
                 throw error;
               }
@@ -50,28 +54,25 @@ export const authMiddleware =
       },
     }
   ): RequestHandler =>
-  (req, res, next) => {
+  async (req, res, next) => {
     // Check for secret rotation on each request (optional, can be moved to startup)
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       const rotationCheck = checkSecretRotation();
       if (rotationCheck.needsRotation) {
         console.warn(`⚠️  JWT Secret rotation needed: ${rotationCheck.reason}`);
       }
     }
 
-    authorizationHeaderSchema
-      .parseAsync(req.headers.authorization) // extract jwt from header
-      .then(config.verifier) // verify jwt
-      .then(({ payload }) => jwtPayloadSchema.parseAsync(payload)) // parse the payload
-      .then(({ sub }) => {
-        res.locals.user = { userId: sub };
-        next();
-      }) // update the user context for use with subsequent middleware
-      .catch((error) => {
-        console.error("Authentication failed:", error);
-        res.status(401).json({ 
-          error: "Authentication failed",
-          message: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-      }); // throw generic 401 if any of the above steps have failed
+    try {
+      const jwt = await authorizationHeaderSchema.parseAsync(
+        req.headers.authorization
+      ); // extract jwt from header
+      const { payload } = await config.verifier(jwt); // verify jwt
+      const { sub } = await jwtPayloadSchema.parseAsync(payload); // parse the payload
+      res.locals.user = { userId: sub };
+      next();
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      res.status(401).send();
+    }
   };
