@@ -6,7 +6,10 @@ import { db } from "../db/db";
 export const getNotesDetails = (caregiverId: string) =>
   db
     .query(
-      `SELECT n.*, e.name AS elder_name FROM notes n
+      `SELECT distinct 
+       n.id,n.header,n.content, n.caregiver_id,n.assigned_elder_id,n.created_at, n.updated_at,
+  COALESCE(n.locked_by, '') as locked_by      
+      , e.name AS elder_name FROM notes n
             JOIN caregiver_elder ce ON n.assigned_elder_id = ce.elder_id
             JOIN elders e ON ce.elder_id = e.id
             WHERE ce.caregiver_id = $1
@@ -67,7 +70,8 @@ export const updateNotes = (
                 header = $2,
                 content = $3,
                 caregiver_id = $4,
-                updated_at = NOW()
+                updated_at = NOW(),
+                locked_by=null
             WHERE id = $1
             RETURNING *`,
       [

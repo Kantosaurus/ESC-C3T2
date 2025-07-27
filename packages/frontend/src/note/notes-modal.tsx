@@ -13,6 +13,8 @@ interface ModalType {
   onDelete: (note: Note) => void;
   note: Note;
   elderDetails: Elder[];
+  caregiverId: string;
+  locked_by: string;
 }
 
 export default function Modal({
@@ -60,6 +62,9 @@ export default function Modal({
           <Edit className="h-4 w-4 mr-2" />
           Edit note
         </Button>
+        <p> {note.locked_by
+          ? `Currently being edited by: ${note.locked_by}`
+          : "No one is editing this note."}</p>
         <p className="mt-4 text-sm text-gray-600">
           Assigned to: {elderDetails.find((e) => e.id === note.assigned_elder_id)?.name || "Unknown"}
         </p>
