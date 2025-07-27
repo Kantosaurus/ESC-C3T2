@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDeleteNote } from "./use-notes-data";
+import { useDeleteNote } from "./use-delete-node";
 import { Button } from "@/components/ui/button";
 import type { Note } from "@carely/core";
-import {Edit} from "lucide-react";
+import { Edit } from "lucide-react";
 import type { Elder } from "@carely/core";
 
 interface ModalType {
@@ -27,8 +27,10 @@ export default function Modal({
   const deleteNote = useDeleteNote();
 
   const handleDeleteNote = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this note?")
-      if (!confirmDelete) return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this note?"
+    );
+    if (!confirmDelete) return;
 
     try {
       console.log("Deleting Note:", note);
@@ -47,21 +49,21 @@ export default function Modal({
   return (
     <div
       className="fixed inset-0 bg-black/30 flex justify-center items-center"
-      onClick={toggle}
-    >
+      onClick={toggle}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="block bg-white w-[40%] h-[50%] p-4 rounded-[1rem]"
-      >
+        className="block bg-white w-[40%] h-[50%] p-4 rounded-[1rem]">
         <Button
           className="text-left px-4 py-2 text-sm text-gray-700 bg-gray-300 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
           onClick={() => navigate("/notes/edit", { state: { note } })}
-              variant="outline">
+          variant="outline">
           <Edit className="h-4 w-4 mr-2" />
           Edit note
         </Button>
         <p className="mt-4 text-sm text-gray-600">
-          Assigned to: {elderDetails.find((e) => e.id === note.assigned_elder_id)?.name || "Unknown"}
+          Assigned to:{" "}
+          {elderDetails.find((e) => e.id === note.assigned_elder_id)?.name ||
+            "Unknown"}
         </p>
         <p className="font-extrabold">{note.header}</p>
         <p className="text-sm text-gray-800">{note.content}</p>
@@ -76,14 +78,12 @@ export default function Modal({
         </p>
         <Button
           className="w-full text-left px-4 my-2 text-sm   hover:bg-blue-700 dark:hover:bg-neutral-800 transition"
-          onClick={toggle}
-        >
+          onClick={toggle}>
           Close
         </Button>
         <Button
           className="w-full text-left px-4 py-2 text-sm  bg-red-500 hover:bg-red-700 dark:hover:bg-neutral-800 transition"
-          onClick={handleDeleteNote}
-        >
+          onClick={handleDeleteNote}>
           {" "}
           Delete Note
         </Button>

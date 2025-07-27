@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -7,18 +7,8 @@ import { useNavigate } from "react-router";
 import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
+import Card from "@/components/ui/card";
 
-export function useDeleteNote() {
-  return useCallback((note: { id: number }) => {
-    return http()
-      .post("/api/notes/delete", note)
-      .then((res) => res.data)
-      .catch((error) => {
-        console.error("Failed to delete note:", error);
-        throw error;
-      });
-  }, []);
-}
 /**
  * Get all notes that the caregiver is associated with.
  */
@@ -142,16 +132,12 @@ export function NoteDetails() {
 
   if (!elderDetails || elderDetails.length === 0) {
     return (
-      <div className="p-10 mx-auto">
-        <div className="bg-gray-50 rounded-lg shadow-md p-6 text-center border border-gray-200">
-          <p className="text-gray-600 mb-4">
-            Need an elder to assign for notes
-          </p>
-          <Button onClick={() => navigate("/dashboard")} className="mt-4">
-            Add an Elder profile to continue
-          </Button>
-        </div>
-      </div>
+      <Card className="text-center">
+        <p className="text-gray-600 mb-4">Need an elder to assign for notes</p>
+        <Button onClick={() => navigate("/dashboard")} className="mt-4">
+          Add an Elder profile to continue
+        </Button>
+      </Card>
     );
   }
 
@@ -170,7 +156,7 @@ export function NoteDetails() {
                   {matchingElder?.name}
                 </h2>
               )}
-              <li className="p-4 bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
+              <li className="bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
                 <p className="text-sm text-gray-600">
                   Assigned to: {matchingElder ? matchingElder.name : "Unknown"}
                 </p>
@@ -182,8 +168,7 @@ export function NoteDetails() {
                     WebkitLineClamp: 5,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden",
-                  }}
-                >
+                  }}>
                   {note.content}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -200,7 +185,9 @@ export function NoteDetails() {
                   {new Date(note.updated_at).toLocaleDateString("en-GB")}{" "}
                   {new Date(note.updated_at).toLocaleTimeString()}
                 </p>
-                <Button className="mt-4" onClick={() => handleOpenModal(note)}>Open me</Button>
+                <Button className="mt-4" onClick={() => handleOpenModal(note)}>
+                  Open me
+                </Button>
               </li>
             </div>
           ))}
@@ -211,8 +198,7 @@ export function NoteDetails() {
               toggle={toggle}
               note={selectedNote}
               onDelete={onDelete}
-              elderDetails={elderDetails}
-            ></Modal>
+              elderDetails={elderDetails}></Modal>
           )}
         </ul>
       )}
