@@ -1,0 +1,3 @@
+ALTER TABLE notes 
+    ALTER COLUMN header TYPE VARCHAR(80)
+;

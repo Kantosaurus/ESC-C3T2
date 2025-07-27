@@ -1,6 +1,6 @@
 CREATE TABLE notes (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    header VARCHAR(80) NOT NULL,
+    header VARCHAR(30) NOT NULL,
     content TEXT,
     caregiver_id TEXT,
     assigned_elder_id BIGINT,
