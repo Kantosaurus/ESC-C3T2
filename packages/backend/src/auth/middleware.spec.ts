@@ -61,5 +61,7 @@ describe("Auth Middleware", async () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.send).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
+
+    expect(res.locals.user).toBeUndefined();
   });
 });
