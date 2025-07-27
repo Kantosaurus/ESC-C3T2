@@ -67,6 +67,7 @@ const DashboardPage = () => {
     { name: "Dashboard", link: "/dashboard" },
     { name: "Schedule", link: "#" },
     { name: "Notes", link: "/notes" },
+    { name: "Calendar", link: "/calendar" },
   ];
 
   const focusBentoCards = [
