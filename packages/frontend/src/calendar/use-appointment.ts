@@ -63,7 +63,7 @@ export function useGetAppointment(elder_id: number, appt_id: number) {
       .get(`/api/appointment/${elder_id}/${appt_id}`)
       .then(
         (res) => {
-          setAppointment(res.data[0]);
+          setAppointment(res.data);
           setError(undefined);
         },
         (error) => {
@@ -157,6 +157,25 @@ export function useAcceptAppointment() {
     }) => {
       return http()
         .post("/api/appointment/accept", values)
+        .then((res) => res.data)
+        .catch((error) => {
+          console.error("Error accepting appointment:", error);
+          throw error;
+        });
+    },
+    []
+  );
+}
+
+export function useDeclineAppointment() {
+  return useCallback(
+    (values: {
+      elder_id: number;
+      appt_id: number | undefined;
+      undo: boolean;
+    }) => {
+      return http()
+        .post("/api/appointment/decline", values)
         .then((res) => res.data)
         .catch((error) => {
           console.error("Error accepting appointment:", error);

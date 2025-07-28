@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/button";
 import { useGetAppointment } from "./use-appointment";
 import { Label } from "@/components/ui/label";
 import type { Elder } from "@carely/core";
-import { useAcceptAppointment, useGetCaregiver } from "./use-appointment";
+import {
+  useAcceptAppointment,
+  useGetCaregiver,
+  useDeclineAppointment,
+} from "./use-appointment";
 import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -10,18 +14,11 @@ import { Undo } from "lucide-react";
 
 const extractTimeFromISO = (isoString: string): string => {
   const date = new Date(isoString);
-  let ampm = "AM";
-  let hours = date.getHours();
-  if (hours > 11) {
-    ampm = "PM";
-    if (hours > 12) {
-      hours -= 12;
-    }
-  }
-  return `${hours.toString().padStart(2, "0")}:${date
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")} ${ampm}`;
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
 export default function AppointmentDetailsPage({
@@ -35,7 +32,13 @@ export default function AppointmentDetailsPage({
     useGetAppointment(elder.id, appt_id);
 
   const caregiverId = appointment?.accepted;
-  const { caregiver } = useGetCaregiver(caregiverId ?? undefined);
+  const { caregiver: acceptcaregiver } = useGetCaregiver(
+    caregiverId ?? undefined
+  );
+
+  const { caregiver: createcaregiver } = useGetCaregiver(
+    appointment?.created_by
+  );
 
   const { caregiverDetails } = useCaregiver();
 
@@ -62,6 +65,28 @@ export default function AppointmentDetailsPage({
     }
   };
 
+  const declineAppointment = useDeclineAppointment();
+  const handleDeclineAppointment = async (values: {
+    elder_id: number;
+    appt_id: number | undefined;
+    undo: boolean;
+  }) => {
+    try {
+      await declineAppointment(values);
+      await refetchAppointment();
+      if (values.undo) {
+        toast.success("Undo Successful");
+      } else {
+        toast.success("Appointment Declined");
+      }
+    } catch (error) {
+      console.error("Error declining appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading appointment details</div>;
   }
@@ -76,6 +101,7 @@ export default function AppointmentDetailsPage({
 
   return (
     <div>
+      Created By: {createcaregiver?.name}
       <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div className="space-y-2">
           <Label className="text-gray-600">Elder</Label>
@@ -127,8 +153,8 @@ export default function AppointmentDetailsPage({
       </div>
       <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div>
-          {appointment.accepted ? (
-            caregiverDetails && appointment.accepted === caregiverDetails.id ? (
+          {caregiverDetails && appointment.accepted ? (
+            appointment.accepted === caregiverDetails.id ? (
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-lg">Accepted by you</Label>
                 <Button
@@ -150,27 +176,60 @@ export default function AppointmentDetailsPage({
                   Already accepted by another caregiver
                 </Label>
                 <div className="p-2 border rounded bg-gray-100 text-gray-500 italic">
-                  {caregiver ? caregiver.name : "Name cannot be found"}
+                  {acceptcaregiver
+                    ? acceptcaregiver.name
+                    : "Name cannot be found"}
                 </div>
               </div>
             )
-          ) : (
+          ) : caregiverDetails &&
+            appointment.declined?.includes(caregiverDetails.id) ? (
             <div className="flex items-center justify-between">
-              <Label className="font-semibold text-lg">
-                Accept Appointment?
-              </Label>
+              <Label className="font-semibold text-lg">Declined by you</Label>
               <Button
                 variant="outline"
                 onClick={() => {
-                  handleAcceptAppointment({
+                  handleDeclineAppointment({
                     elder_id: appointment.elder_id,
                     appt_id: appointment.appt_id,
-                    undo: false,
+                    undo: true,
                   });
                 }}
               >
-                Accept
+                <Undo /> Undo
               </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold text-lg">
+                Accept/Decline Appointment?
+              </Label>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleAcceptAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: false,
+                    });
+                  }}
+                >
+                  Accept
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleDeclineAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: false,
+                    });
+                  }}
+                >
+                  Decline
+                </Button>
+              </div>
             </div>
           )}
         </div>

@@ -31,6 +31,7 @@ import {
   updateAppointmentHandler,
   getPendingAppointmentsHandler,
   acceptAppointmentHandler,
+  declineAppointmentHandler,
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 
@@ -76,6 +77,7 @@ app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
 
 app.post("/api/appointment/accept", acceptAppointmentHandler);
+app.post("/api/appointment/decline", declineAppointmentHandler);
 app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
 app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);

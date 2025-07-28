@@ -9,6 +9,8 @@ export const appointmentSchema = z.object({
   name: z.string(),
   loc: z.string().nullish(),
   accepted: z.string().nullish(),
+  created_by: z.string(),
+  declined: z.array(z.string()).nullish(),
 });
 
 export type Appointment = z.infer<typeof appointmentSchema>;
