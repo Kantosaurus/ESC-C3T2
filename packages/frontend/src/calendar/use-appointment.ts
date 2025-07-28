@@ -17,7 +17,7 @@ export function useCreateAppointment() {
 }
 
 export function useGetAppointments(elder_id: number | null) {
-  const [appointments, setAppointments] = useState<AppointmentFormType[]>();
+  const [appointments, setAppointments] = useState<Appointment[]>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 

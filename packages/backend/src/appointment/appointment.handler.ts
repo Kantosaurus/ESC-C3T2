@@ -234,7 +234,11 @@ export const _createAppointmentHandler = async (
   res: Response
 ) => {
   console.log("at createAppointmentHandler");
-  const appt = appointmentSchema.parse(req.body);
+  const caregiver_id = "testUserId";
+  const appt = appointmentSchema.parse({
+    created_by: caregiver_id,
+    ...req.body,
+  });
   const newStart = new Date(appt.startDateTime).getTime();
   const newEnd = new Date(appt.endDateTime).getTime();
   const existingAppts = await getAppointmentsForElder(appt.elder_id);
