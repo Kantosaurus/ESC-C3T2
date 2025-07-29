@@ -1,6 +1,15 @@
 import { z } from "zod/v4";
-import { xssProtectedNewElderDtoSchema } from "@carely/core";
-import { insertElder, getEldersDetails } from "./elder.entity";
+import {
+  xssProtectedNewElderDtoSchema,
+  elderSchema,
+  getInviteLinkResponseDtoSchema,
+} from "@carely/core";
+import {
+  insertElder,
+  getEldersDetails,
+  getElderDetails,
+  addRelationship,
+} from "./elder.entity";
 import { authenticated } from "../auth/guard";
 import { jwtVerify, SignJWT } from "jose";
 import { getJwtSecret } from "../auth/secret";

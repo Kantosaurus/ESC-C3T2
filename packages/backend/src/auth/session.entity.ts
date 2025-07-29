@@ -259,11 +259,15 @@ export class SessionEntity {
 
     if (updates.length === 0) return;
 
+    // Add last_accessed_at update
+    updates.push(`last_accessed_at = NOW()`);
+
+    // Add the id parameter
     values.push(id);
+
+    // Use parameterized query with proper escaping
     await db.none(
-      `UPDATE sessions SET ${updates.join(
-        ", "
-      )}, last_accessed_at = NOW() WHERE id = $${paramIndex}`,
+      `UPDATE sessions SET ${updates.join(", ")} WHERE id = $${paramIndex}`,
       values
     );
   }

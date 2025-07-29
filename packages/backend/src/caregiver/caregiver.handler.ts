@@ -5,6 +5,37 @@ import {
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
 import { xssProtectedCaregiverSchema } from "@carely/core";
+import { z } from "zod/v4";
+
+/**
+ * Handler to get the details of a specific caregiver by ID.
+ * This handler assumes that the user is already authenticated and
+ * their user ID is available in `res.locals.user.userId`.
+ * It expects the caregiverId to be passed as a URL parameter.
+ */
+export const getCaregiverByIdHandler = authenticated(async (req, res) => {
+  try {
+    const { caregiverId } = z
+      .object({ caregiverId: z.string() })
+      .parse(req.params);
+
+    const caregiver = await getCaregiverDetails(caregiverId);
+
+    if (!caregiver) {
+      res.status(404).json({ error: "Caregiver not found" });
+      return;
+    }
+
+    res.json(caregiver);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid caregiver ID" });
+    } else {
+      console.error("Error getting caregiver details:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
 
 /**
  * Handler to get the details of the authenticated caregiver.

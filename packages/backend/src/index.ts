@@ -7,6 +7,7 @@ import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
   updateCaregiverSelfHandler,
+  getCaregiverByIdHandler,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
@@ -34,6 +35,31 @@ import {
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 import { sanitizeRequestBody } from "./security/xss-protection";
+import {
+  helmetConfig,
+  rateLimiter,
+  authRateLimiter,
+  requestSizeLimiter,
+  csrfProtection,
+  securityHeaders,
+  securityLogging,
+} from "./security/security-middleware";
+import {
+  validateCaregiverIdParam,
+  validateElderIdParam,
+  validateAppointmentParams,
+  validateCreateCaregiver,
+  validateUpdateCaregiver,
+  validateCreateElder,
+  validateUpdateElder,
+  validateCreateAppointment,
+  validateUpdateAppointment,
+  validateCreateNote,
+  validateUpdateNote,
+  validateDeleteNote,
+  validateDeleteAppointment,
+  validateAcceptAppointment,
+} from "./security/input-validation";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -43,12 +69,33 @@ SessionManager.initialize().catch((error) => {
   console.error("Failed to initialize session management:", error);
 });
 
+// Security middleware - apply in order of importance
+app.use(helmetConfig); // Security headers
+app.use(securityHeaders); // Additional custom security headers
+app.use(securityLogging); // Security monitoring and logging
+
+// CORS configuration
 app.use(corsWithConfig());
 
-app.use(express.json()); // for parsing application/json
+// Request size limiting
+app.use(requestSizeLimiter);
+
+// Body parsing with size limits
+app.use(express.json({ limit: "1mb" })); // for parsing application/json
+app.use(express.urlencoded({ extended: true, limit: "1mb" })); // for parsing application/x-www-form-urlencoded
 
 // Apply XSS protection middleware to all routes
 app.use(sanitizeRequestBody);
+
+// Rate limiting - apply to all routes
+app.use(rateLimiter);
+
+// Stricter rate limiting for authentication endpoints
+app.use("/api/singpass", authRateLimiter);
+app.use("/api/redirect", authRateLimiter);
+
+// CSRF protection for all non-GET requests
+app.use(csrfProtection);
 
 app.use(express.static("./dist/static"));
 
@@ -64,41 +111,143 @@ app.use((req, res, next) => {
   }
 });
 
+// Authentication endpoints (no CSRF protection needed)
 app.get("/api/singpass/auth-url", singpassAuthUrlHandler);
 app.get("/api/redirect", redirectHandler);
 
 // require authentication for routes here
 app.use(authMiddleware());
 
+// Caregiver routes with validation
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
-app.post("/api/caregiver/self", insertCaregiverHandler);
-app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
+app.post(
+  "/api/caregiver/self",
+  validateCreateCaregiver,
+  insertCaregiverHandler
+);
+app.patch(
+  "/api/caregiver/self",
+  validateUpdateCaregiver,
+  updateCaregiverSelfHandler
+);
+app.get(
+  "/api/caregiver/:caregiverId",
+  validateCaregiverIdParam,
+  getCaregiverByIdHandler
+);
 
+// Elder routes with validation
 app.get("/api/elder/details", getEldersDetailsHandler);
-app.get("/api/elder/details/:elderId", getElderDetailsHandler);
-app.post("/api/elder/new", insertElderHandler);
-app.patch("/api/elder/:elderId", updateElderHandler);
+app.get(
+  "/api/elder/details/:elderId",
+  validateElderIdParam,
+  getElderDetailsHandler
+);
+app.post("/api/elder/new", validateCreateElder, insertElderHandler);
+app.patch(
+  "/api/elder/:elderId",
+  validateElderIdParam,
+  validateUpdateElder,
+  updateElderHandler
+);
 
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
 
-app.post("/api/appointment/accept", acceptAppointmentHandler);
-app.post("/api/appointment/new", createAppointmentHandler);
-app.get("/api/appointments/:elder_id", getAppointmentsHandler);
-app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
-app.post("/api/appointment/delete", deleteAppointmentHandler);
-app.patch("/api/appointment/update", updateAppointmentHandler);
+// Appointment routes with validation
+app.post(
+  "/api/appointment/accept",
+  validateAcceptAppointment,
+  acceptAppointmentHandler
+);
+app.post(
+  "/api/appointment/new",
+  validateCreateAppointment,
+  createAppointmentHandler
+);
+app.get(
+  "/api/appointments/:elder_id",
+  validateElderIdParam,
+  getAppointmentsHandler
+);
+app.get(
+  "/api/appointment/:elder_id/:appt_id",
+  validateAppointmentParams,
+  getAppointmentHandler
+);
+app.post(
+  "/api/appointment/delete",
+  validateDeleteAppointment,
+  deleteAppointmentHandler
+);
+app.patch(
+  "/api/appointment/update",
+  validateUpdateAppointment,
+  updateAppointmentHandler
+);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
+// Notes routes with validation
 app.get("/api/notes/details", getNotesHandler);
-app.post("/api/notes/new", insertNotesHandler);
-app.post("/api/notes/delete", deleteNotesHandler);
-app.post("/api/notes/edit", updateNotesHandler);
+app.post("/api/notes/new", validateCreateNote, insertNotesHandler);
+app.post("/api/notes/delete", validateDeleteNote, deleteNotesHandler);
+app.post("/api/notes/edit", validateUpdateNote, updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 
+// Global error handler for security-related errors
+app.use(
+  (
+    error: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Global error handler:", error);
+
+    // Handle CORS errors
+    if (error.message === "Not allowed by CORS") {
+      return res.status(403).json({
+        error: "CORS error",
+        message: "Origin not allowed",
+      });
+    }
+
+    // Handle rate limiting errors
+    if (error.status === 429) {
+      return res.status(429).json({
+        error: "Rate limit exceeded",
+        message: "Too many requests, please try again later",
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        error: "Validation error",
+        message: error.message,
+      });
+    }
+
+    // Default error response
+    res.status(500).json({
+      error: "Internal server error",
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Something went wrong"
+          : error.message,
+    });
+  }
+);
+
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);
+  console.log(`🔒 Security middleware enabled`);
+  console.log(
+    `🛡️  Rate limiting: ${
+      process.env.NODE_ENV === "production" ? "Strict" : "Development"
+    }`
+  );
 });
 
 // Graceful shutdown handling

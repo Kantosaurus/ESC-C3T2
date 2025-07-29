@@ -4,7 +4,9 @@ import { appointmentSchema } from "@carely/core";
 import {
   insertAppointment,
   getAppointmentsForElder,
+  getAppointmentForElder,
   updateAppointment,
+  deleteAppointment,
   getPendingAppointments,
   acceptAppointment,
 } from "./appointment.entity";

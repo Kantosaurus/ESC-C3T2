@@ -20,12 +20,14 @@ async function dropTables() {
       return;
     }
 
-    const dropQueries = tables.map(
-      (table) => `DROP TABLE IF EXISTS ${table.tablename} CASCADE;`
-    );
-
-    await db.tx((t) => {
-      return t.batch(dropQueries.map((query) => t.none(query)));
+    // Use parameterized queries to prevent SQL injection
+    await db.tx(async (t) => {
+      for (const table of tables) {
+        // Use pg-promise's parameterized query with proper escaping
+        await t.none('DROP TABLE IF EXISTS "${tableName}" CASCADE', {
+          tableName: table.tablename,
+        });
+      }
     });
 
     console.log("All tables dropped successfully.");
