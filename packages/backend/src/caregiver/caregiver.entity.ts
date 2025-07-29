@@ -5,8 +5,8 @@ import { db } from "../db/db";
 
 export const getCaregiverDetails = (userId: string) =>
   db
-    .query(`SELECT * FROM caregivers WHERE id = $1`, [userId])
-    .then((result) => z.array(caregiverSchema).parse(result)[0]);
+    .oneOrNone(`SELECT * FROM caregivers WHERE id = $1`, [userId])
+    .then((result) => (result ? caregiverSchema.parse(result) : null));
 
 export const insertCaregiver = (
   caregiverDetails: Pick<

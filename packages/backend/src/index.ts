@@ -2,6 +2,7 @@ import express from "express";
 import { authMiddleware } from "./auth/middleware";
 import { redirectHandler } from "./auth/redirect.handler";
 import { singpassAuthUrlHandler } from "./auth/singpass/auth-url.handler";
+import { SessionManager } from "./auth/session";
 import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
@@ -36,6 +37,11 @@ import { sanitizeRequestBody } from "./security/xss-protection";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
+
+// Initialize session management
+SessionManager.initialize().catch((error) => {
+  console.error("Failed to initialize session management:", error);
+});
 
 app.use(corsWithConfig());
 
@@ -93,6 +99,19 @@ app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);
+});
+
+// Graceful shutdown handling
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully...");
+  SessionManager.shutdown();
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT received, shutting down gracefully...");
+  SessionManager.shutdown();
+  process.exit(0);
 });
 
 export default app;

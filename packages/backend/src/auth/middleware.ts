@@ -67,9 +67,13 @@ export const authMiddleware =
       const jwt = await authorizationHeaderSchema.parseAsync(
         req.headers.authorization
       ); // extract jwt from header
+
       const { payload } = await config.verifier(jwt); // verify jwt
       const { sub } = await jwtPayloadSchema.parseAsync(payload); // parse the payload
+
       res.locals.user = { userId: sub };
+      console.log(`Authentication successful for user: ${sub}`);
+
       next();
     } catch (error) {
       console.error("Authentication failed:", error);

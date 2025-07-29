@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { getJwtSecret } from "./secret";
-import { sessionData } from "./session";
+import { SessionManager } from "./session";
 import { singpassClient } from "./singpass/client";
 import { SignJWT } from "jose";
 
@@ -22,8 +22,8 @@ export const redirectHandler: RequestHandler = async (
       return;
     }
 
-    // Retrieve the code verifier from memory
-    const session = sessionData[sessionId];
+    // Retrieve the code verifier from database
+    const session = await SessionManager.getSession(sessionId);
 
     // Validate that the code verifier exists for this session
     if (!session?.codeVerifier) {
@@ -47,6 +47,9 @@ export const redirectHandler: RequestHandler = async (
       .setSubject(sub)
       .setExpirationTime("2h")
       .sign(getJwtSecret());
+
+    // Clean up the session after successful authentication
+    await SessionManager.deleteSession(sessionId);
 
     const redirectUrl = new URL("/redirect", FRONTEND_HOST);
     redirectUrl.searchParams.set("token", token);

@@ -3,7 +3,7 @@ import { generatePkcePair } from "@opengovsg/sgid-client";
 import { singpassClient } from "./client";
 import z from "zod/v4";
 import { RequestHandler } from "express";
-import { sessionData } from "../session";
+import { SessionManager } from "../session";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
@@ -34,12 +34,12 @@ export const singpassAuthUrlHandler: RequestHandler = async (req, res) => {
     redirectUri: `${BASE_URL}/api/redirect`,
   });
 
-  // Store code verifier, state, and nonce
-  sessionData[sessionId] = {
+  // Store code verifier, state, and nonce in database
+  await SessionManager.createSession(sessionId, {
     state,
     nonce,
     codeVerifier,
-  };
+  });
 
   // Return the authorization URL
   res.json({ url });

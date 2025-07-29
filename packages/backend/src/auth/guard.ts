@@ -56,11 +56,15 @@ type AuthenticatedResponse<T extends RequestHandler = RequestHandler> =
 export const authenticated = <T extends RequestHandler>(
   handler: Authenticated<T>
 ): RequestHandler => {
-  return ((req, res, next) =>
-    authenticatedLocalsSchema
+  return ((req, res, next) => {
+    return authenticatedLocalsSchema
       .parseAsync(res.locals)
-      .catch(next) // TODO: add a warning log. this should only occur if there is a logical error
+      .catch((error) => {
+        console.error("Authentication guard validation failed:", error);
+        next(error);
+      })
       .then(() =>
         handler(req as AuthenticatedRequest, res as AuthenticatedResponse, next)
-      )) as RequestHandler;
+      );
+  }) as RequestHandler;
 };
