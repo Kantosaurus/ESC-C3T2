@@ -1,6 +1,6 @@
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { z } from "zod/v4";
 import jwt from "jsonwebtoken";
 
@@ -75,13 +75,17 @@ export const helmetConfig = helmet({
 });
 
 // Rate limiting middleware
-export const rateLimiter = rateLimit(SECURITY_CONFIG.RATE_LIMIT);
+export const rateLimiter: RequestHandler = rateLimit(
+  SECURITY_CONFIG.RATE_LIMIT
+);
 
 // Stricter rate limiting for authentication endpoints
-export const authRateLimiter = rateLimit(SECURITY_CONFIG.AUTH_RATE_LIMIT);
+export const authRateLimiter: RequestHandler = rateLimit(
+  SECURITY_CONFIG.AUTH_RATE_LIMIT
+);
 
 // Request size limiting middleware
-export const requestSizeLimiter = (
+export const requestSizeLimiter: RequestHandler = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -100,7 +104,7 @@ export const requestSizeLimiter = (
 };
 
 // CSRF token validation middleware
-export const csrfProtection = (
+export const csrfProtection: RequestHandler = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -166,7 +170,7 @@ export const csrfProtection = (
 };
 
 // Input validation middleware using Zod schemas
-export const validateInput = <T>(schema: z.ZodSchema<T>) => {
+export const validateInput = <T>(schema: z.ZodSchema<T>): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedData = schema.parse(req.body);
@@ -218,7 +222,7 @@ export const validateInput = <T>(schema: z.ZodSchema<T>) => {
 };
 
 // Parameter validation middleware
-export const validateParams = <T>(schema: z.ZodSchema<T>) => {
+export const validateParams = <T>(schema: z.ZodSchema<T>): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedParams = schema.parse(req.params);
@@ -270,7 +274,7 @@ export const validateParams = <T>(schema: z.ZodSchema<T>) => {
 };
 
 // Query parameter validation middleware
-export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
+export const validateQuery = <T>(schema: z.ZodSchema<T>): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedQuery = schema.parse(req.query);
