@@ -81,7 +81,8 @@ export function InvitePage() {
               onClick={() => {
                 navigator.clipboard.writeText(inviteLink);
                 toast.success("Invite link copied to clipboard!");
-              }}>
+              }}
+            >
               Copy
             </Button>
           </div>
@@ -132,7 +133,8 @@ export function AcceptInvitePage() {
     return (
       <section
         className="w-screen h-screen flex flex-col items-center justify-center gap-
-4 p-8">
+4 p-8"
+      >
         <h2 className="text-2xl font-bold mb-4">
           You are already a caregiver for {elderDetails.name}.
         </h2>
@@ -159,7 +161,8 @@ export function AcceptInvitePage() {
               toast.error("Failed to accept invite. Please try again.");
             }
           );
-        }}>
+        }}
+      >
         Accept invite to be a caregiver for{" "}
         {searchParams.get("elderName") || "an elder"}
       </Button>
