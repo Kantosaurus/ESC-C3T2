@@ -233,7 +233,7 @@ export class SessionEntity {
     await this.ensureTableSchema();
 
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: (string | null)[] = [];
     let paramIndex = 1;
 
     if (data.nonce !== undefined) {

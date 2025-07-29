@@ -16,7 +16,7 @@ describe("Session Management", () => {
     // Check if sessions table exists, if not create it
     try {
       await db.none("SELECT 1 FROM sessions LIMIT 1");
-    } catch (error) {
+    } catch {
       // Table doesn't exist, create it
       await db.none(`
         CREATE TABLE IF NOT EXISTS sessions (

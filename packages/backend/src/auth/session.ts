@@ -1,7 +1,4 @@
-import {
-  SessionEntity,
-  type SessionData as DBSessionData,
-} from "./session.entity";
+import { SessionEntity } from "./session.entity";
 
 export const SESSION_COOKIE_NAME = "carely-session";
 export const SESSION_COOKIE_OPTIONS = {
