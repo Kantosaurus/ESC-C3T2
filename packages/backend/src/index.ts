@@ -6,7 +6,6 @@ import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
   updateCaregiverSelfHandler,
-  getCaregiverById,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
@@ -33,6 +32,7 @@ import {
   acceptAppointmentHandler,
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
+import { sanitizeRequestBody } from "./security/xss-protection";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -40,6 +40,9 @@ const port = process.env.PORT ?? "3000";
 app.use(corsWithConfig());
 
 app.use(express.json()); // for parsing application/json
+
+// Apply XSS protection middleware to all routes
+app.use(sanitizeRequestBody);
 
 app.use(express.static("./dist/static"));
 
@@ -64,8 +67,6 @@ app.use(authMiddleware());
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post("/api/caregiver/self", insertCaregiverHandler);
 app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
-
-app.get("/api/caregiver/:caregiver_id", getCaregiverById);
 
 app.get("/api/elder/details", getEldersDetailsHandler);
 app.get("/api/elder/details/:elderId", getElderDetailsHandler);

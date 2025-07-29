@@ -6,3 +6,4 @@ export * from "./elder/invite.dto.schema.js";
 export * from "./address/address.schema.js";
 export * from "./appointment/appointment.schema.js";
 export * from "./note/note.schema.js";
+export * from "./security/xss-protected-schemas.js";

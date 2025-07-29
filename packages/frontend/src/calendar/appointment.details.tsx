@@ -7,6 +7,12 @@ import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import { Undo } from "lucide-react";
+import {
+  SafeAppointmentDetails,
+  SafeLocation,
+  SafeAppointmentName,
+  SafeName,
+} from "@/lib/xss-protection";
 
 const extractTimeFromISO = (isoString: string): string => {
   const date = new Date(isoString);
@@ -79,13 +85,15 @@ export default function AppointmentDetailsPage({
       <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div className="space-y-2">
           <Label className="text-gray-600">Elder</Label>
-          <div className="p-2 border rounded bg-gray-50">{elder.name}</div>
+          <div className="p-2 border rounded bg-gray-50">
+            <SafeName name={elder.name} />
+          </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-gray-600">Appointment Title</Label>
           <div className="p-2 border rounded bg-gray-50">
-            {appointment.name || "Missing title"}
+            <SafeAppointmentName name={appointment.name} />
           </div>
         </div>
 
@@ -110,18 +118,14 @@ export default function AppointmentDetailsPage({
         <div className="space-y-2">
           <Label className="text-gray-600">Details</Label>
           <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap">
-            {appointment.details || (
-              <span className="text-gray-400">No details</span>
-            )}
+            <SafeAppointmentDetails details={appointment.details} />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-gray-600">Location</Label>
           <div className="p-2 border rounded bg-gray-50">
-            {appointment.loc || (
-              <span className="text-gray-400">No location specified</span>
-            )}
+            <SafeLocation location={appointment.loc} />
           </div>
         </div>
       </div>
@@ -150,7 +154,9 @@ export default function AppointmentDetailsPage({
                   Already accepted by another caregiver
                 </Label>
                 <div className="p-2 border rounded bg-gray-100 text-gray-500 italic">
-                  {caregiver ? caregiver.name : "Name cannot be found"}
+                  <SafeName
+                    name={caregiver ? caregiver.name : "Name cannot be found"}
+                  />
                 </div>
               </div>
             )

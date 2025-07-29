@@ -8,6 +8,11 @@ import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
 import Card from "@/components/ui/card";
+import {
+  SafeNoteContent,
+  SafeNoteHeader,
+  SafeName,
+} from "@/lib/xss-protection";
 
 /**
  * Get all notes that the caregiver is associated with.
@@ -153,26 +158,34 @@ export function NoteDetails() {
             <div key={note.id}>
               {showElderHeading && (
                 <h2 className="text-lg font-bold mt-6 mb-2">
-                  {matchingElder?.name}
+                  <SafeName name={matchingElder?.name} />
                 </h2>
               )}
               <li className="bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
                 <p className="text-sm text-gray-600">
-                  Assigned to: {matchingElder ? matchingElder.name : "Unknown"}
+                  Assigned to:{" "}
+                  <SafeName
+                    name={matchingElder ? matchingElder.name : "Unknown"}
+                  />
                 </p>
-                <p className="font-extrabold">{note.header}</p>
-                <p
+                <SafeNoteHeader
+                  header={note.header}
+                  className="font-extrabold"
+                />
+                <div
                   className="text-sm text-gray-800 whitespace-pre-wrap"
                   style={{
                     display: "-webkit-box",
                     WebkitLineClamp: 5,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden",
-                  }}>
-                  {note.content}
-                </p>
+                  }}
+                >
+                  <SafeNoteContent content={note.content} />
+                </div>
                 <p className="text-xs text-gray-500">
-                  Created By: {caregiverDetails?.name || "Unknown"}
+                  Created By:{" "}
+                  <SafeName name={caregiverDetails?.name || "Unknown"} />
                 </p>
                 {/* Date format as DD/MM/YYYY */}
                 <p className="text-xs text-gray-500">
@@ -198,7 +211,8 @@ export function NoteDetails() {
               toggle={toggle}
               note={selectedNote}
               onDelete={onDelete}
-              elderDetails={elderDetails}></Modal>
+              elderDetails={elderDetails}
+            ></Modal>
           )}
         </ul>
       )}

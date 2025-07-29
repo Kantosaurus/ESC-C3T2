@@ -2,6 +2,7 @@ import {
   elderSchema,
   getInviteLinkResponseDtoSchema,
   newElderDtoSchema,
+  xssProtectedNewElderDtoSchema,
 } from "@carely/core";
 import {
   addRelationship,
@@ -70,7 +71,9 @@ export const getElderDetailsHandler = authenticated(async (req, res) => {
 export const insertElderHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
   console.log("Inserting new elder for caregiver:", req.body);
-  const newElderDto = newElderDtoSchema.parse(req.body);
+
+  // Use XSS-protected schema for input validation and sanitization
+  const newElderDto = xssProtectedNewElderDtoSchema.parse(req.body);
 
   console.log(newElderDto);
 
@@ -196,7 +199,9 @@ export const updateElderHandler = authenticated(async (req, res) => {
       "elder:",
       elderId
     );
-    const updateElderDto = newElderDtoSchema.parse(req.body);
+
+    // Use XSS-protected schema for input validation and sanitization
+    const updateElderDto = xssProtectedNewElderDtoSchema.parse(req.body);
 
     console.log("Update data:", updateElderDto);
 

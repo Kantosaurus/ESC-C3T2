@@ -1,10 +1,11 @@
-import { caregiverSchema } from "@carely/core";
+import { caregiverSchema, xssProtectedCaregiverSchema } from "@carely/core";
 import {
   getCaregiverDetails,
   insertCaregiver,
   updateCaregiver,
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
+import { requirePermission, Permission } from "../auth/authorization";
 import z from "zod/v4";
 
 /**
@@ -26,25 +27,6 @@ export const getCaregiverSelfHandler = authenticated(async (req, res) => {
   res.json(caregiver);
 });
 
-export const getCaregiverById = authenticated(async (req, res) => {
-  const { caregiver_id } = z
-    .object({
-      caregiver_id: z.string(),
-    })
-    .parse(req.params);
-
-  console.log("caregiverid: ", caregiver_id);
-
-  const caregiver = await getCaregiverDetails(caregiver_id);
-
-  if (!caregiver) {
-    res.status(404).json({ error: "Caregiver not found" });
-    return;
-  }
-
-  res.json(caregiver);
-});
-
 /**
  * Handler to insert a new caregiver.
  * This handler assumes that the user is already authenticated and
@@ -53,7 +35,8 @@ export const getCaregiverById = authenticated(async (req, res) => {
 export const insertCaregiverHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
 
-  const caregiverDetails = caregiverSchema
+  // Use XSS-protected schema for input validation and sanitization
+  const caregiverDetails = xssProtectedCaregiverSchema
     .pick({
       name: true,
       date_of_birth: true,
@@ -87,7 +70,8 @@ export const insertCaregiverHandler = authenticated(async (req, res) => {
 export const updateCaregiverSelfHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
 
-  const caregiverDetails = caregiverSchema
+  // Use XSS-protected schema for input validation and sanitization
+  const caregiverDetails = xssProtectedCaregiverSchema
     .pick({
       name: true,
       date_of_birth: true,

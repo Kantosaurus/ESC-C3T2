@@ -1,0 +1,467 @@
+import DOMPurify from "isomorphic-dompurify";
+import { z } from "zod/v4";
+
+// XSS Protection Configuration
+const DOMPURIFY_CONFIG = {
+  ALLOWED_TAGS: [], // No HTML tags allowed by default
+  ALLOWED_ATTR: [], // No attributes allowed by default
+  KEEP_CONTENT: true, // Keep text content, remove HTML
+  RETURN_DOM: false, // Return string, not DOM
+  RETURN_DOM_FRAGMENT: false,
+  RETURN_TRUSTED_TYPE: false,
+  FORCE_BODY: false,
+  SANITIZE_DOM: true,
+  WHOLE_DOCUMENT: false,
+  RETURN_DOM_IMPORT: false,
+  FORBID_TAGS: [
+    "script",
+    "style",
+    "iframe",
+    "object",
+    "embed",
+    "form",
+    "input",
+    "textarea",
+    "select",
+    "button",
+    "link",
+    "meta",
+    "title",
+    "head",
+    "body",
+    "html",
+  ],
+  FORBID_ATTR: [
+    "onerror",
+    "onload",
+    "onclick",
+    "onmouseover",
+    "onfocus",
+    "onblur",
+    "onchange",
+    "onsubmit",
+    "onreset",
+    "onselect",
+    "onunload",
+    "onresize",
+    "onabort",
+    "onbeforeunload",
+    "onerror",
+    "onhashchange",
+    "onmessage",
+    "onoffline",
+    "ononline",
+    "onpagehide",
+    "onpageshow",
+    "onpopstate",
+    "onstorage",
+    "oncontextmenu",
+    "onkeydown",
+    "onkeypress",
+    "onkeyup",
+    "onmousedown",
+    "onmousemove",
+    "onmouseout",
+    "onmouseup",
+    "onwheel",
+    "oncopy",
+    "oncut",
+    "onpaste",
+    "onselectstart",
+    "onbeforecopy",
+    "onbeforecut",
+    "onbeforepaste",
+    "onhelp",
+    "onsearch",
+    "onwebkitanimationend",
+    "onwebkitanimationiteration",
+    "onwebkitanimationstart",
+    "onwebkittransitionend",
+    "onabort",
+    "onbeforeunload",
+    "onerror",
+    "onhashchange",
+    "onmessage",
+    "onoffline",
+    "ononline",
+    "onpagehide",
+    "onpageshow",
+    "onpopstate",
+    "onstorage",
+    "oncontextmenu",
+    "onkeydown",
+    "onkeypress",
+    "onkeyup",
+    "onmousedown",
+    "onmousemove",
+    "onmouseout",
+    "onmouseup",
+    "onwheel",
+    "oncopy",
+    "oncut",
+    "onpaste",
+    "onselectstart",
+    "onbeforecopy",
+    "onbeforecut",
+    "onbeforepaste",
+    "onhelp",
+    "onsearch",
+    "onwebkitanimationend",
+    "onwebkitanimationiteration",
+    "onwebkitanimationstart",
+    "onwebkittransitionend",
+  ],
+  USE_PROFILES: {
+    html: false,
+    svg: false,
+    svgFilters: false,
+    mathMl: false,
+  },
+};
+
+// Rich text configuration for notes (allows basic formatting)
+const RICH_TEXT_CONFIG = {
+  ...DOMPURIFY_CONFIG,
+  ALLOWED_TAGS: [
+    "p",
+    "br",
+    "strong",
+    "em",
+    "u",
+    "ol",
+    "ul",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "code",
+    "pre",
+    "hr",
+    "div",
+    "span",
+  ],
+  ALLOWED_ATTR: ["class", "id", "style"],
+  ALLOW_DATA_ATTR: false,
+};
+
+/**
+ * Sanitize plain text input (removes all HTML)
+ */
+export const sanitizeText = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  return DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+};
+
+/**
+ * Sanitize rich text input (allows basic formatting)
+ */
+export const sanitizeRichText = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  return DOMPurify.sanitize(input, RICH_TEXT_CONFIG);
+};
+
+/**
+ * Sanitize address fields (plain text only)
+ */
+export const sanitizeAddress = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  // Remove any HTML and limit length
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+  return sanitized.length > 200 ? sanitized.substring(0, 200) : sanitized;
+};
+
+/**
+ * Sanitize name fields (plain text only)
+ */
+export const sanitizeName = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  // Remove any HTML and limit length
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+  return sanitized.length > 100 ? sanitized.substring(0, 100) : sanitized;
+};
+
+/**
+ * Sanitize phone number (digits, spaces, dashes, parentheses only)
+ */
+export const sanitizePhone = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  // Remove any HTML first
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+
+  // Only allow digits, spaces, dashes, parentheses, and plus sign
+  return sanitized.replace(/[^\d\s\-\(\)\+]/g, "").trim();
+};
+
+/**
+ * Sanitize appointment details (rich text allowed)
+ */
+export const sanitizeAppointmentDetails = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  return sanitizeRichText(input);
+};
+
+/**
+ * Sanitize note content (rich text allowed)
+ */
+export const sanitizeNoteContent = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  return sanitizeRichText(input);
+};
+
+/**
+ * Sanitize note header (plain text only)
+ */
+export const sanitizeNoteHeader = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+  return sanitized.length > 50 ? sanitized.substring(0, 50) : sanitized;
+};
+
+/**
+ * Sanitize appointment name (plain text only)
+ */
+export const sanitizeAppointmentName = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+  return sanitized.length > 100 ? sanitized.substring(0, 100) : sanitized;
+};
+
+/**
+ * Sanitize appointment location (plain text only)
+ */
+export const sanitizeAppointmentLocation = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  const sanitized = DOMPurify.sanitize(input, DOMPURIFY_CONFIG);
+  return sanitized.length > 200 ? sanitized.substring(0, 200) : sanitized;
+};
+
+/**
+ * Sanitize an object with string properties
+ */
+export const sanitizeObject = <T extends Record<string, any>>(
+  obj: T,
+  sanitizers: Record<keyof T, (value: string) => string>
+): T => {
+  const sanitized = { ...obj };
+
+  for (const [key, sanitizer] of Object.entries(sanitizers)) {
+    if (typeof sanitized[key] === "string") {
+      sanitized[key] = sanitizer(sanitized[key]);
+    }
+  }
+
+  return sanitized;
+};
+
+/**
+ * Zod transformer for sanitizing text inputs
+ */
+export const sanitizeTextTransformer = z.string().transform(sanitizeText);
+
+/**
+ * Zod transformer for sanitizing rich text inputs
+ */
+export const sanitizeRichTextTransformer = z
+  .string()
+  .transform(sanitizeRichText);
+
+/**
+ * Zod transformer for sanitizing address inputs
+ */
+export const sanitizeAddressTransformer = z.string().transform(sanitizeAddress);
+
+/**
+ * Zod transformer for sanitizing name inputs
+ */
+export const sanitizeNameTransformer = z.string().transform(sanitizeName);
+
+/**
+ * Zod transformer for sanitizing phone inputs
+ */
+export const sanitizePhoneTransformer = z.string().transform(sanitizePhone);
+
+/**
+ * Zod transformer for sanitizing appointment details
+ */
+export const sanitizeAppointmentDetailsTransformer = z
+  .string()
+  .transform(sanitizeAppointmentDetails);
+
+/**
+ * Zod transformer for sanitizing note content
+ */
+export const sanitizeNoteContentTransformer = z
+  .string()
+  .transform(sanitizeNoteContent);
+
+/**
+ * Zod transformer for sanitizing note headers
+ */
+export const sanitizeNoteHeaderTransformer = z
+  .string()
+  .transform(sanitizeNoteHeader);
+
+/**
+ * Zod transformer for sanitizing appointment names
+ */
+export const sanitizeAppointmentNameTransformer = z
+  .string()
+  .transform(sanitizeAppointmentName);
+
+/**
+ * Zod transformer for sanitizing appointment locations
+ */
+export const sanitizeAppointmentLocationTransformer = z
+  .string()
+  .transform(sanitizeAppointmentLocation);
+
+/**
+ * Validate and sanitize input with custom error message
+ */
+export const validateAndSanitize = (
+  input: string,
+  sanitizer: (input: string) => string,
+  fieldName: string
+): string => {
+  if (!input || typeof input !== "string") {
+    throw new Error(`${fieldName} is required and must be a string`);
+  }
+
+  const sanitized = sanitizer(input);
+
+  if (!sanitized.trim()) {
+    throw new Error(`${fieldName} cannot be empty after sanitization`);
+  }
+
+  return sanitized;
+};
+
+/**
+ * Log XSS attempts for security monitoring
+ */
+export const logXSSTAttempt = (
+  originalInput: string,
+  sanitizedInput: string,
+  fieldName: string
+): void => {
+  if (originalInput !== sanitizedInput) {
+    console.warn(`Potential XSS attempt detected in ${fieldName}:`, {
+      original: originalInput,
+      sanitized: sanitizedInput,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Utility to check if a string contains potentially dangerous content
+ */
+export const containsDangerousContent = (text: string): boolean => {
+  if (!text || typeof text !== "string") {
+    return false;
+  }
+
+  const dangerousPatterns = [
+    /<script[^>]*>/i,
+    /javascript:/i,
+    /on\w+\s*=/i,
+    /<iframe[^>]*>/i,
+    /<object[^>]*>/i,
+    /<embed[^>]*>/i,
+    /<form[^>]*>/i,
+    /<input[^>]*>/i,
+    /<textarea[^>]*>/i,
+    /<select[^>]*>/i,
+    /<button[^>]*>/i,
+    /<link[^>]*>/i,
+    /<meta[^>]*>/i,
+    /<title[^>]*>/i,
+    /<head[^>]*>/i,
+    /<body[^>]*>/i,
+    /<html[^>]*>/i,
+  ];
+
+  return dangerousPatterns.some((pattern) => pattern.test(text));
+};
+
+/**
+ * Middleware to automatically sanitize request body
+ */
+export const sanitizeRequestBody = (req: any, res: any, next: any): void => {
+  if (req.body && typeof req.body === "object") {
+    // Deep clone the body to avoid modifying the original
+    const originalBody = JSON.parse(JSON.stringify(req.body));
+
+    // Apply sanitization based on field names
+    for (const [key, value] of Object.entries(req.body)) {
+      if (typeof value === "string") {
+        let sanitizedValue = value;
+
+        // Apply appropriate sanitizer based on field name
+        if (key.includes("name")) {
+          sanitizedValue = sanitizeName(value);
+        } else if (
+          key.includes("address") ||
+          key.includes("street") ||
+          key.includes("postal")
+        ) {
+          sanitizedValue = sanitizeAddress(value);
+        } else if (key.includes("phone")) {
+          sanitizedValue = sanitizePhone(value);
+        } else if (key.includes("content")) {
+          sanitizedValue = sanitizeNoteContent(value);
+        } else if (key.includes("header")) {
+          sanitizedValue = sanitizeNoteHeader(value);
+        } else if (key.includes("details")) {
+          sanitizedValue = sanitizeAppointmentDetails(value);
+        } else if (key.includes("location") || key === "loc") {
+          sanitizedValue = sanitizeAppointmentLocation(value);
+        } else {
+          // Default to plain text sanitization
+          sanitizedValue = sanitizeText(value);
+        }
+
+        req.body[key] = sanitizedValue;
+
+        // Log potential XSS attempts
+        logXSSTAttempt(value, sanitizedValue, key);
+      }
+    }
+  }
+
+  next();
+};
