@@ -42,7 +42,7 @@ export const insertNotes = (
   db
     .query(
       `INSERT INTO notes (header, content, caregiver_id, assigned_elder_id, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, NOW(), NOW())
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
       [
         noteDetails.header,
@@ -58,7 +58,12 @@ export const insertNotes = (
 export const updateNotes = (
   noteDetails: Pick<
     Note,
-    "id" | "header" | "content" | "caregiver_id" | "updated_at"
+    | "id"
+    | "header"
+    | "content"
+    | "caregiver_id"
+    | "assigned_elder_id"
+    | "updated_at"
   >
 ) =>
   db
@@ -67,6 +72,7 @@ export const updateNotes = (
                 header = $2,
                 content = $3,
                 caregiver_id = $4,
+                assigned_elder_id = $5,
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *`,
@@ -75,6 +81,7 @@ export const updateNotes = (
         noteDetails.header,
         noteDetails.content,
         noteDetails.caregiver_id,
+        noteDetails.assigned_elder_id,
         noteDetails.updated_at,
       ]
     )

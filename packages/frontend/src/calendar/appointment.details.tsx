@@ -1,4 +1,10 @@
 import { Button } from "@/components/ui/button";
+import {
+  SafeAppointmentDetails,
+  SafeLocation,
+  SafeAppointmentName,
+  SafeName,
+} from "@/lib/xss-protection";
 import { useGetAppointment } from "./use-appointment";
 import { Label } from "@/components/ui/label";
 import type { Elder } from "@carely/core";
@@ -7,12 +13,6 @@ import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import { Undo } from "lucide-react";
-import {
-  SafeAppointmentDetails,
-  SafeLocation,
-  SafeAppointmentName,
-  SafeName,
-} from "@/lib/xss-protection";
 
 const extractTimeFromISO = (isoString: string): string => {
   const date = new Date(isoString);

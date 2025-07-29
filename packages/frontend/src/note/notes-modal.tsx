@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDeleteNote } from "./use-delete-node";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import {
 } from "@/lib/xss-protection";
 
 interface ModalType {
-  children?: ReactNode;
   isOpen: boolean;
   toggle: () => void;
   onDelete: (note: Note) => void;
@@ -25,7 +23,6 @@ export default function Modal({
   toggle,
   note,
   onDelete,
-  children,
   elderDetails,
 }: ModalType) {
   const navigate = useNavigate();
@@ -101,10 +98,8 @@ export default function Modal({
           className="w-full text-left px-4 py-2 text-sm  bg-red-500 hover:bg-red-700 dark:hover:bg-neutral-800 transition"
           onClick={handleDeleteNote}
         >
-          {" "}
-          Delete Note
+          Delete
         </Button>
-        {children}
       </div>
     </div>
   );

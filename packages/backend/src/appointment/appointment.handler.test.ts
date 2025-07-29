@@ -4,6 +4,7 @@ import {
   updateAppointmentHandler,
 } from "./appointment.handler";
 import * as entity from "./appointment.entity";
+import * as auth from "../auth/authorization";
 import type { Request, Response } from "express";
 
 const mockRes = (): Partial<Response> => {
@@ -15,6 +16,7 @@ const mockRes = (): Partial<Response> => {
 };
 
 vi.mock("./appointment.entity");
+vi.mock("../auth/authorization");
 
 describe("createAppointmentHandler", () => {
   beforeEach(() => {
@@ -114,9 +116,11 @@ describe("createAppointmentHandler", () => {
       },
     };
     const res = mockRes();
+    res.locals = { user: { userId: "test-caregiver-123" } };
     const next = vi.fn();
 
     vi.spyOn(entity, "getAppointmentsForElder").mockResolvedValue([]);
+    vi.spyOn(auth, "hasElderAccess").mockResolvedValue(true);
 
     await updateAppointmentHandler(req as Request, res as Response, next);
 
@@ -140,6 +144,7 @@ describe("createAppointmentHandler", () => {
       },
     };
     const res = mockRes();
+    res.locals = { user: { userId: "test-caregiver-123" } };
     const next = vi.fn();
 
     vi.spyOn(entity, "getAppointmentsForElder").mockResolvedValue([
@@ -151,6 +156,7 @@ describe("createAppointmentHandler", () => {
         endDateTime: new Date("2025-07-23T11:30:00.000Z"),
       },
     ]);
+    vi.spyOn(auth, "hasElderAccess").mockResolvedValue(true);
 
     await updateAppointmentHandler(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(409);
@@ -173,6 +179,7 @@ describe("createAppointmentHandler", () => {
       },
     };
     const res = mockRes();
+    res.locals = { user: { userId: "test-caregiver-123" } };
     const next = vi.fn();
 
     vi.spyOn(entity, "getAppointmentsForElder").mockResolvedValue([]);
@@ -180,6 +187,7 @@ describe("createAppointmentHandler", () => {
       ...req.body,
       id: 1,
     });
+    vi.spyOn(auth, "hasElderAccess").mockResolvedValue(true);
 
     await updateAppointmentHandler(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(200);

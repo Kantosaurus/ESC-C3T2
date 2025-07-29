@@ -1,19 +1,8 @@
-import {
-  elderSchema,
-  getInviteLinkResponseDtoSchema,
-  newElderDtoSchema,
-  xssProtectedNewElderDtoSchema,
-} from "@carely/core";
-import {
-  addRelationship,
-  getElderDetails,
-  getEldersDetails,
-  insertElder,
-  updateElder,
-} from "./elder.entity";
-import z from "zod/v4";
-import { jwtVerify, SignJWT } from "jose";
+import { z } from "zod/v4";
+import { xssProtectedNewElderDtoSchema } from "@carely/core";
+import { insertElder, getEldersDetails } from "./elder.entity";
 import { authenticated } from "../auth/guard";
+import { jwtVerify, SignJWT } from "jose";
 import { getJwtSecret } from "../auth/secret";
 import { JOSEError } from "jose/errors";
 

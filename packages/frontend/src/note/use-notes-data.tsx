@@ -1,4 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  SafeNoteContent,
+  SafeNoteHeader,
+  SafeName,
+} from "@/lib/xss-protection";
 import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -8,11 +13,6 @@ import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
 import Card from "@/components/ui/card";
-import {
-  SafeNoteContent,
-  SafeNoteHeader,
-  SafeName,
-} from "@/lib/xss-protection";
 
 /**
  * Get all notes that the caregiver is associated with.

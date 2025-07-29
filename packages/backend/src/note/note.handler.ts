@@ -1,16 +1,14 @@
 import {
-  newNoteDtoSchema,
-  noteSchema,
   xssProtectedNewNoteDtoSchema,
   xssProtectedNoteSchema,
 } from "@carely/core";
 import {
-  getNotesDetails,
   insertNotes,
+  getNotesDetails,
   updateNotes,
   deleteNotes,
 } from "./note.entity";
-import { authenticated } from "#auth/guard.js";
+import { authenticated } from "../auth/guard";
 import { hasElderAccess, hasNoteAccess } from "../auth/authorization";
 import z from "zod";
 

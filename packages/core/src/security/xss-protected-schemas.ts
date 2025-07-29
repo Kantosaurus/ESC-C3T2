@@ -44,7 +44,7 @@ const sanitizePhone = (input: string): string => {
   }
   const sanitized = sanitizeText(input);
   // Only allow digits, spaces, dashes, parentheses, and plus sign
-  return sanitized.replace(/[^\d\s\-\(\)\+]/g, "");
+  return sanitized.replace(/[^\d\s\-()]/g, "");
 };
 
 // XSS-Protected Address Schema

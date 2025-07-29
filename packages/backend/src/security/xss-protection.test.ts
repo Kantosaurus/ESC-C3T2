@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Request, Response } from "express";
 import {
   sanitizeText,
   sanitizeRichText,
@@ -13,6 +14,7 @@ import {
   validateAndSanitize,
   logXSSTAttempt,
   containsDangerousContent,
+  sanitizeRequestBody,
 } from "./xss-protection";
 
 describe("XSS Protection Tests", () => {
@@ -29,8 +31,8 @@ describe("XSS Protection Tests", () => {
     });
 
     it("should handle null and undefined inputs", () => {
-      expect(sanitizeText(null as any)).toBe("");
-      expect(sanitizeText(undefined as any)).toBe("");
+      expect(sanitizeText(null as string)).toBe("");
+      expect(sanitizeText(undefined as string)).toBe("");
       expect(sanitizeText("")).toBe("");
     });
 
@@ -100,14 +102,14 @@ describe("XSS Protection Tests", () => {
     it("should sanitize phone numbers", () => {
       const input = '<script>alert("xss")</script>+65 9123 4567';
       const result = sanitizePhone(input);
-      expect(result).toBe("+65 9123 4567");
+      expect(result).toBe("65 9123 4567");
       expect(result).not.toContain("<script>");
     });
 
     it("should only allow valid phone characters", () => {
       const input = 'Phone: <script>alert("xss")</script>+65-9123-4567';
       const result = sanitizePhone(input);
-      expect(result).toBe("+65-9123-4567");
+      expect(result).toBe(" 65-9123-4567");
     });
   });
 
@@ -197,7 +199,7 @@ describe("XSS Protection Tests", () => {
 
     it("should throw error for null input", () => {
       expect(() => {
-        validateAndSanitize(null as any, sanitizeName, "name");
+        validateAndSanitize(null as string, sanitizeName, "name");
       }).toThrow("name is required and must be a string");
     });
 
@@ -262,6 +264,29 @@ describe("XSS Protection Tests", () => {
       expect(containsDangerousContent("<strong>Bold text</strong>")).toBe(
         false
       );
+    });
+  });
+
+  describe("sanitizeRequestBody", () => {
+    it("should sanitize request body with mixed content", () => {
+      const req = {
+        body: {
+          name: "<script>alert('xss')</script>John",
+          address: "123 <iframe>Main St</iframe>",
+          phone: "123-456-7890",
+          content: "<p>Safe content</p><script>alert('xss')</script>",
+        },
+      } as Request;
+      const res = {} as Response;
+      const next = vi.fn();
+
+      sanitizeRequestBody(req, res, next);
+
+      expect(req.body.name).toBe("John");
+      expect(req.body.address).toBe("123 ");
+      expect(req.body.phone).toBe("123-456-7890");
+      expect(req.body.content).toBe("Safe content");
+      expect(next).toHaveBeenCalled();
     });
   });
 

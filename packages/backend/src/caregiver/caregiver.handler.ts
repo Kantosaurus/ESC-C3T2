@@ -1,12 +1,5 @@
-import { caregiverSchema, xssProtectedCaregiverSchema } from "@carely/core";
-import {
-  getCaregiverDetails,
-  insertCaregiver,
-  updateCaregiver,
-} from "./caregiver.entity";
+import { getCaregiverSelfHandler } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
-import { requirePermission, Permission } from "../auth/authorization";
-import z from "zod/v4";
 
 /**
  * Handler to get the details of the authenticated caregiver.
@@ -17,7 +10,7 @@ export const getCaregiverSelfHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
 
   // Assuming you have a function to get a caregiver by ID
-  const caregiver = await getCaregiverDetails(caregiverId);
+  const caregiver = await getCaregiverSelfHandler(caregiverId);
 
   if (!caregiver) {
     res.status(404).json({ error: "Caregiver not found" });

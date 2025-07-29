@@ -1,9 +1,7 @@
-import { RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import { getEldersDetails } from "../elder/elder.entity";
-import { getCaregiverDetails } from "../caregiver/caregiver.entity";
 import { getNotesDetails } from "../note/note.entity";
 import { getAppointmentsForElder } from "../appointment/appointment.entity";
-import z from "zod/v4";
 
 // Define user roles
 export enum UserRole {
@@ -30,43 +28,18 @@ export enum Permission {
   READ_OTHER_CAREGIVER = "read_other_caregiver", // Restricted
 }
 
-// Define role permissions mapping
-const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  [UserRole.CAREGIVER]: [
-    Permission.READ_OWN_PROFILE,
-    Permission.UPDATE_OWN_PROFILE,
-    Permission.READ_ELDER_PROFILE,
-    Permission.UPDATE_ELDER_PROFILE,
-    Permission.CREATE_ELDER,
-    Permission.READ_ELDER_APPOINTMENTS,
-    Permission.CREATE_ELDER_APPOINTMENTS,
-    Permission.UPDATE_ELDER_APPOINTMENTS,
-    Permission.DELETE_ELDER_APPOINTMENTS,
-    Permission.READ_ELDER_NOTES,
-    Permission.CREATE_ELDER_NOTES,
-    Permission.UPDATE_ELDER_NOTES,
-    Permission.DELETE_ELDER_NOTES,
-  ],
-  [UserRole.ADMIN]: [
-    // Admins get all permissions
-    ...Object.values(Permission),
-  ],
-};
-
-// Helper function to get user role (currently all users are caregivers)
-export const getUserRole = (userId: string): UserRole => {
-  // For now, all authenticated users are caregivers
-  // In the future, this could check a user_roles table
+// Get user role (simplified - all users are caregivers for now)
+export const getUserRole = (): UserRole => {
   return UserRole.CAREGIVER;
 };
 
-// Helper function to check if user has permission
+// Check if user has a specific permission
 export const hasPermission = (
-  userId: string,
+  _userId: string,
   permission: Permission
 ): boolean => {
-  const role = getUserRole(userId);
-  return ROLE_PERMISSIONS[role].includes(permission);
+  // For now, caregivers have all permissions except restricted ones
+  return permission !== Permission.READ_OTHER_CAREGIVER;
 };
 
 // Helper function to check if user has access to an elder
@@ -77,8 +50,8 @@ export const hasElderAccess = async (
   try {
     const elders = await getEldersDetails(caregiverId);
     return elders.some((elder) => elder.id === elderId);
-  } catch (error) {
-    console.error("Error checking elder access:", error);
+  } catch {
+    console.error("Error checking elder access");
     return false;
   }
 };
@@ -91,8 +64,8 @@ export const hasNoteAccess = async (
   try {
     const notes = await getNotesDetails(caregiverId);
     return notes.some((note) => note.id === noteId);
-  } catch (error) {
-    console.error("Error checking note access:", error);
+  } catch {
+    console.error("Error checking note access");
     return false;
   }
 };
@@ -105,16 +78,16 @@ export const hasAppointmentAccess = async (
 ): Promise<boolean> => {
   try {
     // First check if user has access to the elder
-    const hasElderAccess = await hasElderAccess(caregiverId, elderId);
-    if (!hasElderAccess) {
+    const hasAccessToElder = await hasElderAccess(caregiverId, elderId);
+    if (!hasAccessToElder) {
       return false;
     }
 
     // Then check if the appointment exists for that elder
     const appointments = await getAppointmentsForElder(elderId);
     return appointments.some((appt) => appt.appt_id === appointmentId);
-  } catch (error) {
-    console.error("Error checking appointment access:", error);
+  } catch {
+    console.error("Error checking appointment access");
     return false;
   }
 };
@@ -159,7 +132,7 @@ export const requireElderAccess = (): RequestHandler => {
       } else {
         return res.status(400).json({ error: "Elder ID required" });
       }
-    } catch (error) {
+    } catch {
       return res.status(400).json({ error: "Invalid elder ID" });
     }
 
@@ -191,7 +164,7 @@ export const requireNoteAccess = (): RequestHandler => {
       } else {
         return res.status(400).json({ error: "Note ID required" });
       }
-    } catch (error) {
+    } catch {
       return res.status(400).json({ error: "Invalid note ID" });
     }
 
@@ -229,10 +202,8 @@ export const requireAppointmentAccess = (): RequestHandler => {
           .status(400)
           .json({ error: "Elder ID and appointment ID required" });
       }
-    } catch (error) {
-      return res
-        .status(400)
-        .json({ error: "Invalid elder ID or appointment ID" });
+    } catch {
+      return res.status(400).json({ error: "Invalid appointment ID" });
     }
 
     const hasAccess = await hasAppointmentAccess(
@@ -288,6 +259,6 @@ export type AuthenticatedRequest = {
 export const createAuthContext = (userId: string): AuthenticatedRequest => ({
   user: {
     userId,
-    role: getUserRole(userId),
+    role: getUserRole(),
   },
 });

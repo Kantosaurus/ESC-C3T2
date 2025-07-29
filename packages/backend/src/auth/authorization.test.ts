@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Request, Response } from "express";
 import {
   UserRole,
   Permission,
@@ -8,9 +9,6 @@ import {
   hasNoteAccess,
   hasAppointmentAccess,
   requirePermission,
-  requireElderAccess,
-  requireNoteAccess,
-  requireAppointmentAccess,
   requireSelfAccess,
 } from "./authorization";
 import { getEldersDetails } from "../elder/elder.entity";
@@ -18,24 +16,22 @@ import { getNotesDetails } from "../note/note.entity";
 import { getAppointmentsForElder } from "../appointment/appointment.entity";
 
 // Mock the entity functions
-jest.mock("../elder/elder.entity");
-jest.mock("../note/note.entity");
-jest.mock("../appointment/appointment.entity");
+vi.mock("../elder/elder.entity");
+vi.mock("../note/note.entity");
+vi.mock("../appointment/appointment.entity");
 
-const mockGetEldersDetails = getEldersDetails as jest.MockedFunction<
+const mockGetEldersDetails = getEldersDetails as vi.MockedFunction<
   typeof getEldersDetails
 >;
-const mockGetNotesDetails = getNotesDetails as jest.MockedFunction<
+const mockGetNotesDetails = getNotesDetails as vi.MockedFunction<
   typeof getNotesDetails
 >;
 const mockGetAppointmentsForElder =
-  getAppointmentsForElder as jest.MockedFunction<
-    typeof getAppointmentsForElder
-  >;
+  getAppointmentsForElder as vi.MockedFunction<typeof getAppointmentsForElder>;
 
 describe("Authorization System", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("UserRole and Permission enums", () => {
@@ -86,8 +82,7 @@ describe("Authorization System", () => {
       const elderId = 1;
 
       mockGetEldersDetails.mockResolvedValue([
-        { id: 1, name: "Elder 1" } as any,
-        { id: 2, name: "Elder 2" } as any,
+        { id: 1, name: "Elder 1" } as { id: number; name: string },
       ]);
 
       const result = await hasElderAccess(caregiverId, elderId);
@@ -101,8 +96,8 @@ describe("Authorization System", () => {
       const elderId = 3;
 
       mockGetEldersDetails.mockResolvedValue([
-        { id: 1, name: "Elder 1" } as any,
-        { id: 2, name: "Elder 2" } as any,
+        { id: 1, name: "Elder 1" } as { id: number; name: string },
+        { id: 2, name: "Elder 2" } as { id: number; name: string },
       ]);
 
       const result = await hasElderAccess(caregiverId, elderId);
@@ -129,8 +124,8 @@ describe("Authorization System", () => {
       const noteId = 1;
 
       mockGetNotesDetails.mockResolvedValue([
-        { id: 1, header: "Note 1" } as any,
-        { id: 2, header: "Note 2" } as any,
+        { id: 1, name: "Note 1" } as { id: number; name: string },
+        { id: 2, name: "Note 2" } as { id: number; name: string },
       ]);
 
       const result = await hasNoteAccess(caregiverId, noteId);
@@ -144,8 +139,8 @@ describe("Authorization System", () => {
       const noteId = 3;
 
       mockGetNotesDetails.mockResolvedValue([
-        { id: 1, header: "Note 1" } as any,
-        { id: 2, header: "Note 2" } as any,
+        { id: 1, header: "Note 1" } as { id: number; header: string },
+        { id: 2, header: "Note 2" } as { id: number; header: string },
       ]);
 
       const result = await hasNoteAccess(caregiverId, noteId);
@@ -172,12 +167,18 @@ describe("Authorization System", () => {
       const appointmentId = 1;
 
       mockGetEldersDetails.mockResolvedValue([
-        { id: 1, name: "Elder 1" } as any,
+        { id: 1, name: "Elder 1" } as { id: number; name: string },
       ]);
 
       mockGetAppointmentsForElder.mockResolvedValue([
-        { appt_id: 1, name: "Appointment 1" } as any,
-        { appt_id: 2, name: "Appointment 2" } as any,
+        { appt_id: 1, name: "Appointment 1" } as {
+          appt_id: number;
+          name: string;
+        },
+        { appt_id: 2, name: "Appointment 2" } as {
+          appt_id: number;
+          name: string;
+        },
       ]);
 
       const result = await hasAppointmentAccess(
@@ -197,7 +198,7 @@ describe("Authorization System", () => {
       const appointmentId = 1;
 
       mockGetEldersDetails.mockResolvedValue([
-        { id: 1, name: "Elder 1" } as any,
+        { id: 1, name: "Elder 1" } as { id: number; name: string },
       ]);
 
       const result = await hasAppointmentAccess(
@@ -216,12 +217,18 @@ describe("Authorization System", () => {
       const appointmentId = 3;
 
       mockGetEldersDetails.mockResolvedValue([
-        { id: 1, name: "Elder 1" } as any,
+        { id: 1, name: "Elder 1" } as { id: number; name: string },
       ]);
 
       mockGetAppointmentsForElder.mockResolvedValue([
-        { appt_id: 1, name: "Appointment 1" } as any,
-        { appt_id: 2, name: "Appointment 2" } as any,
+        { appt_id: 1, name: "Appointment 1" } as {
+          appt_id: number;
+          name: string;
+        },
+        { appt_id: 2, name: "Appointment 2" } as {
+          appt_id: number;
+          name: string;
+        },
       ]);
 
       const result = await hasAppointmentAccess(
@@ -238,9 +245,9 @@ describe("Authorization System", () => {
     describe("requirePermission", () => {
       it("should call next() when user has permission", () => {
         const middleware = requirePermission(Permission.READ_OWN_PROFILE);
-        const req = {} as any;
-        const res = { locals: { user: { userId: "user123" } } } as any;
-        const next = jest.fn();
+        const req = {} as Request;
+        const res = { locals: { user: { userId: "user123" } } } as Response;
+        const next = vi.fn();
 
         middleware(req, res, next);
 
@@ -249,13 +256,13 @@ describe("Authorization System", () => {
 
       it("should return 403 when user lacks permission", () => {
         const middleware = requirePermission(Permission.READ_OTHER_CAREGIVER);
-        const req = {} as any;
+        const req = {} as Request;
         const res = {
           locals: { user: { userId: "user123" } },
-          status: jest.fn().mockReturnThis(),
-          json: jest.fn(),
-        } as any;
-        const next = jest.fn();
+          status: vi.fn().mockReturnThis(),
+          json: vi.fn(),
+        } as Response;
+        const next = vi.fn();
 
         middleware(req, res, next);
 
@@ -268,13 +275,13 @@ describe("Authorization System", () => {
 
       it("should return 401 when user is not authenticated", () => {
         const middleware = requirePermission(Permission.READ_OWN_PROFILE);
-        const req = {} as any;
+        const req = {} as Request;
         const res = {
           locals: {},
-          status: jest.fn().mockReturnThis(),
-          json: jest.fn(),
-        } as any;
-        const next = jest.fn();
+          status: vi.fn().mockReturnThis(),
+          json: vi.fn(),
+        } as Response;
+        const next = vi.fn();
 
         middleware(req, res, next);
 
@@ -289,9 +296,9 @@ describe("Authorization System", () => {
     describe("requireSelfAccess", () => {
       it("should call next() when user accesses their own data", () => {
         const middleware = requireSelfAccess();
-        const req = { params: { caregiver_id: "user123" } } as any;
-        const res = { locals: { user: { userId: "user123" } } } as any;
-        const next = jest.fn();
+        const req = { params: { caregiver_id: "user123" } } as Request;
+        const res = { locals: { user: { userId: "user123" } } } as Response;
+        const next = vi.fn();
 
         middleware(req, res, next);
 
@@ -300,13 +307,13 @@ describe("Authorization System", () => {
 
       it("should return 403 when user tries to access another user's data", () => {
         const middleware = requireSelfAccess();
-        const req = { params: { caregiver_id: "other123" } } as any;
+        const req = { params: { caregiver_id: "other123" } } as Request;
         const res = {
           locals: { user: { userId: "user123" } },
-          status: jest.fn().mockReturnThis(),
-          json: jest.fn(),
-        } as any;
-        const next = jest.fn();
+          status: vi.fn().mockReturnThis(),
+          json: vi.fn(),
+        } as Response;
+        const next = vi.fn();
 
         middleware(req, res, next);
 

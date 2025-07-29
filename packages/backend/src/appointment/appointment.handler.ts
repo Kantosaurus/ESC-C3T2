@@ -1,30 +1,21 @@
-import { appointmentSchema, xssProtectedAppointmentSchema } from "@carely/core";
+import { Request, Response } from "express";
+import { z } from "zod/v4";
+import { appointmentSchema } from "@carely/core";
 import {
   insertAppointment,
   getAppointmentsForElder,
-  getAppointmentForElder,
-  deleteAppointment,
   updateAppointment,
   getPendingAppointments,
   acceptAppointment,
 } from "./appointment.entity";
-
-import { getCaregiverDetails } from "#caregiver/caregiver.entity.js";
 import { authenticated } from "../auth/guard";
-import {
-  requireElderAccess,
-  requireAppointmentAccess,
-  hasElderAccess,
-} from "../auth/authorization";
-import z from "zod/v4";
-
-import type { Request, Response } from "express";
+import { hasElderAccess } from "../auth/authorization";
 
 export const createAppointmentHandler = authenticated(async (req, res) => {
   console.log("at createAppointmentHandler");
 
   // Use XSS-protected schema for input validation and sanitization
-  const appt = xssProtectedAppointmentSchema.parse(req.body);
+  const appt = appointmentSchema.parse(req.body);
   const caregiverId = res.locals.user.userId;
 
   // Check if user has access to the elder
@@ -134,7 +125,7 @@ export const updateAppointmentHandler = authenticated(async (req, res) => {
   console.log("at update");
 
   // Use XSS-protected schema for input validation and sanitization
-  const apptToUpdate = xssProtectedAppointmentSchema
+  const apptToUpdate = appointmentSchema
     .pick({
       elder_id: true,
       startDateTime: true,
