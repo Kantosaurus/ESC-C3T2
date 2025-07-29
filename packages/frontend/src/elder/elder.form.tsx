@@ -109,7 +109,8 @@ export function ElderForm({
                           field.value === option.value ? "default" : "outline"
                         }
                         aria-pressed={field.value === option.value}
-                        onClick={() => field.onChange(option.value)}>
+                        onClick={() => field.onChange(option.value)}
+                      >
                         {option.label}
                       </Button>
                     ))}
@@ -140,12 +141,30 @@ export function ElderForm({
             )}
           />
 
-          <AddressForm />
+          <AddressForm
+            onSubmit={(addressData) => {
+              form.setValue(
+                "street_address",
+                addressData.street_address || undefined
+              );
+              form.setValue(
+                "unit_number",
+                addressData.unit_number || undefined
+              );
+              form.setValue(
+                "postal_code",
+                addressData.postal_code || undefined
+              );
+              form.setValue("latitude", addressData.latitude || undefined);
+              form.setValue("longitude", addressData.longitude || undefined);
+            }}
+          />
         </div>
 
         <div
           className={`pt-8 border-t border-gray-200/60 transition-all duration-700`}
-          style={{ transitionDelay: "400ms" }}>
+          style={{ transitionDelay: "400ms" }}
+        >
           <Button
             type="submit"
             disabled={
@@ -153,7 +172,8 @@ export function ElderForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold rounded-xl">
+            className="w-full h-14 text-base font-semibold rounded-xl"
+          >
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
                 <Loader className="animate-spin h-5 w-5" />
@@ -165,7 +185,8 @@ export function ElderForm({
                   className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -2,52 +2,86 @@ import "./index.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
-import { RouteGuard } from "@/components/authenticated-route.tsx";
-import LoginPage from "./auth/login.page.tsx";
-import DashboardPage from "./dashboard/dashboard.page.tsx";
-import NewCaregiverPage from "./caregiver/new-caregiver.page.tsx";
-import RedirectPage from "./auth/redirect.page.tsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "sonner";
+
 import LandingPage from "./landing/landing.page.tsx";
+import LoginPage from "./auth/login.page.tsx";
+import RedirectPage from "./auth/redirect.page.tsx";
+import DashboardPage from "./dashboard/dashboard.page.tsx";
 import NewElderPage from "./elder/new-elder-page.tsx";
-import CalendarPage from "./calendar/calendar.page.tsx";
-import { AcceptInvitePage, InvitePage } from "./elder/invite.page.tsx";
-import ElderProfilePage from "./elder/profile.page.tsx";
 import EditElderPage from "./elder/edit-elder-page.tsx";
-import { Toaster } from "@/components/ui/sonner.tsx";
-import ProfilePage from "./caregiver/profile.page.tsx";
-import NotesPage from "./note/notes.page.tsx";
+import { ElderProfilePage } from "./elder/profile.page.tsx";
+import NewCaregiverPage from "./caregiver/new-caregiver.page.tsx";
+import CaregiverProfilePage from "./caregiver/profile.page.tsx";
+import CalendarPage from "./calendar/calendar.page.tsx";
 import NewNotePage from "./note/new-note.page.tsx";
 import EditNotePage from "./note/edit-note.page.tsx";
+import NotesPage from "./note/notes.page.tsx";
+import { InvitePage } from "./elder/invite.page.tsx";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/redirect",
+    element: <RedirectPage />,
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardPage />,
+  },
+  {
+    path: "/elder/new",
+    element: <NewElderPage />,
+  },
+  {
+    path: "/elder/:elderId",
+    element: <ElderProfilePage />,
+  },
+  {
+    path: "/elder/:elderId/edit",
+    element: <EditElderPage />,
+  },
+  {
+    path: "/elder/:elderId/invite",
+    element: <InvitePage />,
+  },
+  {
+    path: "/caregiver/new",
+    element: <NewCaregiverPage />,
+  },
+  {
+    path: "/caregiver/profile",
+    element: <CaregiverProfilePage />,
+  },
+  {
+    path: "/calendar",
+    element: <CalendarPage />,
+  },
+  {
+    path: "/note/new",
+    element: <NewNotePage />,
+  },
+  {
+    path: "/note/:noteId/edit",
+    element: <EditNotePage />,
+  },
+  {
+    path: "/notes",
+    element: <NotesPage />,
+  },
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/redirect" element={<RedirectPage />} />
-        <Route element={<RouteGuard />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/caregiver/new" element={<NewCaregiverPage />} />
-          <Route path="/caregiver/profile" element={<ProfilePage />} />
-          <Route path="/elder/new" element={<NewElderPage />} />
-          <Route
-            path="/elder/:elderId/profile"
-            element={<ElderProfilePage />}
-          />
-          <Route path="/elder/:elderId/edit" element={<EditElderPage />} />
-          <Route path="/elder/:id/invite" element={<InvitePage />} />
-          <Route path="/invite" element={<AcceptInvitePage />} />
-
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/notes/new" element={<NewNotePage />} />
-          <Route path="/notes/edit" element={<EditNotePage />} />
-
-          <Route path="/calendar" element={<CalendarPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <RouterProvider router={router} />
     <Toaster />
   </StrictMode>
 );

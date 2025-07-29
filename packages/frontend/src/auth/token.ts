@@ -38,15 +38,13 @@ const decrypt = (encryptedText: string): string => {
 
 export const getToken = (): string | null => {
   try {
-    // Use sessionStorage instead of localStorage for better security
-    // sessionStorage is cleared when the browser tab is closed
     const encryptedToken = sessionStorage.getItem(TOKEN_KEY);
     if (!encryptedToken) return null;
 
     const decryptedToken = decrypt(encryptedToken);
     return decryptedToken;
-  } catch (error) {
-    console.error("Error retrieving token:", error);
+  } catch {
+    console.error("Error retrieving token");
     return null;
   }
 };
@@ -55,9 +53,8 @@ export const setToken = (token: string): void => {
   try {
     const encryptedToken = encrypt(token);
     sessionStorage.setItem(TOKEN_KEY, encryptedToken);
-  } catch (error) {
-    console.error("Error storing token:", error);
-    // Fallback to unencrypted storage if encryption fails
+  } catch {
+    console.error("Error storing token");
     sessionStorage.setItem(TOKEN_KEY, token);
   }
 };
@@ -65,8 +62,8 @@ export const setToken = (token: string): void => {
 export const signOut = (): void => {
   try {
     sessionStorage.removeItem(TOKEN_KEY);
-  } catch (error) {
-    console.error("Error during sign out:", error);
+  } catch {
+    console.error("Error during sign out");
   }
 };
 
@@ -85,7 +82,7 @@ export const isTokenValid = (): boolean => {
       throw new Error("Token expired");
     }
     return true;
-  } catch (error) {
+  } catch {
     signOut();
     return false;
   }

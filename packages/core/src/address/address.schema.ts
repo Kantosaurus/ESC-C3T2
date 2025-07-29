@@ -16,8 +16,8 @@ export const addressSchema = z.object({
     .min(6, "Postal code must be at least 6 characters")
     .max(10, "Postal code must be at most 10 characters")
     .nullish(),
-  latitude: z.coerce.number().nullish(),
-  longitude: z.coerce.number().nullish(),
+  latitude: z.number().nullish(),
+  longitude: z.number().nullish(),
 });
 
 export type Address = z.infer<typeof addressSchema>;

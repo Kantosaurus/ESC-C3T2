@@ -1,39 +1,48 @@
-import { useFormContext } from "react-hook-form";
-import { useEffect, useRef, useState } from "react";
-import { z } from "zod/v4";
-import { FormField, FormItem, FormLabel, FormMessage } from "./form";
-import { Input } from "./input";
-import { mergeRefs } from "@/lib/merge-refs";
+import { useState, useEffect, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { addressSchema, type Address } from "@carely/core";
 import { http } from "@/lib/http";
-import type { Address } from "@carely/core";
-
-const _addressFormSchema = z.object({
-  street_address: z.string().optional(),
-  unit_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-});
+import { Button } from "./button";
+import { Input } from "./input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./form";
 
 interface AddressFormProps {
+  defaultValues?: Partial<Address>;
+  onSubmit: (data: Address) => void;
   className?: string;
 }
 
-export type AddressFormType = z.infer<typeof _addressFormSchema>;
-export type AddressFormInput = z.input<typeof _addressFormSchema>;
-
-export function AddressForm({ className }: AddressFormProps) {
-  const form = useFormContext<AddressFormInput, unknown, AddressFormType>();
-
+export const AddressForm = ({
+  defaultValues,
+  onSubmit,
+  className,
+}: AddressFormProps) => {
   const [suggestions, setSuggestions] = useState<
-    Array<{ description: string; place_id: string }>
+    Array<{ place_id: string; description: string }>
   >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const autocompleteRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<Address>({
+    resolver: zodResolver(addressSchema),
+    defaultValues: {
+      street_address: "",
+      unit_number: "",
+      postal_code: "",
+      ...defaultValues,
+    },
+  });
 
   // Debounced search function
-  const searchPlaces = async (input: string) => {
+  const searchPlaces = useCallback(async (input: string) => {
     if (!input || input.length < 3) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -51,148 +60,137 @@ export function AddressForm({ className }: AddressFormProps) {
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  };
+  }, []);
 
-  // Debounce search
+  // Debounce the search
   useEffect(() => {
+    const streetAddress = form.watch("street_address");
     const timeoutId = setTimeout(() => {
-      const input = autocompleteRef.current?.value || "";
-      searchPlaces(input);
+      searchPlaces(streetAddress || "");
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [form.watch("street_address")]);
+  }, [form, searchPlaces]);
 
-  // Handle place selection
   const handlePlaceSelect = async (placeId: string) => {
     try {
+      setIsLoading(true);
       const response = await http().get("/api/maps/places/details", {
         params: { place_id: placeId },
       });
 
-      const { address_components, geometry } = response.data;
+      const { formatted_address, latitude, longitude } = response.data;
 
-      const newAddress: Partial<Address> = {
-        street_address: `${address_components.street_number || ""} ${
-          address_components.route || ""
-        }`.trim(),
-        postal_code: address_components.postal_code || "",
-        latitude: geometry.location.lat,
-        longitude: geometry.location.lng,
-      };
+      // Extract postal code from formatted address (simple approach)
+      const postalCodeMatch = formatted_address.match(/\b\d{6}\b/);
+      const postalCode = postalCodeMatch ? postalCodeMatch[0] : "";
 
-      form.setValue("street_address", newAddress.street_address ?? undefined);
-      form.setValue("postal_code", newAddress.postal_code ?? undefined);
-      form.setValue("latitude", newAddress.latitude ?? undefined);
-      form.setValue("longitude", newAddress.longitude ?? undefined);
+      form.setValue("street_address", formatted_address);
+      form.setValue("postal_code", postalCode);
+      if (latitude && longitude) {
+        form.setValue("latitude", latitude);
+        form.setValue("longitude", longitude);
+      }
 
-      setShowSuggestions(false);
       setSuggestions([]);
+      setShowSuggestions(false);
     } catch (error) {
       console.error("Error fetching place details:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Close suggestions when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node) &&
-        !autocompleteRef.current?.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // watch latitude and longitude to update address
-  const latitude = form.watch("latitude");
-  const longitude = form.watch("longitude");
+  const handleSubmit = (data: Address) => {
+    onSubmit(data);
+  };
 
   return (
     <div className={className}>
-      <FormField
-        control={form.control}
-        name="street_address"
-        render={({ field }) => (
-          <FormItem className="relative">
-            <FormLabel>Address</FormLabel>
-            <Input
-              placeholder="Start typing your address..."
-              {...field}
-              ref={mergeRefs(field.ref, autocompleteRef)}
-              onChange={(e) => {
-                field.onChange(e);
-                setShowSuggestions(true);
-              }}
-            />
-            <p className="text-gray-500 text-sm mt-2">
-              Start typing to see address suggestions
-            </p>
-
-            {/* Address suggestions dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div
-                ref={suggestionsRef}
-                className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
-              >
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                    onClick={() => handlePlaceSelect(suggestion.place_id)}
-                  >
-                    {suggestion.description}
-                  </button>
-                ))}
-              </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="street_address"
+            render={({ field }) => (
+              <FormItem className="relative">
+                <FormLabel>Street Address</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    placeholder="Enter street address"
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.place_id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                        onClick={() => handlePlaceSelect(suggestion.place_id)}
+                      >
+                        {suggestion.description}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
             )}
-          </FormItem>
-        )}
-      />
+          />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="unit_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unit Number</FormLabel>
-              <Input placeholder="Apt, Suite, etc. (optional)" {...field} />
-              <FormMessage />
-            </FormItem>
+          <FormField
+            control={form.control}
+            name="unit_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit Number</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    placeholder="e.g., #12-34"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="postal_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Postal Code</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    placeholder="e.g., 123456"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Display coordinates if available */}
+          {(form.watch("latitude") || form.watch("longitude")) && (
+            <div className="text-sm text-gray-600">
+              📍 Coordinates: {form.watch("latitude")?.toFixed(6)},{" "}
+              {form.watch("longitude")?.toFixed(6)}
+            </div>
           )}
-        />
 
-        <FormField
-          control={form.control}
-          name="postal_code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Postal Code</FormLabel>
-              <Input placeholder="Enter postal code" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      {latitude && longitude && (
-        <div className="rounded-lg border border-blue-200 overflow-hidden bg-blue-50 p-4">
-          <p className="text-sm text-gray-600 mb-2">
-            📍 Location coordinates: {latitude.toFixed(6)},{" "}
-            {longitude.toFixed(6)}
-          </p>
-          <p className="text-xs text-gray-500">
-            Address has been geocoded successfully
-          </p>
-        </div>
-      )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Loading..." : "Save Address"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
-}
+};

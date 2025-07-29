@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { authenticated } from "../auth/guard";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
@@ -9,10 +8,6 @@ if (!GOOGLE_MAPS_API_KEY) {
   );
 }
 
-/**
- * Proxy handler for Google Maps Geocoding API
- * This prevents the API key from being exposed in the frontend
- */
 export const geocodeAddressHandler: RequestHandler = async (req, res) => {
   try {
     const { address } = req.query;
@@ -55,10 +50,6 @@ export const geocodeAddressHandler: RequestHandler = async (req, res) => {
   }
 };
 
-/**
- * Proxy handler for Google Maps Places API
- * This prevents the API key from being exposed in the frontend
- */
 export const getPlacesAutocompleteHandler: RequestHandler = async (
   req,
   res
@@ -79,23 +70,25 @@ export const getPlacesAutocompleteHandler: RequestHandler = async (
 
     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
       input
-    )}&types=address&key=${GOOGLE_MAPS_API_KEY}`;
+    )}&key=${GOOGLE_MAPS_API_KEY}&types=address`;
 
     const response = await fetch(url);
     const data = await response.json();
 
     if (data.status === "OK") {
       res.json({
-        predictions: data.predictions.map((prediction: any) => ({
-          description: prediction.description,
-          place_id: prediction.place_id,
-        })),
+        predictions: data.predictions.map(
+          (prediction: { place_id: string; description: string }) => ({
+            place_id: prediction.place_id,
+            description: prediction.description,
+          })
+        ),
       });
     } else {
-      res.status(400).json({
-        error: "Places API error",
+      res.status(404).json({
+        error: "No predictions found",
         status: data.status,
-        message: data.error_message || "Failed to get place suggestions",
+        message: data.error_message || "No autocomplete results found",
       });
     }
   } catch (error) {
@@ -104,10 +97,6 @@ export const getPlacesAutocompleteHandler: RequestHandler = async (
   }
 };
 
-/**
- * Proxy handler for Google Maps Place Details API
- * This prevents the API key from being exposed in the frontend
- */
 export const getPlaceDetailsHandler: RequestHandler = async (req, res) => {
   try {
     const { place_id } = req.query;
@@ -125,32 +114,23 @@ export const getPlaceDetailsHandler: RequestHandler = async (req, res) => {
 
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
       place_id
-    )}&fields=address_components,geometry,formatted_address&key=${GOOGLE_MAPS_API_KEY}`;
+    )}&key=${GOOGLE_MAPS_API_KEY}&fields=formatted_address,geometry`;
 
     const response = await fetch(url);
     const data = await response.json();
 
     if (data.status === "OK" && data.result) {
       const result = data.result;
-
-      // Parse address components
-      const addressComponents: Record<string, string> = {};
-      result.address_components?.forEach((component: any) => {
-        const type = component.types[0];
-        addressComponents[type] = component.long_name;
-        addressComponents[`${type}_short`] = component.short_name;
-      });
-
       res.json({
-        address_components: addressComponents,
-        geometry: result.geometry,
         formatted_address: result.formatted_address,
+        latitude: result.geometry?.location?.lat,
+        longitude: result.geometry?.location?.lng,
       });
     } else {
       res.status(404).json({
-        error: "Place not found",
+        error: "Place details not found",
         status: data.status,
-        message: data.error_message || "No details found for this place",
+        message: data.error_message || "No place details found",
       });
     }
   } catch (error) {
