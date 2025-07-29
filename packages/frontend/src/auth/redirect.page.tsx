@@ -1,6 +1,7 @@
 import { useAfter } from "@/lib/use-after";
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { setToken } from "./token";
 
 export default function RedirectPage() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function RedirectPage() {
       navigate("/login");
       return;
     }
-    localStorage.setItem("carely-token", carelyToken);
+    setToken(carelyToken);
     after();
   }, [after, navigate, searchParams]);
 

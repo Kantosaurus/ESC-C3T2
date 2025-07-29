@@ -165,6 +165,28 @@ export const acceptAppointmentSchema = z.object({
   accepted: z.boolean(),
 });
 
+// Google Maps API proxy validation schemas
+export const geocodeAddressSchema = z.object({
+  address: z
+    .string()
+    .min(1, "Address is required")
+    .max(500, "Address must be at most 500 characters"),
+});
+
+export const placesAutocompleteSchema = z.object({
+  input: z
+    .string()
+    .min(1, "Input is required")
+    .max(200, "Input must be at most 200 characters"),
+});
+
+export const placeDetailsSchema = z.object({
+  place_id: z
+    .string()
+    .min(1, "Place ID is required")
+    .max(100, "Place ID must be at most 100 characters"),
+});
+
 // Generic validation middleware factory
 export const validateBody = <T>(schema: z.ZodSchema<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -345,6 +367,13 @@ export const validateDeleteNote = validateBody(deleteNoteSchema);
 export const validateDeleteAppointment = validateBody(deleteAppointmentSchema);
 export const validateAcceptAppointment = validateBody(acceptAppointmentSchema);
 
+// Validation middleware for Google Maps proxy endpoints
+export const validateGeocodeAddress = validateQuery(geocodeAddressSchema);
+export const validatePlacesAutocomplete = validateQuery(
+  placesAutocompleteSchema
+);
+export const validatePlaceDetails = validateQuery(placeDetailsSchema);
+
 // Export all schemas for testing
 export const VALIDATION_SCHEMAS = {
   idParamSchema,
@@ -364,4 +393,7 @@ export const VALIDATION_SCHEMAS = {
   deleteNoteSchema,
   deleteAppointmentSchema,
   acceptAppointmentSchema,
+  geocodeAddressSchema,
+  placesAutocompleteSchema,
+  placeDetailsSchema,
 };

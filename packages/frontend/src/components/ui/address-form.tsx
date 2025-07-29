@@ -1,74 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { addressSchema, type Address } from "@carely/core";
-import { Input } from "./input";
-import { Label } from "./label";
-import { env } from "@/lib/env";
 import { useFormContext } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod/v4";
 import { FormField, FormItem, FormLabel, FormMessage } from "./form";
+import { Input } from "./input";
 import { mergeRefs } from "@/lib/merge-refs";
+import { http } from "@/lib/http";
+import type { Address } from "@carely/core";
+
+const _addressFormSchema = z.object({
+  street_address: z.string().optional(),
+  unit_number: z.string().optional(),
+  postal_code: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+});
 
 interface AddressFormProps {
   className?: string;
 }
-
-declare global {
-  interface Window {
-    google: {
-      maps: {
-        places: {
-          Autocomplete: new (
-            input: HTMLInputElement,
-            options: { types: string[]; fields: string[] }
-          ) => {
-            addListener: (event: string, callback: () => void) => void;
-            getPlace: () => {
-              geometry?: {
-                location: {
-                  lat: () => number;
-                  lng: () => number;
-                };
-              };
-              address_components?: Array<{
-                types: string[];
-                long_name: string;
-                short_name: string;
-              }>;
-            };
-          };
-        };
-        event: {
-          clearInstanceListeners: (instance: unknown) => void;
-        };
-        Map: new (
-          mapDiv: HTMLElement,
-          options: {
-            center: { lat: number; lng: number };
-            zoom: number;
-            disableDefaultUI?: boolean;
-            gestureHandling?: string;
-          }
-        ) => object;
-        Marker: new (options: {
-          position: { lat: number; lng: number };
-          map: object;
-        }) => object;
-      };
-    };
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _addressFormSchema = z.object({
-  street_address: addressSchema.shape.street_address
-    .unwrap()
-    .unwrap()
-    .optional(),
-  unit_number: addressSchema.shape.unit_number.unwrap().unwrap().optional(),
-  postal_code: addressSchema.shape.postal_code.unwrap().unwrap().optional(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-});
 
 export type AddressFormType = z.infer<typeof _addressFormSchema>;
 export type AddressFormInput = z.input<typeof _addressFormSchema>;
@@ -76,153 +25,133 @@ export type AddressFormInput = z.input<typeof _addressFormSchema>;
 export function AddressForm({ className }: AddressFormProps) {
   const form = useFormContext<AddressFormInput, unknown, AddressFormType>();
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [suggestions, setSuggestions] = useState<
+    Array<{ description: string; place_id: string }>
+  >([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const autocompleteRef = useRef<HTMLInputElement>(null);
-  const autocompleteInstance = useRef<InstanceType<
-    Window["google"]["maps"]["places"]["Autocomplete"]
-  > | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Load Google Maps API
-  useEffect(() => {
-    if (!env.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found");
+  // Debounced search function
+  const searchPlaces = async (input: string) => {
+    if (!input || input.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${env.GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setIsLoaded(true);
-    };
-    document.head.appendChild(script);
+    try {
+      const response = await http().get("/api/maps/places/autocomplete", {
+        params: { input },
+      });
+      setSuggestions(response.data.predictions || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error("Error fetching place suggestions:", error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
 
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  // Initialize autocomplete
+  // Debounce search
   useEffect(() => {
-    if (!isLoaded || !autocompleteRef.current) return;
+    const timeoutId = setTimeout(() => {
+      const input = autocompleteRef.current?.value || "";
+      searchPlaces(input);
+    }, 300);
 
-    const input = autocompleteRef.current;
+    return () => clearTimeout(timeoutId);
+  }, [form.watch("street_address")]);
 
-    autocompleteInstance.current = new window.google.maps.places.Autocomplete(
-      input,
-      {
-        types: ["address"],
-        fields: ["address_components", "geometry", "formatted_address"],
-      }
-    );
+  // Handle place selection
+  const handlePlaceSelect = async (placeId: string) => {
+    try {
+      const response = await http().get("/api/maps/places/details", {
+        params: { place_id: placeId },
+      });
 
-    autocompleteInstance.current.addListener("place_changed", () => {
-      const place = autocompleteInstance.current?.getPlace();
-
-      if (!place?.geometry) {
-        console.warn("No geometry found for selected place");
-        return;
-      }
-
-      // Parse address components
-      const addressComponents: Record<string, string> = {};
-
-      place.address_components?.forEach(
-        (component: {
-          types: string[];
-          long_name: string;
-          short_name: string;
-        }) => {
-          const type = component.types[0];
-          addressComponents[type] = component.long_name;
-          addressComponents[`${type}_short`] = component.short_name;
-        }
-      );
+      const { address_components, geometry } = response.data;
 
       const newAddress: Partial<Address> = {
-        street_address: `${addressComponents.street_number || ""} ${
-          addressComponents.route || ""
+        street_address: `${address_components.street_number || ""} ${
+          address_components.route || ""
         }`.trim(),
-        postal_code: addressComponents.postal_code || "",
-        latitude: place.geometry.location.lat(),
-        longitude: place.geometry.location.lng(),
+        postal_code: address_components.postal_code || "",
+        latitude: geometry.location.lat,
+        longitude: geometry.location.lng,
       };
 
       form.setValue("street_address", newAddress.street_address ?? undefined);
       form.setValue("postal_code", newAddress.postal_code ?? undefined);
       form.setValue("latitude", newAddress.latitude ?? undefined);
       form.setValue("longitude", newAddress.longitude ?? undefined);
-    });
 
-    return () => {
-      if (autocompleteInstance.current) {
-        window.google.maps.event.clearInstanceListeners(
-          autocompleteInstance.current
-        );
+      setShowSuggestions(false);
+      setSuggestions([]);
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+    }
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        !autocompleteRef.current?.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
       }
     };
-  }, [form, isLoaded]);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // watch latitude and longitude to update address
   const latitude = form.watch("latitude");
   const longitude = form.watch("longitude");
 
-  // Google Map Preview Effect
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!latitude || !longitude) return;
-    const mapDiv = document.getElementById("address-map-preview");
-    if (!mapDiv) return;
-
-    // Clean up previous map instance
-    mapDiv.innerHTML = "";
-
-    // Use the global google.maps types
-    const map = new window.google.maps.Map(mapDiv, {
-      center: { lat: latitude, lng: longitude },
-      zoom: 16,
-      disableDefaultUI: true,
-      gestureHandling: "none",
-    });
-    new window.google.maps.Marker({
-      position: { lat: latitude, lng: longitude },
-      map,
-    });
-  }, [isLoaded, latitude, longitude]);
-
-  if (!env.GOOGLE_MAPS_API_KEY) {
-    return (
-      <div className={`space-y-4 ${className}`}>
-        <div>
-          <Label className="text-base font-semibold text-gray-900 mb-3 block">
-            Address
-          </Label>
-          <p className="text-sm text-gray-500 mb-4">
-            Google Maps API key not configured. Please add
-            VITE_GOOGLE_MAPS_API_KEY to your environment variables.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
+    <div className={className}>
       <FormField
         control={form.control}
         name="street_address"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="relative">
             <FormLabel>Address</FormLabel>
             <Input
               placeholder="Start typing your address..."
               {...field}
               ref={mergeRefs(field.ref, autocompleteRef)}
+              onChange={(e) => {
+                field.onChange(e);
+                setShowSuggestions(true);
+              }}
             />
             <p className="text-gray-500 text-sm mt-2">
-              Start typing to see address suggestions from Google Maps
+              Start typing to see address suggestions
             </p>
+
+            {/* Address suggestions dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                    onClick={() => handlePlaceSelect(suggestion.place_id)}
+                  >
+                    {suggestion.description}
+                  </button>
+                ))}
+              </div>
+            )}
           </FormItem>
         )}
       />
@@ -254,13 +183,16 @@ export function AddressForm({ className }: AddressFormProps) {
       </div>
 
       {latitude && longitude && (
-        <div className="rounded-lg border border-blue-200 overflow-hidden bg-blue-50">
-          <div
-            id="address-map-preview"
-            style={{ width: "100%", height: 240 }}
-          />
+        <div className="rounded-lg border border-blue-200 overflow-hidden bg-blue-50 p-4">
+          <p className="text-sm text-gray-600 mb-2">
+            📍 Location coordinates: {latitude.toFixed(6)},{" "}
+            {longitude.toFixed(6)}
+          </p>
+          <p className="text-xs text-gray-500">
+            Address has been geocoded successfully
+          </p>
         </div>
       )}
-    </>
+    </div>
   );
 }

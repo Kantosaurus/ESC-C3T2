@@ -3,7 +3,6 @@ import { ElderForm, type ElderFormType } from "./elder.form";
 import { useNavigate } from "react-router";
 import type { NewElderDto } from "@carely/core";
 import { ArrowLeft } from "lucide-react";
-import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import NewForm from "@/components/ui/new-form";
 
@@ -17,21 +16,18 @@ const addNewElder = (values: NewElderDto) =>
     });
 
 const geocodeAddress = async (address: string) => {
-  const apiKey = env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return null;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-    address
-  )}&key=${apiKey}`;
-  const response = await fetch(url);
-  const data = await response.json();
-  if (data.status === "OK" && data.results.length > 0) {
-    const location = data.results[0].geometry.location;
+  try {
+    const response = await http().get("/api/maps/geocode", {
+      params: { address },
+    });
     return {
-      latitude: location.lat,
-      longitude: location.lng,
+      latitude: response.data.latitude,
+      longitude: response.data.longitude,
     };
+  } catch (error) {
+    console.error("Error geocoding address:", error);
+    return null;
   }
-  return null;
 };
 
 export default function NewElderPage() {
@@ -69,7 +65,8 @@ export default function NewElderPage() {
           <Button
             className="mb-4"
             variant="outline"
-            onClick={() => navigate("/dashboard")}>
+            onClick={() => navigate("/dashboard")}
+          >
             <ArrowLeft />
             Back
           </Button>

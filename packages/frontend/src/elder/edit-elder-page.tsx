@@ -1,17 +1,14 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useElderDetails } from "./use-elder-details";
-import { ElderForm, type ElderFormType } from "./elder.form";
 import { http } from "@/lib/http";
+import { ElderForm, type ElderFormType } from "./elder.form";
+import { useNavigate, useParams } from "react-router";
+import type { NewElderDto } from "@carely/core";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { env } from "@/lib/env";
+import NewForm from "@/components/ui/new-form";
 
-const updateElder = (elderId: number, values: ElderFormType) =>
+const updateElder = (elderId: number, values: NewElderDto) =>
   http()
-    .patch(`/api/elder/${elderId}`, {
-      ...values,
-      date_of_birth: new Date(values.date_of_birth),
-    })
+    .patch(`/api/elder/${elderId}`, values)
     .then((res) => res.data)
     .catch((error) => {
       console.error("Error updating elder:", error);
@@ -19,30 +16,25 @@ const updateElder = (elderId: number, values: ElderFormType) =>
     });
 
 const geocodeAddress = async (address: string) => {
-  const apiKey = env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return null;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-    address
-  )}&key=${apiKey}`;
-  const response = await fetch(url);
-  const data = await response.json();
-  if (data.status === "OK" && data.results.length > 0) {
-    const location = data.results[0].geometry.location;
+  try {
+    const response = await http().get("/api/maps/geocode", {
+      params: { address },
+    });
     return {
-      latitude: location.lat,
-      longitude: location.lng,
+      latitude: response.data.latitude,
+      longitude: response.data.longitude,
     };
+  } catch (error) {
+    console.error("Error geocoding address:", error);
+    return null;
   }
-  return null;
 };
 
 export default function EditElderPage() {
-  const { elderId } = useParams<{ elderId: string }>();
   const navigate = useNavigate();
-  const { elderDetails, isLoading, error } = useElderDetails(Number(elderId));
+  const { elderId } = useParams<{ elderId: string }>();
 
   const handleSubmit = async (values: ElderFormType) => {
-    if (!elderId) return;
     try {
       // If address_details exists but no lat/lng, geocode
       if (
@@ -58,91 +50,31 @@ export default function EditElderPage() {
           };
         }
       }
-      await updateElder(Number(elderId), values);
-      navigate(`/elder/${elderId}/profile`);
+      await updateElder(parseInt(elderId!, 10), values);
+      navigate("/dashboard");
     } catch (error) {
       console.error("Failed to update elder:", error);
+      // Don't navigate on error
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading elder details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !elderDetails) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load elder details</p>
-          <Button onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Convert elder details to form format
-  const defaultValues = {
-    name: elderDetails.name,
-    date_of_birth: new Date(elderDetails.date_of_birth)
-      .toISOString()
-      .split("T")[0],
-    gender: elderDetails.gender,
-    phone: elderDetails.phone ?? undefined,
-    street_address: elderDetails.street_address ?? undefined,
-    unit_number: elderDetails.unit_number ?? undefined,
-    postal_code: elderDetails.postal_code ?? undefined,
-    latitude: elderDetails.latitude ?? undefined,
-    longitude: elderDetails.longitude ?? undefined,
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/elder/${elderId}/profile`)}
-              className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Profile
-            </Button>
-            <h1 className="text-xl font-bold text-gray-900">
-              Edit Elder Profile
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Update {elderDetails.name}'s Information
-            </h2>
-            <p className="text-gray-600">
-              Make changes to the elder's profile information below.
-            </p>
-          </div>
-          <ElderForm
-            defaultValues={defaultValues}
-            onSubmit={handleSubmit}
-            submitLabel="Update Elder"
-          />
-        </div>
-      </div>
-    </div>
+    <NewForm
+      title="Edit Elder Profile"
+      description="Update the details of the elder you are caring for. This helps us tailor our services to their needs and ensure the best support."
+      body={
+        <>
+          <Button
+            className="mb-4"
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft />
+            Back
+          </Button>
+          <ElderForm onSubmit={handleSubmit} />
+        </>
+      }
+    />
   );
 }

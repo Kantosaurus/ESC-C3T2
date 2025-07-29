@@ -25,6 +25,11 @@ import {
 } from "#note/note.handler.js";
 import { corsWithConfig } from "./misc/cors";
 import {
+  geocodeAddressHandler,
+  getPlacesAutocompleteHandler,
+  getPlaceDetailsHandler,
+} from "./misc/google-maps-proxy";
+import {
   createAppointmentHandler,
   getAppointmentsHandler,
   getAppointmentHandler,
@@ -59,6 +64,9 @@ import {
   validateDeleteNote,
   validateDeleteAppointment,
   validateAcceptAppointment,
+  validateGeocodeAddress,
+  validatePlacesAutocomplete,
+  validatePlaceDetails,
 } from "./security/input-validation";
 import { Request, Response } from "express";
 
@@ -113,6 +121,17 @@ app.use((req, res, next) => {
 });
 
 // Authentication endpoints (no CSRF protection needed)
+app.get("/api/test", (req, res) => {
+  console.log("🧪 Test endpoint called");
+  console.log("📡 Request origin:", req.headers.origin);
+  console.log("📡 Request method:", req.method);
+  res.json({
+    message: "API is working!",
+    timestamp: new Date().toISOString(),
+    cors: "enabled",
+  });
+});
+
 app.get("/api/singpass/auth-url", singpassAuthUrlHandler);
 app.get("/api/redirect", redirectHandler);
 
@@ -195,6 +214,19 @@ app.post("/api/notes/delete", validateDeleteNote, deleteNotesHandler);
 app.post("/api/notes/edit", validateUpdateNote, updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
+
+// Google Maps API proxy routes (authenticated to prevent abuse)
+app.get("/api/maps/geocode", validateGeocodeAddress, geocodeAddressHandler);
+app.get(
+  "/api/maps/places/autocomplete",
+  validatePlacesAutocomplete,
+  getPlacesAutocompleteHandler
+);
+app.get(
+  "/api/maps/places/details",
+  validatePlaceDetails,
+  getPlaceDetailsHandler
+);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response) => {

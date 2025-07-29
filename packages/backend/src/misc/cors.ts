@@ -15,12 +15,17 @@ const getAllowedOrigins = (): string[] => {
     return productionOrigins;
   }
 
-  // In development, allow localhost with specific ports
+  // In development, allow localhost with various ports
   return [
     "http://localhost:3000",
-    "http://localhost:5173",
+    "http://localhost:5173", // Vite default port
+    "http://localhost:4173", // Vite preview port
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173",
+    // Allow any localhost port for development flexibility
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/,
   ];
 };
 
@@ -31,16 +36,25 @@ const corsOptions: cors.CorsOptions = {
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
+      console.log("CORS: Allowing request with no origin");
       return callback(null, true);
     }
 
     // Check if the origin is in the allowed list
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    for (const allowedOrigin of allowedOrigins) {
+      if (typeof allowedOrigin === "string" && allowedOrigin === origin) {
+        console.log(`CORS: Allowing origin: ${origin}`);
+        return callback(null, true);
+      }
+      if (allowedOrigin instanceof RegExp && allowedOrigin.test(origin)) {
+        console.log(`CORS: Allowing origin (regex match): ${origin}`);
+        return callback(null, true);
+      }
     }
 
     // Log unauthorized origin attempts
     console.warn(`CORS: Unauthorized origin attempted: ${origin}`);
+    console.warn(`CORS: Allowed origins:`, allowedOrigins);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true, // Allow credentials (cookies, authorization headers)
