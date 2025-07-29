@@ -60,6 +60,7 @@ import {
   validateDeleteAppointment,
   validateAcceptAppointment,
 } from "./security/input-validation";
+import { Request, Response } from "express";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
@@ -195,50 +196,14 @@ app.post("/api/notes/edit", validateUpdateNote, updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 
-// Global error handler for security-related errors
-app.use(
-  (
-    error: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error("Global error handler:", error);
-
-    // Handle CORS errors
-    if (error.message === "Not allowed by CORS") {
-      return res.status(403).json({
-        error: "CORS error",
-        message: "Origin not allowed",
-      });
-    }
-
-    // Handle rate limiting errors
-    if (error.status === 429) {
-      return res.status(429).json({
-        error: "Rate limit exceeded",
-        message: "Too many requests, please try again later",
-      });
-    }
-
-    // Handle validation errors
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        error: "Validation error",
-        message: error.message,
-      });
-    }
-
-    // Default error response
-    res.status(500).json({
-      error: "Internal server error",
-      message:
-        process.env.NODE_ENV === "production"
-          ? "Something went wrong"
-          : error.message,
-    });
-  }
-);
+// Error handling middleware
+app.use((err: Error, req: Request, res: Response) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    message: "An unexpected error occurred",
+  });
+});
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

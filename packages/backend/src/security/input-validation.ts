@@ -192,7 +192,7 @@ export const validateBody = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Validation failed",
               }));
             }
-          } catch (parseError) {
+          } catch {
             // If parsing fails, create a generic error
             errorDetails = [
               {
@@ -224,7 +224,7 @@ export const validateParams = <T>(schema: z.ZodSchema<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedParams = schema.parse(req.params);
-      req.params = validatedParams as any;
+      req.params = validatedParams as Record<string, unknown>;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -244,7 +244,7 @@ export const validateParams = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Invalid parameters",
               }));
             }
-          } catch (parseError) {
+          } catch {
             errorDetails = [
               {
                 field: "unknown",
@@ -275,7 +275,7 @@ export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedQuery = schema.parse(req.query);
-      req.query = validatedQuery as any;
+      req.query = validatedQuery as Record<string, unknown>;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -295,7 +295,7 @@ export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Invalid query parameters",
               }));
             }
-          } catch (parseError) {
+          } catch {
             errorDetails = [
               {
                 field: "unknown",

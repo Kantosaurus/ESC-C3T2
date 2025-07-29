@@ -2,19 +2,14 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
 import {
   validateCreateCaregiver,
-  validateUpdateCaregiver,
   validateCreateElder,
-  validateUpdateElder,
   validateCreateAppointment,
-  validateUpdateAppointment,
   validateCreateNote,
-  validateUpdateNote,
-  validateDeleteNote,
-  validateDeleteAppointment,
-  validateAcceptAppointment,
   validateElderIdParam,
   validateCaregiverIdParam,
   validateAppointmentParams,
+  validateDeleteNote,
+  validateAcceptAppointment,
   VALIDATION_SCHEMAS,
 } from "./input-validation";
 

@@ -150,12 +150,12 @@ export const csrfProtection = (
       process.env.JWT_SECRET || "fallback-secret"
     );
     if (typeof decoded === "object" && decoded && "sessionId" in decoded) {
-      const sessionId = (decoded as any).sessionId;
+      const sessionId = (decoded as { sessionId: string }).sessionId;
       if (sessionId === sessionToken) {
         return next();
       }
     }
-  } catch (error) {
+  } catch {
     // Token verification failed
   }
 
@@ -190,7 +190,7 @@ export const validateInput = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Validation failed",
               }));
             }
-          } catch (parseError) {
+          } catch {
             errorDetails = [
               {
                 field: "unknown",
@@ -222,7 +222,7 @@ export const validateParams = <T>(schema: z.ZodSchema<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedParams = schema.parse(req.params);
-      req.params = validatedParams as any;
+      req.params = validatedParams as Record<string, unknown>;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -242,7 +242,7 @@ export const validateParams = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Invalid parameters",
               }));
             }
-          } catch (parseError) {
+          } catch {
             errorDetails = [
               {
                 field: "unknown",
@@ -274,7 +274,7 @@ export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedQuery = schema.parse(req.query);
-      req.query = validatedQuery as any;
+      req.query = validatedQuery as Record<string, unknown>;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -294,7 +294,7 @@ export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
                 message: err.message || "Invalid query parameters",
               }));
             }
-          } catch (parseError) {
+          } catch {
             errorDetails = [
               {
                 field: "unknown",

@@ -105,9 +105,9 @@ describe("Security Middleware", () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it("should allow requests with valid CSRF token", () => {
+    it("should allow requests with valid CSRF token", async () => {
       // Create a valid JWT token for testing
-      const jwt = require("jsonwebtoken");
+      const jwt = await import("jsonwebtoken");
       const testSecret = "test-secret";
       const sessionToken = "test-session-123";
       const csrfToken = jwt.sign({ sessionId: sessionToken }, testSecret);
