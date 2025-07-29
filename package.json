@@ -39,6 +39,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "framer-motion": "^12.23.6",
     "react-day-picker": "^9.8.0",
-    "react-ios-time-picker": "^0.2.2"
+    "react-ios-time-picker": "^0.2.2",
+    "ts-ics": "^2.2.0"
   }
 }

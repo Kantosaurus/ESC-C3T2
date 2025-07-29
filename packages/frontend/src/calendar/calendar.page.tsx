@@ -9,6 +9,7 @@ import {
   Inbox,
   Search,
   Clock,
+  Download,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ import {
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
+import useCreateIcsFile from "./exportics";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import { cn } from "@/lib/utils";
@@ -74,6 +76,9 @@ export default function Calendarview() {
   const { appointments, refetch } = useGetAppointments(
     selectedElder?.id ?? null
   );
+
+  const { triggerDownload } = useCreateIcsFile(selectedElder?.id ?? null);
+
   const { pending, refetchPending } = useGetPendingAppointments();
   useEffect(() => {
     if (pending) {
@@ -375,7 +380,11 @@ export default function Calendarview() {
                   </div>
                 )}
               </div>
-
+              {selectedElder.id && (
+                <Button variant="outline" onClick={() => triggerDownload()}>
+                  Export <Download />
+                </Button>
+              )}
               {/* Pending Appointments */}
               <div className="relative">
                 <Button
@@ -462,7 +471,6 @@ export default function Calendarview() {
                   </div>
                 )}
               </div>
-
               {/* Today Button */}
               <Button
                 variant="outline"
