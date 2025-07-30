@@ -108,7 +108,7 @@ export const AddressForm = ({
   return (
     <div className={className}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="street_address"
@@ -186,10 +186,14 @@ export const AddressForm = ({
             </div>
           )}
 
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="button"
+            disabled={isLoading}
+            onClick={form.handleSubmit(handleSubmit)}
+          >
             {isLoading ? "Loading..." : "Save Address"}
           </Button>
-        </form>
+        </div>
       </Form>
     </div>
   );

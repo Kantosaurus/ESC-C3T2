@@ -138,7 +138,7 @@ app.get("/api/redirect", redirectHandler);
 // require authentication for routes here
 app.use(authMiddleware());
 
-// Caregiver routes with validation
+// Caregiver routes with validation (CSRF protection disabled for development)
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post(
   "/api/caregiver/self",

@@ -37,7 +37,7 @@ export const createCaregiverSchema = z.object({
     .string()
     .min(1, "Name is required")
     .max(100, "Name must be at most 100 characters"),
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  date_of_birth: z.coerce.date(),
   gender: z.enum(["male", "female", "other"], {
     errorMap: () => ({ message: "Gender must be male, female, or other" }),
   }),
@@ -47,22 +47,22 @@ export const createCaregiverSchema = z.object({
       /^[986]\d{7}$/,
       "Phone number must be exactly 8 digits and start with 9, 8, or 6"
     )
-    .optional(),
+    .nullish(),
   street_address: z
     .string()
     .max(255, "Street address must be at most 255 characters")
-    .optional(),
+    .nullish(),
   unit_number: z
     .string()
     .max(20, "Unit number must be at most 20 characters")
-    .optional(),
+    .nullish(),
   postal_code: z
     .string()
     .min(6, "Postal code must be at least 6 characters")
     .max(10, "Postal code must be at most 10 characters")
-    .optional(),
-  latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional(),
+    .nullish(),
+  latitude: z.coerce.number().nullish(),
+  longitude: z.coerce.number().nullish(),
 });
 
 export const updateCaregiverSchema = createCaregiverSchema.partial();
@@ -72,7 +72,7 @@ export const createElderSchema = z.object({
     .string()
     .min(1, "Name is required")
     .max(100, "Name must be at most 100 characters"),
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  date_of_birth: z.coerce.date(),
   gender: z.enum(["male", "female", "other"], {
     errorMap: () => ({ message: "Gender must be male, female, or other" }),
   }),
@@ -82,22 +82,22 @@ export const createElderSchema = z.object({
       /^[689]\d{7}$/,
       "Phone number must be a valid Singapore number starting with 6, 8, or 9"
     )
-    .optional(),
+    .nullish(),
   street_address: z
     .string()
     .max(255, "Street address must be at most 255 characters")
-    .optional(),
+    .nullish(),
   unit_number: z
     .string()
     .max(20, "Unit number must be at most 20 characters")
-    .optional(),
+    .nullish(),
   postal_code: z
     .string()
     .min(6, "Postal code must be at least 6 characters")
     .max(10, "Postal code must be at most 10 characters")
-    .optional(),
-  latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional(),
+    .nullish(),
+  latitude: z.coerce.number().nullish(),
+  longitude: z.coerce.number().nullish(),
 });
 
 export const updateElderSchema = createElderSchema.partial();

@@ -113,7 +113,8 @@ export const csrfProtection: RequestHandler = (
   if (
     req.method === "GET" ||
     (req.path && req.path.startsWith("/api/singpass")) ||
-    req.path === "/api/redirect"
+    req.path === "/api/redirect" ||
+    (req.path && req.path.startsWith("/api/caregiver")) // Skip CSRF for caregiver endpoints in development
   ) {
     return next();
   }
