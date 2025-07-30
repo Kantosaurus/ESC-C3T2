@@ -34,8 +34,8 @@ const caregiverFormSchema = z.object({
     .optional(),
   unit_number: caregiverSchema.shape.unit_number.unwrap().unwrap().optional(),
   postal_code: caregiverSchema.shape.postal_code.unwrap().unwrap().optional(),
-  latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export type CaregiverFormType = z.infer<typeof caregiverFormSchema>;
