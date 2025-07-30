@@ -86,8 +86,8 @@ export function CaregiverForm({
                 <FormControl>
                   <Input
                     type="date"
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    {...field}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />

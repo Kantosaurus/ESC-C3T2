@@ -42,12 +42,16 @@ const router = createBrowserRouter([
     element: <NewElderPage />,
   },
   {
-    path: "/elder/:elderId",
+    path: "/elder/:elderId/profile",
     element: <ElderProfilePage />,
   },
   {
     path: "/elder/:elderId/edit",
     element: <EditElderPage />,
+  },
+  {
+    path: "/elder/:elderId/appointments",
+    element: <CalendarPage />,
   },
   {
     path: "/elder/:elderId/invite",
