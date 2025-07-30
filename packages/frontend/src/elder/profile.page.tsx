@@ -6,14 +6,12 @@ import { useElderDetails } from "./use-elder-details";
 import { http } from "@/lib/http";
 import {
   ArrowLeft,
-  Users,
   Calendar,
   MapPin,
   Copy,
   Share2,
   User,
   Phone,
-  Mail,
   Edit3,
   Heart,
   Clock,
