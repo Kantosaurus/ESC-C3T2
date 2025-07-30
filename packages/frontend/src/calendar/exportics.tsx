@@ -3,9 +3,10 @@ import { useGetAppointments } from "./use-appointment";
 import { toast } from "sonner";
 
 export default function useCreateIcsFile(elder_id: number | null) {
-  const { appointments } = useGetAppointments(elder_id);
+  const { appointments, refetch } = useGetAppointments(elder_id);
 
-  const triggerDownload = () => {
+  const triggerDownload = async () => {
+    await refetch();
     if (!appointments || appointments.length === 0) {
       toast.error("No appointments to export");
       return;
@@ -32,7 +33,7 @@ export default function useCreateIcsFile(elder_id: number | null) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "carelyAppointments.txt";
+    link.download = "carelyAppointments.ics";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
