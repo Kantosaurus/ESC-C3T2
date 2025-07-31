@@ -1,12 +1,11 @@
 import { generateIcsCalendar, type IcsEvent, type IcsCalendar } from "ts-ics";
-import { useGetAppointments } from "./use-appointment";
 import { toast } from "sonner";
+import type { Appointment } from "@carely/core";
 
-export default function useCreateIcsFile(elder_id: number | null) {
-  const { appointments, refetch } = useGetAppointments(elder_id);
-
+export default function useCreateIcsFile(
+  appointments: Appointment[] | undefined
+) {
   const triggerDownload = async () => {
-    await refetch();
     if (!appointments || appointments.length === 0) {
       toast.error("No appointments to export");
       return;

@@ -77,7 +77,7 @@ export default function Calendarview() {
     selectedElder?.id ?? null
   );
 
-  const { triggerDownload } = useCreateIcsFile(selectedElder?.id ?? null);
+  const { triggerDownload } = useCreateIcsFile(appointments);
 
   const { pending, refetchPending } = useGetPendingAppointments();
   useEffect(() => {
