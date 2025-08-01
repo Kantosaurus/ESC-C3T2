@@ -148,6 +148,47 @@ export function useGetPendingAppointments() {
   return { pending, error, isLoading, refetchPending: fetchAppointments };
 }
 
+export function useGetDeclinedAppointments(elder_id: number | null) {
+  const [declined, setDeclined] = useState<
+    Pick<Appointment, "appt_id">[] | null
+  >(null);
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchAppointment = useCallback(() => {
+    if (!elder_id) return;
+
+    setIsLoading(true);
+    http()
+      .get(`/api/declined/${elder_id}`)
+      .then(
+        (res) => {
+          setDeclined(res.data);
+          setError(undefined);
+        },
+        (error) => {
+          if (error.response?.status === 404) {
+            setError("Appointments not found");
+          } else {
+            setError("Failed to fetch appointments");
+          }
+        }
+      )
+      .finally(() => setIsLoading(false));
+  }, [elder_id]);
+
+  useEffect(() => {
+    fetchAppointment();
+  }, [fetchAppointment]);
+
+  return {
+    declined,
+    error,
+    isLoading,
+    refetchAppointment: fetchAppointment,
+  };
+}
+
 export function useAcceptAppointment() {
   return useCallback(
     (values: {

@@ -9,6 +9,7 @@ import {
   acceptAppointment,
   declineAppointment,
   undoDeclineAppointment,
+  getDeclinedAppointments,
 } from "./appointment.entity";
 
 import { getCaregiverDetails } from "#caregiver/caregiver.entity.js";
@@ -154,6 +155,22 @@ export const getPendingAppointmentsHandler = authenticated(async (req, res) => {
     console.error("Failed to fetch pending appointments:", error);
   }
 });
+
+export const getDeclinedAppointmentsHandler = authenticated(
+  async (req, res) => {
+    console.log(req.params);
+    try {
+      const { elder_id } = z
+        .object({ elder_id: z.string().transform((val) => parseInt(val, 10)) })
+        .parse(req.params);
+      const appt_ids = await getDeclinedAppointments(elder_id);
+      console.log("Declined: ", appt_ids);
+      res.json(appt_ids);
+    } catch (error) {
+      console.error("Failed to fetch declined appointments:", error);
+    }
+  }
+);
 
 export const acceptAppointmentHandler = authenticated(async (req, res) => {
   console.log("at accept appointment");

@@ -32,6 +32,7 @@ import {
   getPendingAppointmentsHandler,
   acceptAppointmentHandler,
   declineAppointmentHandler,
+  getDeclinedAppointmentsHandler,
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 
@@ -84,6 +85,7 @@ app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
 app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
+app.get("/api/declined/:elder_id", getDeclinedAppointmentsHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);

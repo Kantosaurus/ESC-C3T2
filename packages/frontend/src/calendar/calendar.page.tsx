@@ -46,6 +46,7 @@ import {
   useDeleteAppointment,
   useUpdateAppointment,
   useGetPendingAppointments,
+  useGetDeclinedAppointments,
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
@@ -78,6 +79,8 @@ export default function Calendarview() {
   );
 
   const { triggerDownload } = useCreateIcsFile(appointments);
+
+  const { declined } = useGetDeclinedAppointments(selectedElder?.id ?? null);
 
   const { pending, refetchPending } = useGetPendingAppointments();
   useEffect(() => {
@@ -430,7 +433,13 @@ export default function Calendarview() {
                               }}
                             >
                               <div className="flex items-start gap-3">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                {declined?.some(
+                                  (item) => item.appt_id === result.appt_id
+                                ) ? (
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                ) : (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                )}
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-slate-900 truncate">
                                     {result.name}

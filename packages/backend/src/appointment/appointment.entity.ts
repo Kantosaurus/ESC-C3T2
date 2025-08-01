@@ -65,6 +65,29 @@ export const getAppointmentForElder = (elder_id: number, appt_id: number) =>
       return appointmentSchema.parse(result[0]);
     });
 
+export const getDeclinedAppointments = (elder_id: number) =>
+  db
+    .query(
+      `SELECT a.appt_id
+FROM appointments a
+WHERE a.elder_id = $1
+  AND NOT EXISTS (
+    SELECT *
+    FROM caregiver_elder ce
+    WHERE ce.elder_id = a.elder_id
+      AND ce.caregiver_id != ALL(a.declined)
+)`,
+      [elder_id]
+    )
+    .then((result) => {
+      const rows = result.rows || result;
+      console.log("Fetched:", rows);
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid format");
+      }
+      return z.array(appointmentSchema.pick({ appt_id: true })).parse(rows);
+    });
+
 export const deleteAppointment = (
   appt: Pick<Appointment, "elder_id" | "appt_id">
 ) =>
