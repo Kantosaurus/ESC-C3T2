@@ -39,7 +39,7 @@ export function EditNoteForm({
   onSubmit: (values: EditNoteFormType) => Promise<void>;
 }) {
   const result = useEldersDetails();
-  const elderDetails = result?.elderDetails ?? [];
+  const elderDetails = useMemo(() => result?.elderDetails ?? [], [result]);
 
   const form = useForm<EditNoteFormInput, unknown, EditNoteFormType>({
     resolver: zodResolver(editNoteFormSchema),
@@ -49,13 +49,12 @@ export function EditNoteForm({
   const navigate = useNavigate();
 
   const elderId = form.watch("assigned_elder_id");
-  
+
   const assignedElderName = useMemo(() => {
     if (!elderDetails.length || elderId == null) return "Loading...";
-    const elder = elderDetails?.find((e) => e.id === elderId)
+    const elder = elderDetails?.find((e) => e.id === elderId);
     return elder?.name ?? "Unknown";
-  }, [elderDetails, elderId])
-    
+  }, [elderDetails, elderId]);
 
   const {
     transcript,
@@ -70,7 +69,7 @@ export function EditNoteForm({
     if (!defaultValues?.assigned_elder_id && elderDetails.length > 0) {
       form.setValue("assigned_elder_id", elderDetails[0].id.toString());
     }
-  }, [elderId, elderDetails, form]);
+  }, [elderId, elderDetails, form, defaultValues?.assigned_elder_id]);
 
   useEffect(() => {
     // Reset the form values if form is mounted before data is ready
@@ -96,8 +95,7 @@ export function EditNoteForm({
           console.log("Form returned values:", values); // log the returned values
           return onSubmit(values);
         })}
-        className="space-y-8"
-      >
+        className="space-y-8">
         <FormItem>
           <FormLabel>Name of Care Recipient</FormLabel>
           <p className="text-md font-semibold">{assignedElderName}</p>
@@ -135,8 +133,7 @@ export function EditNoteForm({
               <Button
                 type="button"
                 onClick={listening ? stopListening : startListening}
-                className={listening ? "bg-red-500" : "bg-green-500"}
-              >
+                className={listening ? "bg-red-500" : "bg-green-500"}>
                 {listening ? "Stop Voice" : "Start Voice"}
               </Button>
 
@@ -160,14 +157,12 @@ export function EditNoteForm({
           variant="outline"
           className="mr-2 bg-slate-100 hover:bg-slate-200"
           type="button"
-          onClick={() => navigate("/notes")}
-        >
+          onClick={() => navigate("/notes")}>
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}
-        >
+          disabled={form.formState.isSubmitting || !form.formState.isDirty}>
           Save changes
         </Button>
       </form>
