@@ -1,6 +1,6 @@
-const exec = require("child_process").execSync;
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import { execSync as exec } from "child_process";
 
 const envBuildPath = path.join(__dirname, "..", ".env.build");
 const envFrontendPath = path.join(
