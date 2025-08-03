@@ -30,16 +30,20 @@ import {
   deleteAppointmentHandler,
   updateAppointmentHandler,
   getPendingAppointmentsHandler,
+  getAllAppointmentsForCaregiverHandler,
+  importIcsFileHandler,
   acceptAppointmentHandler,
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
+import { chatHandler } from "./ai/ai.handler.js";
 
 const app = express();
 const port = process.env.PORT ?? "3000";
 
 app.use(corsWithConfig());
 
-app.use(express.json()); // for parsing application/json
+app.use(express.json({ limit: "10mb" })); // for parsing application/json with increased limit for profile pictures
+app.use(express.urlencoded({ limit: "10mb", extended: true })); // for parsing application/x-www-form-urlencoded
 
 app.use(express.static("./dist/static"));
 
@@ -82,6 +86,8 @@ app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
 app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
+app.get("/api/appointment/all", getAllAppointmentsForCaregiverHandler);
+app.post("/api/appointment/import-ics", importIcsFileHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.post("/api/notes/new", insertNotesHandler);
@@ -89,6 +95,8 @@ app.post("/api/notes/delete", deleteNotesHandler);
 app.post("/api/notes/edit", updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
+
+app.post("/api/ai/chat", chatHandler);
 
 app.listen(port, () => {
   console.log(`🚀 Carely listening on port ${port}`);

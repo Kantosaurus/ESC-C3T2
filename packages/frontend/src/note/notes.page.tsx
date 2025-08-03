@@ -3,20 +3,14 @@ import { Link } from "react-router";
 // import { NoteComponent } from "@/components/ui/note-component";
 import { NoteDetails } from "./use-notes-data";
 import { useEldersDetails } from "@/elder/use-elder-details";
+import { PageLoader } from "@/components/ui/page-loader";
 import AppNavbar from "@/nav/navbar";
 
 export default function NotesPage() {
   const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
 
   if (eldersLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your notes...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader loading={true} pageType="notes" />;
   }
 
   return (

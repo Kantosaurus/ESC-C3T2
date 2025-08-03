@@ -39,6 +39,7 @@ import {
 import { useEldersDetails } from "@/elder/use-elder-details";
 import type { Elder } from "@carely/core";
 import { AppointmentForm, type AppointmentFormType } from "./appointment.form";
+import { PageLoader } from "@/components/ui/page-loader";
 import {
   useCreateAppointment,
   useGetAppointments,
@@ -57,7 +58,7 @@ export default function Calendarview() {
   const [currDate, setCurrDate] = useState(new Date());
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
-  const { elderDetails } = useEldersDetails();
+  const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,19 +149,27 @@ export default function Calendarview() {
 
     const query = searchQuery.toLowerCase();
     const filtered = appointments.filter(
-      (appt) =>
-        appt.name.toLowerCase().includes(query) ||
-        (appt.details?.toLowerCase().includes(query) ?? false)
+      (appointment) =>
+        appointment.name.toLowerCase().includes(query) ||
+        appointment.details?.toLowerCase().includes(query) ||
+        appointment.loc?.toLowerCase().includes(query) ||
+        findElder(appointment.elder_id)?.name.toLowerCase().includes(query)
     );
     setSearchResults(filtered);
   }, [searchQuery, appointments]);
+
+  const navigate = useNavigate();
+
+  // Show loading state while data is being fetched
+  if (eldersLoading) {
+    return <PageLoader loading={true} pageType="calendar" />;
+  }
 
   const year = currDate.getFullYear();
   const month = currDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const today = new Date();
-  const navigate = useNavigate();
 
   const goToToday = () => {
     setCurrDate(new Date());

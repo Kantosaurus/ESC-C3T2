@@ -135,6 +135,27 @@ export const getPendingAppointments = (caregiver_id: string) =>
       return z.array(appointmentSchema).parse(rows);
     });
 
+export const getAllAppointmentsForCaregiver = (caregiver_id: string) =>
+  db
+    .query(
+      `SELECT a.appt_id, a.elder_id, a.startDateTime AS "startDateTime", 
+        a.endDateTime AS "endDateTime", a.details, a.name, a.loc, a.accepted
+ FROM appointments a 
+ JOIN elders e ON a.elder_id = e.id 
+ JOIN caregiver_elder ce ON e.id = ce.elder_id 
+ WHERE ce.caregiver_id = $1
+ ORDER BY a.startDateTime ASC`,
+      [caregiver_id]
+    )
+    .then((result) => {
+      console.log("All Appointments Fetched:", result);
+      const rows = result.rows || result;
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid format");
+      }
+      return z.array(appointmentSchema).parse(rows);
+    });
+
 export const acceptAppointment = (
   caregiver_id: string | null,
   elder_id: number,

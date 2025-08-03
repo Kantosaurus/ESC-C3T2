@@ -148,6 +148,68 @@ export function useGetPendingAppointments() {
   return { pending, error, isLoading, refetchPending: fetchAppointments };
 }
 
+export function useGetAllAppointmentsForCaregiver() {
+  const [appointments, setAppointments] = useState<Appointment[]>();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchAppointments = useCallback(() => {
+    setIsLoading(true);
+    http()
+      .get(`/api/appointment/all`)
+      .then(
+        (res) => {
+          setAppointments(res.data);
+          setError(undefined);
+        },
+        (error) => {
+          if (error.response?.status === 404) {
+            setError("Appointments not found");
+          } else {
+            setError("Failed to fetch appointments");
+          }
+        }
+      )
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  return { appointments, error, isLoading, refetch: fetchAppointments };
+}
+
+export function useImportIcsFile() {
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    importedCount: number;
+    errorCount: number;
+    errors: string[];
+  } | null>(null);
+
+  const importIcsFile = useCallback(async (icsContent: string) => {
+    setIsImporting(true);
+    setImportResult(null);
+
+    try {
+      const response = await http().post("/api/appointment/import-ics", {
+        icsContent,
+      });
+      
+      setImportResult(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Import failed:", error);
+      throw error;
+    } finally {
+      setIsImporting(false);
+    }
+  }, []);
+
+  return { importIcsFile, isImporting, importResult };
+}
+
 export function useAcceptAppointment() {
   return useCallback(
     (values: {

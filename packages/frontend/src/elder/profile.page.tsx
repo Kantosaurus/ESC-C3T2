@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { env } from "@/lib/env";
 import Card from "@/components/ui/card";
+import { PageLoader } from "@/components/ui/page-loader";
 
 interface InviteLinkResponse {
   inviteLink: string;
@@ -166,14 +167,7 @@ export default function ElderProfilePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-slate-600 font-medium">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader loading={true} pageType="elder-profile" />;
   }
 
   if (error || !elderDetails) {
@@ -185,7 +179,8 @@ export default function ElderProfilePage() {
           </p>
           <Button
             onClick={() => navigate("/dashboard")}
-            className="bg-slate-900 hover:bg-slate-800">
+            className="bg-slate-900 hover:bg-slate-800"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -207,7 +202,8 @@ export default function ElderProfilePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
@@ -217,7 +213,8 @@ export default function ElderProfilePage() {
             </div>
             <Button
               onClick={() => navigate(`/elder/${elderId}/edit`)}
-              variant="outline">
+              variant="outline"
+            >
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -323,7 +320,8 @@ export default function ElderProfilePage() {
                     onClick={openInGoogleMaps}
                     variant="outline"
                     size="sm"
-                    className="border-slate-200 hover:bg-slate-50">
+                    className="border-slate-200 hover:bg-slate-50"
+                  >
                     <Navigation className="h-4 w-4 mr-2" />
                     Open in Maps
                   </Button>
@@ -439,7 +437,8 @@ export default function ElderProfilePage() {
                       onClick={copyToClipboard}
                       variant="outline"
                       size="sm"
-                      className="flex-1 border-slate-200 hover:bg-slate-50">
+                      className="flex-1 border-slate-200 hover:bg-slate-50"
+                    >
                       <Copy className="h-4 w-4 mr-2" />
                       {copied ? "Copied!" : "Copy"}
                     </Button>
@@ -447,7 +446,8 @@ export default function ElderProfilePage() {
                       onClick={shareInviteLink}
                       variant="outline"
                       size="sm"
-                      className="flex-1 border-slate-200 hover:bg-slate-50">
+                      className="flex-1 border-slate-200 hover:bg-slate-50"
+                    >
                       <Share2 className="h-4 w-4 mr-2" />
                       Share
                     </Button>
@@ -456,7 +456,8 @@ export default function ElderProfilePage() {
               ) : (
                 <Button
                   onClick={generateInviteLink}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                >
                   Generate Invite Link
                 </Button>
               )}
@@ -476,7 +477,8 @@ export default function ElderProfilePage() {
               <div className="space-y-2">
                 <button
                   onClick={() => navigate(`/elder/${elderId}/tasks`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                       <Calendar className="h-4 w-4 text-blue-600" />
@@ -490,7 +492,8 @@ export default function ElderProfilePage() {
 
                 <button
                   onClick={() => navigate(`/elder/${elderId}/notes`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                       <User className="h-4 w-4 text-emerald-600" />
@@ -504,7 +507,8 @@ export default function ElderProfilePage() {
 
                 <button
                   onClick={() => navigate(`/elder/${elderId}/schedule`)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group">
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-xl transition-colors group"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Calendar className="h-4 w-4 text-purple-600" />

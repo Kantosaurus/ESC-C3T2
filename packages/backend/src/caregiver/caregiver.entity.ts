@@ -16,6 +16,8 @@ export const insertCaregiver = (
     | "date_of_birth"
     | "gender"
     | "phone"
+    | "bio"
+    | "profile_picture"
     | "street_address"
     | "unit_number"
     | "postal_code"
@@ -26,15 +28,17 @@ export const insertCaregiver = (
   db
     .query(
       `INSERT INTO caregivers (
-        id, name, date_of_birth, gender, phone, 
+        id, name, date_of_birth, gender, phone, bio, profile_picture,
         street_address, unit_number, postal_code, latitude, longitude
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         date_of_birth = EXCLUDED.date_of_birth,
         gender = EXCLUDED.gender,
         phone = EXCLUDED.phone,
+        bio = EXCLUDED.bio,
+        profile_picture = EXCLUDED.profile_picture,
         street_address = EXCLUDED.street_address,
         unit_number = EXCLUDED.unit_number,
         postal_code = EXCLUDED.postal_code,
@@ -48,6 +52,8 @@ export const insertCaregiver = (
         caregiverDetails.date_of_birth,
         caregiverDetails.gender,
         caregiverDetails.phone,
+        caregiverDetails.bio || "I'm a happy caregiver :)",
+        caregiverDetails.profile_picture,
         caregiverDetails.street_address,
         caregiverDetails.unit_number,
         caregiverDetails.postal_code,
@@ -65,6 +71,8 @@ export const updateCaregiver = (
     | "date_of_birth"
     | "gender"
     | "phone"
+    | "bio"
+    | "profile_picture"
     | "street_address"
     | "unit_number"
     | "postal_code"
@@ -79,11 +87,13 @@ export const updateCaregiver = (
         date_of_birth = $3,
         gender = $4,
         phone = $5,
-        street_address = $6,
-        unit_number = $7,
-        postal_code = $8,
-        latitude = $9,
-        longitude = $10,
+        bio = $6,
+        profile_picture = $7,
+        street_address = $8,
+        unit_number = $9,
+        postal_code = $10,
+        latitude = $11,
+        longitude = $12,
         updated_at = NOW()
       WHERE id = $1
       RETURNING *`,
@@ -93,6 +103,8 @@ export const updateCaregiver = (
         caregiverDetails.date_of_birth,
         caregiverDetails.gender,
         caregiverDetails.phone,
+        caregiverDetails.bio || "I'm a happy caregiver :)",
+        caregiverDetails.profile_picture,
         caregiverDetails.street_address,
         caregiverDetails.unit_number,
         caregiverDetails.postal_code,

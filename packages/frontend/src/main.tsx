@@ -19,6 +19,7 @@ import ProfilePage from "./caregiver/profile.page.tsx";
 import NotesPage from "./note/notes.page.tsx";
 import NewNotePage from "./note/new-note.page.tsx";
 import EditNotePage from "./note/edit-note.page.tsx";
+import AIPage from "./ai/ai.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -45,6 +46,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/notes/edit" element={<EditNotePage />} />
 
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/ai" element={<AIPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -14,6 +14,8 @@ export const caregiverSchema = z.object({
     )
     .max(15, "Phone number must be at most 15 characters long")
     .nullish(),
+  bio: z.string().nullish().default("I'm a happy caregiver :)"),
+  profile_picture: z.string().nullish(),
   created_at: z.date(),
   updated_at: z.date(),
   ...addressSchema.shape,
