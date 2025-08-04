@@ -1,13 +1,17 @@
-import { it, expect, describe } from "vitest";
 import { render, screen } from "@testing-library/react";
-import Calendarview from "./calendar.page";
+import { it, describe } from "vitest";
+
 import { vi } from "vitest";
 import { useEldersDetails } from "../elder/use-elder-details";
-import "@testing-library/jest-dom";
 import type { Elder } from "../../../core/src/elder/elder.schema";
+import Calendarview from "./calendar.page";
 
 vi.mock("@/elder/use-elder-details", () => ({
   useEldersDetails: vi.fn(() => ({ elderDetails: [] })),
+}));
+
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => vi.fn(),
 }));
 
 const mockElders = (elders: Elder[]) => {
@@ -35,7 +39,6 @@ describe("Calendar", () => {
     ]);
 
     render(<Calendarview />);
-
     screen.debug();
   });
 });
