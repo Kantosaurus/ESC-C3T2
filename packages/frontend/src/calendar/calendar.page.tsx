@@ -299,6 +299,7 @@ export default function Calendarview() {
             {/* Center Section - Calendar Navigation */}
             <div className="flex items-center gap-3">
               <Button
+                data-testid="prev-month-button"
                 variant="ghost"
                 size="icon"
                 onClick={prevMonth}
@@ -315,6 +316,7 @@ export default function Calendarview() {
               </div>
 
               <Button
+                data-testid="next-month-button"
                 variant="ghost"
                 size="icon"
                 onClick={nextMonth}
@@ -482,6 +484,7 @@ export default function Calendarview() {
               </div>
               {/* Today Button */}
               <Button
+                data-testid="today-button"
                 variant="outline"
                 size="sm"
                 onClick={goToToday}
