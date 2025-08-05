@@ -114,6 +114,19 @@ export const updateCaregiver = (
     )
     .then((result) => z.array(caregiverSchema).parse(result)[0]);
 
+export const getCaregiversByElderId = (elderId: number) =>
+  db
+    .query(
+      `
+        SELECT c.*
+        FROM caregivers c
+        INNER JOIN caregiver_elder ce ON c.id = ce.caregiver_id
+        WHERE ce.elder_id = $1;
+      `,
+      [elderId]
+    )
+    .then((result) => z.array(caregiverSchema).parse(result));
+
 export const deleteCaregiver = (caregiverId: string) =>
   db
     .query(

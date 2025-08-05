@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useElderDetails } from "./use-elder-details";
 import { useElderNotes } from "./use-elder-notes";
+import { useCaregiversByElderId } from "@/caregiver/use-caregivers-by-elder";
 import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,11 @@ export default function ElderProfilePage() {
     isLoading: notesLoading,
     error: notesError,
   } = useElderNotes(Number(elderId));
+  const {
+    caregivers,
+    isLoading: caregiversLoading,
+    error: caregiversError,
+  } = useCaregiversByElderId(Number(elderId));
   const [inviteLink, setInviteLink] = useState<string>("");
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -196,6 +202,11 @@ export default function ElderProfilePage() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const getCaregiverAge = (dateOfBirth: Date | undefined) => {
+    if (!dateOfBirth) return "Unknown age";
+    return getAge(dateOfBirth);
+  };
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -337,38 +348,79 @@ export default function ElderProfilePage() {
         {activeTab === "caregivers" && (
           <div className="space-y-8">
             {/* Caregivers Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-blue-50 rounded-2xl p-6 hover:bg-blue-100 transition-colors cursor-pointer group">
-                {/* Caregiver Preview */}
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-blue-600 text-xl font-semibold shadow-sm">
-                    A
-                  </div>
-                </div>
-
-                {/* Caregiver Info */}
-                <div className="text-center mb-4">
-                  <h3 className="font-semibold text-gray-900 text-lg mb-1">
-                    Ains
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    23 years old • Caregiver
-                  </p>
-                </div>
-
-                {/* Engagement Stats */}
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4" />
-                    <span>Active</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>Profile</span>
-                  </div>
-                </div>
+            {caregiversLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-3"></div>
+                <p className="text-gray-600">Loading caregivers...</p>
               </div>
-            </div>
+            ) : caregiversError ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-4">{caregiversError}</p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : caregivers.length === 0 ? (
+              <div className="text-center py-12">
+                <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  No Caregivers Yet
+                </h4>
+                <p className="text-gray-600 mb-6">
+                  This elder doesn't have any caregivers assigned yet.
+                </p>
+                <Button
+                  onClick={generateInviteLink}
+                  disabled={isGeneratingLink}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isGeneratingLink ? "Generating..." : "Invite Caregivers"}
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {caregivers.map((caregiver) => (
+                  <div
+                    key={caregiver.id}
+                    className="bg-blue-50 rounded-2xl p-6 hover:bg-blue-100 transition-colors cursor-pointer group"
+                    onClick={() => navigate(`/caregiver/${caregiver.id}`)}
+                  >
+                    {/* Caregiver Preview */}
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-blue-600 text-xl font-semibold shadow-sm">
+                        {getInitials(caregiver.name)}
+                      </div>
+                    </div>
+
+                    {/* Caregiver Info */}
+                    <div className="text-center mb-4">
+                      <h3 className="font-semibold text-gray-900 text-lg mb-1">
+                        {caregiver.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {getCaregiverAge(caregiver.date_of_birth)} years old •
+                        Caregiver
+                      </p>
+                    </div>
+
+                    {/* Engagement Stats */}
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        <span>Active</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        <span>Profile</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

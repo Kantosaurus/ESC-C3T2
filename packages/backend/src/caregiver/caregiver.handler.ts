@@ -1,9 +1,10 @@
-import { caregiverSchema } from "@carely/core";
+import { caregiverSchema, elderSchema } from "@carely/core";
 import {
   getCaregiverDetails,
   insertCaregiver,
   updateCaregiver,
   deleteCaregiver,
+  getCaregiversByElderId,
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -52,6 +53,30 @@ export const getCaregiverById = authenticated(async (req, res) => {
   }
 
   res.json(caregiver);
+});
+
+/**
+ * Handler to get caregivers associated with a specific elder.
+ * This handler assumes that the user is already authenticated and
+ * their user ID is available in `res.locals.user.userId`.
+ */
+export const getCaregiversByElderIdHandler = authenticated(async (req, res) => {
+  try {
+    const { elderId } = z
+      .object({ elderId: elderSchema.shape.id })
+      .parse(req.params);
+
+    const caregivers = await getCaregiversByElderId(elderId);
+
+    res.json(caregivers);
+  } catch (error) {
+    console.error("Error getting caregivers for elder:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid/Missing elderId" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 /**

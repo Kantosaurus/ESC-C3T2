@@ -9,6 +9,7 @@ import {
   updateCaregiverSelfHandler,
   deleteCaregiverHandler,
   getCaregiverById,
+  getCaregiversByElderIdHandler,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
@@ -112,6 +113,7 @@ app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
 app.delete("/api/caregiver/self", deleteCaregiverHandler);
 
 app.get("/api/caregiver/:caregiver_id", getCaregiverById);
+app.get("/api/caregiver/elder/:elderId", getCaregiversByElderIdHandler);
 
 app.get("/api/elder/details", getEldersDetailsHandler);
 app.get("/api/elder/details/:elderId", getElderDetailsHandler);
