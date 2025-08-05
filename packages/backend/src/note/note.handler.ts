@@ -4,6 +4,7 @@ import {
   insertNotes,
   updateNotes,
   deleteNotes,
+  getNotesByElderId,
 } from "./note.entity";
 import { authenticated } from "#auth/guard.js";
 import z from "zod";
@@ -65,5 +66,26 @@ export const deleteNotesHandler = authenticated(async (req, res) => {
   } catch (err) {
     console.error("delete failed", err);
     res.status(404).json({ error: "Failed to delete notes", details: err });
+  }
+});
+
+export const getNotesByElderIdHandler = authenticated(async (req, res) => {
+  try {
+    const { elderId } = z
+      .object({
+        elderId: z.coerce.number(),
+      })
+      .parse(req.params);
+
+    const caregiverId = res.locals.user.userId;
+    const notesDetails = await getNotesByElderId(elderId, caregiverId);
+    res.json(notesDetails);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid/Missing elderId" });
+    } else {
+      console.error("Error getting notes by elder ID:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });

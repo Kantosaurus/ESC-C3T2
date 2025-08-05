@@ -9,6 +9,7 @@ import {
   getEldersDetails,
   insertElder,
   updateElder,
+  deleteElder,
 } from "./elder.entity";
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
@@ -218,6 +219,51 @@ export const updateElderHandler = authenticated(async (req, res) => {
     res.json(updatedElder);
   } catch (error) {
     console.error("Error updating elder:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid request data" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
+
+/**
+ * Handler to delete an elder for the authenticated caregiver.
+ * This handler assumes that the user is already authenticated and
+ * their user ID is available in `res.locals.user.userId`.
+ */
+export const deleteElderHandler = authenticated(async (req, res) => {
+  try {
+    const caregiverId = res.locals.user.userId;
+    const { elderId } = z
+      .object({ elderId: elderSchema.shape.id })
+      .parse(req.params);
+
+    console.log(
+      "Deleting elder for caregiver:",
+      caregiverId,
+      "elder:",
+      elderId
+    );
+
+    // Verify the caregiver has access to this elder
+    const elders = await getEldersDetails(caregiverId);
+    const hasAccess = elders.some((elder) => elder.id === elderId);
+
+    if (!hasAccess) {
+      res
+        .status(403)
+        .json({ error: "You are not authorized to delete this elder." });
+      return;
+    }
+
+    // Delete the elder from the database
+    const result = await deleteElder(elderId, caregiverId);
+
+    // Respond with success message
+    res.json(result);
+  } catch (error) {
+    console.error("Error deleting elder:", error);
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid request data" });
     } else {

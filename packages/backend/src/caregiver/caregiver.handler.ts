@@ -3,6 +3,7 @@ import {
   getCaregiverDetails,
   insertCaregiver,
   updateCaregiver,
+  deleteCaregiver,
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -112,4 +113,26 @@ export const updateCaregiverSelfHandler = authenticated(async (req, res) => {
   }
 
   res.status(200).json(updatedCaregiver);
+});
+
+/**
+ * Handler to delete the authenticated caregiver's account.
+ * This handler assumes that the user is already authenticated and
+ * their user ID is available in `res.locals.user.userId`.
+ */
+export const deleteCaregiverHandler = authenticated(async (req, res) => {
+  try {
+    const caregiverId = res.locals.user.userId;
+
+    console.log("Deleting caregiver:", caregiverId);
+
+    // Delete the caregiver from the database
+    const result = await deleteCaregiver(caregiverId);
+
+    // Respond with success message
+    res.json(result);
+  } catch (error) {
+    console.error("Error deleting caregiver:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });

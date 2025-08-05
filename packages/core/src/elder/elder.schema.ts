@@ -14,6 +14,8 @@ export const elderSchema = z.object({
       "Phone number must be a valid Singapore number starting with 6, 8, or 9"
     )
     .nullish(),
+  bio: z.string().nullish(),
+  profile_picture: z.string().nullish(),
   created_at: z.date(),
   updated_at: z.date(),
   ...addressSchema.shape,
@@ -26,6 +28,8 @@ export const newElderDtoSchema = elderSchema.pick({
   date_of_birth: true,
   gender: true,
   phone: true,
+  bio: true,
+  profile_picture: true,
   street_address: true,
   unit_number: true,
   postal_code: true,

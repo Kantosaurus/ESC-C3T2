@@ -87,3 +87,24 @@ export const deleteNotes = (id: number) =>
       throw new Error("Row of note not found or already deleted");
     }
   });
+
+export const getNotesByElderId = (elderId: number, caregiverId: string) =>
+  db
+    .query(
+      `SELECT n.*, c.name AS caregiver_name 
+       FROM notes n
+       LEFT JOIN caregivers c ON n.caregiver_id = c.id
+       INNER JOIN caregiver_elder ce ON n.assigned_elder_id = ce.elder_id
+       WHERE n.assigned_elder_id = $1 AND ce.caregiver_id = $2
+       ORDER BY n.updated_at DESC`,
+      [elderId, caregiverId]
+    )
+    .then((result) =>
+      z
+        .array(
+          noteSchema.extend({
+            caregiver_name: z.string().nullable(),
+          })
+        )
+        .parse(result)
+    );

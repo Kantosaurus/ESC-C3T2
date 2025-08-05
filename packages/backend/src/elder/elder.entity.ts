@@ -125,3 +125,53 @@ export const updateElder = (elderId: number, elderData: NewElderDto) =>
       }
       return elderSchema.parse(result[0]);
     });
+
+export const deleteElder = (elderId: number, caregiverId: string) =>
+  db
+    .query(
+      `
+        DELETE FROM caregiver_elder 
+        WHERE elder_id = $1 AND caregiver_id = $2;
+      `,
+      [elderId, caregiverId]
+    )
+    .then((result) => {
+      if (result.rowCount === 0) {
+        throw new Error("Elder relationship not found or unauthorized.");
+      }
+      // Delete notes associated with the elder
+      return db
+        .query(
+          `
+            DELETE FROM notes 
+            WHERE assigned_elder_id = $1;
+          `,
+          [elderId]
+        )
+        .then(() =>
+          // Delete appointments associated with the elder
+          db.query(
+            `
+              DELETE FROM appointments 
+              WHERE elder_id = $1;
+            `,
+            [elderId]
+          )
+        )
+        .then(() =>
+          // Finally delete the elder
+          db.query(
+            `
+              DELETE FROM elders 
+              WHERE id = $1;
+            `,
+            [elderId]
+          )
+        )
+        .then((deleteResult) => {
+          if (deleteResult.rowCount === 0) {
+            throw new Error("Elder not found.");
+          }
+          return { success: true, message: "Elder deleted successfully" };
+        });
+    });

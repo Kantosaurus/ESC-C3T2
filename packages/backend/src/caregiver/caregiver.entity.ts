@@ -113,3 +113,29 @@ export const updateCaregiver = (
       ]
     )
     .then((result) => z.array(caregiverSchema).parse(result)[0]);
+
+export const deleteCaregiver = (caregiverId: string) =>
+  db
+    .query(
+      `
+        DELETE FROM caregiver_elder 
+        WHERE caregiver_id = $1;
+      `,
+      [caregiverId]
+    )
+    .then(() =>
+      db
+        .query(
+          `
+            DELETE FROM caregivers 
+            WHERE id = $1;
+          `,
+          [caregiverId]
+        )
+        .then((result) => {
+          if (result.rowCount === 0) {
+            throw new Error("Caregiver not found.");
+          }
+          return { success: true, message: "Caregiver deleted successfully" };
+        })
+    );

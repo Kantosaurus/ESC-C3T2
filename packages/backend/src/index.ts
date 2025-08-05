@@ -6,12 +6,14 @@ import {
   getCaregiverSelfHandler,
   insertCaregiverHandler,
   updateCaregiverSelfHandler,
+  deleteCaregiverHandler,
   getCaregiverById,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
   insertElderHandler,
   updateElderHandler,
+  deleteElderHandler,
   getInviteLinkHandler,
   createElderRelationshipHandler,
   getElderDetailsHandler,
@@ -21,6 +23,7 @@ import {
   getNotesHandler,
   insertNotesHandler,
   updateNotesHandler,
+  getNotesByElderIdHandler,
 } from "#note/note.handler.js";
 import { corsWithConfig } from "./misc/cors";
 import {
@@ -68,6 +71,7 @@ app.use(authMiddleware());
 app.get("/api/caregiver/self", getCaregiverSelfHandler);
 app.post("/api/caregiver/self", insertCaregiverHandler);
 app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
+app.delete("/api/caregiver/self", deleteCaregiverHandler);
 
 app.get("/api/caregiver/:caregiver_id", getCaregiverById);
 
@@ -75,6 +79,7 @@ app.get("/api/elder/details", getEldersDetailsHandler);
 app.get("/api/elder/details/:elderId", getElderDetailsHandler);
 app.post("/api/elder/new", insertElderHandler);
 app.patch("/api/elder/:elderId", updateElderHandler);
+app.delete("/api/elder/:elderId", deleteElderHandler);
 
 app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
@@ -90,6 +95,7 @@ app.get("/api/appointment/all", getAllAppointmentsForCaregiverHandler);
 app.post("/api/appointment/import-ics", importIcsFileHandler);
 
 app.get("/api/notes/details", getNotesHandler);
+app.get("/api/notes/elder/:elderId", getNotesByElderIdHandler);
 app.post("/api/notes/new", insertNotesHandler);
 app.post("/api/notes/delete", deleteNotesHandler);
 app.post("/api/notes/edit", updateNotesHandler);

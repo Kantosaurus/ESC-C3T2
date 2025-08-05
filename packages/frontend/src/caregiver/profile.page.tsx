@@ -1,5 +1,6 @@
 import { useCaregiver } from "./use-caregiver";
 import { useEldersDetails } from "@/elder/use-elder-details";
+import { useCaregiverNotes } from "./use-caregiver-notes";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback, useState } from "react";
 import { http } from "@/lib/http";
@@ -19,6 +20,7 @@ import {
   CalendarPlus,
   Edit,
   Trash2,
+  FileText,
 } from "lucide-react";
 import AppNavbar from "@/nav/navbar";
 import { useGetAllAppointmentsForCaregiver } from "@/calendar/use-appointment";
@@ -55,6 +57,11 @@ export default function ProfilePage() {
     refetch: refetchCaregiver,
   } = useCaregiver();
   const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
+  const {
+    notes,
+    isLoading: notesLoading,
+    error: notesError,
+  } = useCaregiverNotes();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -137,6 +144,19 @@ export default function ProfilePage() {
     },
     [refetchCaregiver]
   );
+
+  const handleDeleteAccount = async () => {
+    try {
+      await http().delete("/api/caregiver/self");
+      toast.success("Account deleted successfully");
+      // Clear local storage and redirect to landing page
+      localStorage.removeItem("carely-token");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      toast.error("Failed to delete account");
+    }
+  };
 
   // Show loading state while data is being fetched
   if (caregiverLoading || eldersLoading) {
@@ -263,10 +283,29 @@ export default function ProfilePage() {
       <div className="pt-24 px-4 sm:px-6 lg:px-8 py-8">
         {/* Edit Form Section */}
         {isEditing && (
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Edit Profile
-            </h3>
+          <>
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(false)}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Profile
+                </Button>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Edit Profile
+              </h1>
+              <p className="text-gray-600">
+                Update your information and preferences.
+              </p>
+            </div>
+
+            {/* Success/Error Messages */}
             {success && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
                 {success}
@@ -277,12 +316,74 @@ export default function ProfilePage() {
                 {error}
               </div>
             )}
-            <CaregiverForm
-              defaultValues={formDefaults}
-              onSubmit={handleSubmit}
-              submitLabel="Update Profile"
-            />
-          </div>
+
+            {/* Form Container */}
+            <div className="max-w-4xl mx-auto">
+              <div>
+                <CaregiverForm
+                  defaultValues={formDefaults}
+                  onSubmit={handleSubmit}
+                  submitLabel="Update Profile"
+                />
+              </div>
+
+              {/* Delete Account Section */}
+              <div className="mt-8 bg-white rounded-2xl border border-red-200 shadow-sm">
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-900">
+                        Delete Account
+                      </h3>
+                      <p className="text-sm text-red-600 mt-1">
+                        This action cannot be undone. This will permanently
+                        delete your account and remove all associated data.
+                      </p>
+                    </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Account
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Account</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete your account? This
+                            action cannot be undone and will permanently remove
+                            all data associated with your account.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex gap-3 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const dialog = document.querySelector(
+                                '[role="dialog"]'
+                              ) as HTMLDialogElement;
+                              if (dialog) {
+                                dialog.close();
+                              }
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={handleDeleteAccount}
+                          >
+                            Delete Account
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Profile Overview Section */}
@@ -374,6 +475,7 @@ export default function ProfilePage() {
                     count: elderDetails?.length || 0,
                   },
                   { id: "calendar", label: "My Calendar", count: 0 },
+                  { id: "notes", label: "My Notes", count: notes.length },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -704,6 +806,85 @@ export default function ProfilePage() {
                           </div>
                         ))}
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "notes" && (
+              <div className="space-y-6">
+                {notesLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-3"></div>
+                    <p className="text-sm text-gray-600">Loading notes...</p>
+                  </div>
+                ) : notesError ? (
+                  <div className="text-center py-12">
+                    <p className="text-red-600 mb-4 font-medium">
+                      Failed to load notes
+                    </p>
+                    <Button
+                      onClick={() => window.location.reload()}
+                      className="bg-slate-900 hover:bg-slate-800"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : notes.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No Notes Yet
+                    </h4>
+                    <p className="text-gray-600 mb-6">
+                      Your notes will appear here.
+                    </p>
+                    <Button
+                      onClick={() => navigate("/notes/new")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Create Note
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {notes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => navigate(`/notes/${note.id}/edit`)}
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date(note.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h3 className="font-semibold text-gray-900 text-lg mb-2">
+                          {note.header}
+                        </h3>
+
+                        {note.content && (
+                          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                            {note.content}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            <span>{note.elder_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            <span>View</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
