@@ -436,9 +436,11 @@ export default function Calendarview() {
                                 {declined?.some(
                                   (item) => item.appt_id === result.appt_id
                                 ) ? (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                  <div className="text-2xl font-semibold text-red-500 -mt-1 flex-shrink-0">
+                                    !
+                                  </div>
                                 ) : (
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-slate-900 truncate">

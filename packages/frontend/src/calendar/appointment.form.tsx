@@ -61,8 +61,8 @@ const hourOptions = generateHourOptions();
 
 //default time values
 const defaultMin = "00";
-const defaultStartHr = "9";
-const defaultEndHr = "10";
+const defaultStartHr = "07";
+const defaultEndHr = "09";
 
 // create string
 const constructISOString = (

@@ -65,7 +65,7 @@ export function DayView({
           const end = new Date(appt.endDateTime);
           const top = getMinutesSinceStart(start) * pxPerMinute;
           const height = getDuration(start, end) * pxPerMinute;
-          const showTime = height >= 40;
+          const showTime = height >= 50;
 
           return (
             <div
@@ -74,21 +74,39 @@ export function DayView({
               style={{ top: `${top}px`, height: `${height}px` }}
               onClick={() => onSelect?.(appt)}
             >
-              <div className="text-blue-800 font-semibold group-hover:text-blue-900 transition-colors">
-                {appt.name}
-              </div>
-              {showTime && (
-                <div className="text-blue-700 text-xs mt-1 flex items-center gap-1">
-                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                  {start.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  –{" "}
-                  {end.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+              {showTime ? (
+                <div>
+                  <div className="text-blue-800 font-semibold group-hover:text-blue-900 truncate transition-colors">
+                    {appt.name}
+                  </div>
+                  <div className="text-blue-700 text-xs mt-1 flex items-center gap-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                    {start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {end.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-blue-800 font-semibold flex items-center gap-2 group-hover:text-blue-900 truncate transition-colors">
+                  {appt.name}{" "}
+                  <div className="text-blue-700 text-xs flex items-center gap-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                    {start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {end.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
                 </div>
               )}
             </div>

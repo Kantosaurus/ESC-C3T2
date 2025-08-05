@@ -184,20 +184,25 @@ export default function AppointmentDetailsPage({
             )
           ) : caregiverDetails &&
             appointment.declined?.includes(caregiverDetails.id) ? (
-            <div className="flex items-center justify-between">
-              <Label className="font-semibold text-lg">Declined by you</Label>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  handleDeclineAppointment({
-                    elder_id: appointment.elder_id,
-                    appt_id: appointment.appt_id,
-                    undo: true,
-                  });
-                }}
-              >
-                <Undo /> Undo
-              </Button>
+            <div>
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold text-lg">Declined by you</Label>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleDeclineAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: true,
+                    });
+                  }}
+                >
+                  <Undo /> Undo
+                </Button>
+              </div>
+              <div className="p-2 border rounded bg-gray-100 text-gray-500 italic">
+                {appointment.declined}
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-between">

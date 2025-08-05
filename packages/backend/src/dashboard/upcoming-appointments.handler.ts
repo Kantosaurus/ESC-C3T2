@@ -16,7 +16,7 @@ const getUpcomingAppointmentsQuery = (userId: string) =>
   db
     .query(
       `
-			SELECT appt_id, a.elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc from appointments a
+			SELECT appt_id, a.elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc, created_by from appointments a
 			INNER JOIN caregiver_elder ce ON ce.elder_id = a.elder_id 
 			WHERE ce.caregiver_id = $1
 			AND a.startDateTime > NOW()
