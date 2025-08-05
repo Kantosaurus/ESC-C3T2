@@ -12,7 +12,6 @@ import {
   Sparkles,
   Settings,
   CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { http } from "@/lib/http";
@@ -103,95 +102,89 @@ export default function AIPage() {
     toolCallsToExecute?: ToolCall[],
     toolResponses?: ToolResult[]
   ) => {
-    try {
-      const response = await http().post("/api/ai/chat", {
+    const response = await http().post("/api/ai/chat", {
+      message: userMessage.content,
+      history: messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      tool_calls: toolCallsToExecute,
+      tool_responses: toolResponses,
+    });
+
+    const data = response.data;
+
+    // If AI wants to execute tool calls
+    if (data.requires_tool_calls && data.tool_calls) {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+        tool_calls: data.tool_calls,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Execute the tool calls
+      const toolResponse = await http().post("/api/ai/chat", {
         message: userMessage.content,
         history: messages.map((msg) => ({
           role: msg.role,
           content: msg.content,
         })),
-        tool_calls: toolCallsToExecute,
-        tool_responses: toolResponses,
+        tool_calls: data.tool_calls,
       });
 
-      const data = response.data;
+      const toolData = toolResponse.data;
 
-      // If AI wants to execute tool calls
-      if (data.requires_tool_calls && data.tool_calls) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: data.response,
-          timestamp: new Date(),
-          tool_calls: data.tool_calls,
-        };
+      // Show tool execution results
+      const toolMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: "assistant",
+        content:
+          toolData.tool_results
+            ?.map((result: ToolResult) => result.content)
+            .join("\n") || "Actions completed.",
+        timestamp: new Date(),
+        tool_results: toolData.tool_results,
+      };
 
-        setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, toolMessage]);
 
-        // Execute the tool calls
-        const toolResponse = await http().post("/api/ai/chat", {
+      // Get final AI response after tool execution
+      try {
+        const finalResponse = await http().post("/api/ai/chat", {
           message: userMessage.content,
-          history: messages.map((msg) => ({
+          history: [...messages, assistantMessage, toolMessage].map((msg) => ({
             role: msg.role,
             content: msg.content,
           })),
-          tool_calls: data.tool_calls,
+          tool_responses: toolData.tool_results,
         });
 
-        const toolData = toolResponse.data;
-
-        // Show tool execution results
-        const toolMessage: Message = {
-          id: (Date.now() + 2).toString(),
+        const finalData = finalResponse.data;
+        const finalMessage: Message = {
+          id: (Date.now() + 3).toString(),
           role: "assistant",
-          content:
-            toolData.tool_results
-              ?.map((result: ToolResult) => result.content)
-              .join("\n") || "Actions completed.",
-          timestamp: new Date(),
-          tool_results: toolData.tool_results,
-        };
-
-        setMessages((prev) => [...prev, toolMessage]);
-
-        // Get final AI response after tool execution
-        try {
-          const finalResponse = await http().post("/api/ai/chat", {
-            message: userMessage.content,
-            history: [...messages, assistantMessage, toolMessage].map(
-              (msg) => ({
-                role: msg.role,
-                content: msg.content,
-              })
-            ),
-            tool_responses: toolData.tool_results,
-          });
-
-          const finalData = finalResponse.data;
-          const finalMessage: Message = {
-            id: (Date.now() + 3).toString(),
-            role: "assistant",
-            content: finalData.response,
-            timestamp: new Date(),
-          };
-
-          setMessages((prev) => [...prev, finalMessage]);
-        } catch (error) {
-          console.error("Failed to get final AI response:", error);
-        }
-      } else {
-        // Regular text response
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: data.response,
+          content: finalData.response,
           timestamp: new Date(),
         };
 
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, finalMessage]);
+      } catch (error) {
+        console.error("Failed to get final AI response:", error);
       }
-    } catch (error) {
-      throw error;
+    } else {
+      // Regular text response
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
     }
   };
 

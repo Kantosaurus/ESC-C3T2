@@ -1,17 +1,10 @@
 import { Request, Response } from "express";
 import { authenticated } from "../auth/guard.js";
-import {
-  insertNotes,
-  updateNotes,
-  deleteNotes,
-  getNotesDetails,
-  getNotesByElderId,
-} from "../note/note.entity.js";
+import { insertNotes, updateNotes, deleteNotes } from "../note/note.entity.js";
 import {
   insertAppointment,
   updateAppointment,
   deleteAppointment,
-  getAllAppointmentsForCaregiver,
 } from "../appointment/appointment.entity.js";
 import { getEldersDetails } from "../elder/elder.entity.js";
 
