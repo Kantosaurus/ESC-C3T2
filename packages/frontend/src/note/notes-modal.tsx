@@ -3,15 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDeleteNote } from "./use-delete-node";
 import { Button } from "@/components/ui/button";
 import type { Note } from "@carely/core";
-import {
-  Edit,
-  Trash2,
-  X,
-  Calendar,
-  Clock,
-  User,
-  AlertTriangle,
-} from "lucide-react";
+import { Edit, Trash2, X, Calendar, Clock, User } from "lucide-react";
 import type { Elder } from "@carely/core";
 
 interface ModalType {

@@ -4,7 +4,7 @@ import { AddNoteForm, type AddNoteFormType } from "./add-note.form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppNavbar from "@/nav/navbar";
-import { ArrowLeft, FileText, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const addNewNote = (values: NewNoteDto) =>
