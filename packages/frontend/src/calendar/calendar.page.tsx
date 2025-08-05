@@ -14,7 +14,7 @@ import {
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
 import { DayView } from "@/components/ui/calendardayview";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Appointment } from "@carely/core";
 import { MiniCalendar } from "@/components/ui/calendar-mini";
 
@@ -97,6 +97,11 @@ export default function Calendarview() {
       await refetchPending();
       setViewDate(null);
       setSheetView("dayview");
+      if (selectedElder) {
+        navigate(`/calendar/${selectedElder.id}`, { replace: true });
+      } else {
+        navigate("/calendar", { replace: true });
+      }
       toast.success("Appointment created");
     } catch (error) {
       const axiosErr = error as AxiosError<{ error: string }>;
@@ -129,6 +134,11 @@ export default function Calendarview() {
       await refetch();
       setSelectedAppointment(null);
       setSheetView("dayview");
+      if (selectedElder) {
+        navigate(`/calendar/${selectedElder.id}`, { replace: true });
+      } else {
+        navigate("/calendar", { replace: true });
+      }
       toast.success("Appointment deleted");
     } catch (error) {
       console.error("Error deleting appointment:", error);
@@ -168,7 +178,58 @@ export default function Calendarview() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const today = new Date();
+
+  //url things
   const navigate = useNavigate();
+  const { elder_id, appt_id } = useParams<{
+    elder_id?: string;
+    appt_id?: string;
+  }>();
+
+  //if url has elder id only
+  useEffect(() => {
+    if (elder_id && elderDetails) {
+      const urlElder = elderDetails.find(
+        (e) => e.id === parseInt(elder_id, 10)
+      );
+      if (urlElder) {
+        setSelectedElder(urlElder);
+      }
+    }
+  }, [elder_id, elderDetails]);
+
+  //if url has elder id and appt id
+  useEffect(() => {
+    if (elder_id && elderDetails && appt_id && appointments) {
+      const urlAppointment = appointments.find(
+        (a) => a.appt_id === parseInt(appt_id, 10)
+      );
+      if (urlAppointment) {
+        setSelectedAppointment(urlAppointment);
+        setViewDate(new Date(urlAppointment.startDateTime));
+        setSheetView("details");
+      }
+    }
+  }, [elder_id, elderDetails, appt_id, appointments]);
+
+  //update url when elder selected
+  const selectElder = (elder: Elder) => {
+    setSelectedElder(elder);
+    navigate(`/calendar/${elder.id}`, { replace: true });
+  };
+
+  const showAppointmentDetails = (appointment: Appointment) => {
+    const elder = elderDetails?.find((e) => e.id === appointment.elder_id);
+    if (elder) {
+      setSelectedElder(elder);
+      setSelectedAppointment(appointment);
+      setViewDate(new Date(appointment.startDateTime));
+      setSheetView("details");
+      navigate(`/calendar/${elder.id}/${appointment.appt_id}`, {
+        replace: false,
+      });
+    }
+  };
 
   const goToToday = () => {
     setCurrDate(new Date());
@@ -279,7 +340,9 @@ export default function Calendarview() {
                     const elderObj = elderDetails?.find(
                       (elder) => elder.id.toString() === value
                     );
-                    setSelectedElder(elderObj || null);
+                    if (elderObj) {
+                      selectElder(elderObj);
+                    }
                   }}
                 >
                   <SelectTrigger className="w-auto border-0 bg-transparent text-slate-900 font-medium hover:bg-slate-100 px-3 py-1">
@@ -350,10 +413,8 @@ export default function Calendarview() {
                           key={`${result.startDateTime}-${result.name}`}
                           className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-b-0"
                           onClick={() => {
-                            setSelectedAppointment(result);
                             setSearchQuery("");
-                            setViewDate(new Date(result.startDateTime));
-                            setSheetView("details");
+                            showAppointmentDetails(result);
                           }}
                         >
                           <div className="flex items-start gap-3">
@@ -422,13 +483,8 @@ export default function Calendarview() {
                               key={result.appt_id}
                               className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
                               onClick={() => {
-                                setSelectedAppointment(result);
-                                setSelectedElder(
-                                  findElder(result.elder_id) || null
-                                );
+                                showAppointmentDetails(result);
                                 setSearchQuery("");
-                                setViewDate(new Date(result.startDateTime));
-                                setSheetView("details");
                                 setShowPending(false);
                               }}
                             >
@@ -523,6 +579,12 @@ export default function Calendarview() {
           if (!open) {
             setViewDate(null);
             setSheetView("dayview");
+            setSelectedAppointment(null);
+            if (selectedElder) {
+              navigate(`/calendar/${selectedElder.id}`, { replace: true });
+            } else {
+              navigate("/calendar", { replace: true });
+            }
           }
         }}
       >
@@ -620,8 +682,7 @@ export default function Calendarview() {
                 date={viewDate!}
                 appointments={selectedDateAppointments}
                 onSelect={(appt) => {
-                  setSelectedAppointment(appt);
-                  setSheetView("details");
+                  showAppointmentDetails(appt);
                 }}
               />
             )}
