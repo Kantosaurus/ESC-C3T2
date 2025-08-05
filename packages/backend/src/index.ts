@@ -19,6 +19,7 @@ import {
 import {
   deleteNotesHandler,
   getNotesHandler,
+  getSingleNoteHandler,
   insertNotesHandler,
   updateNotesHandler,
 } from "#note/note.handler.js";
@@ -84,9 +85,10 @@ app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
 app.get("/api/notes/details", getNotesHandler);
+app.get("/api/notes/:id", getSingleNoteHandler);
 app.post("/api/notes/new", insertNotesHandler);
-app.post("/api/notes/delete", deleteNotesHandler);
-app.post("/api/notes/edit", updateNotesHandler);
+app.post("/api/notes/:id/delete", deleteNotesHandler);
+app.patch("/api/notes/:id", updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 

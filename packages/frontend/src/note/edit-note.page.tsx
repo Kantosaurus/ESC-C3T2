@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
 import { EditNoteForm, type EditNoteFormType } from "./edit-note.form";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
 import type { Note } from "@carely/core";
@@ -8,7 +8,7 @@ import type { Note } from "@carely/core";
 const useEditNote = () => {
   return useCallback((values: Partial<Note> & { id: number }) => {
     return http()
-      .post(`/api/notes/edit`, values)
+      .patch(`/api/notes/${values.id}`, values)
       .then((res) => res.data)
       .catch((error) => {
         console.error("Error editing note:", error);
@@ -17,18 +17,41 @@ const useEditNote = () => {
   }, []);
 };
 
-export default function EditNotePage() {
-  const location = useLocation();
-  const [note] = useState<Note | null>(location.state?.note ?? null);
-  const navigate = useNavigate();
-  const editNote = useEditNote();
+const useNoteById = (noteId: number | string) => {
+  const [note, setNote] = useState<Note | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!note) {
+    const fetchNote = async () => {
+      try {
+        const res = await http().get(`/api/notes/${noteId}`);
+        setNote(res.data);
+      } catch (err) {
+        console.error("Failed to fetch note", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNote();
+  }, [noteId]);
+  return { note, loading };
+};
+
+export default function EditNotePage() {
+  const { noteId } = useParams();
+  const navigate = useNavigate();
+  const editNote = useEditNote();
+  const { note, loading } = useNoteById(Number(noteId));
+
+  useEffect(() => {
+    if (!loading && !note) {
       toast.error("Failed to fetch note");
       navigate("/notes");
     }
-  }, [note, navigate]);
+  }, [note, loading, navigate]);
+
+  if (!note) return null;
 
   const handleUpdateNote = async (values: EditNoteFormType) => {
     console.log("Submitting note with values:", values);
@@ -42,19 +65,14 @@ export default function EditNotePage() {
     }
   };
 
-  if (!note) {
-    navigate("/notes");
-    return <div>Note not found</div>;
-  }
-
   return (
     <>
       <section className="bg-indigo-100 text-indigo-800">
         <div className="p-8 mx-auto max-w-2xl">
           <h1 className="text-2xl font-bold mb-2">Edit Note</h1>
           <p>
-            Edit the note details for reminders, tasks, or any other notes you want to
-            keep track of.
+            Edit the note details for reminders, tasks, or any other notes you
+            want to keep track of.
           </p>
         </div>
       </section>

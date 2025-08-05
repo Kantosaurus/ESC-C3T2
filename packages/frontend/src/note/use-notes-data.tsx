@@ -3,7 +3,7 @@ import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import type { AxiosError, AxiosResponse } from "axios";
-import { useNavigate } from "react-router";
+import { useNavigate, Outlet, useParams, useOutletContext } from "react-router";
 import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
@@ -11,7 +11,7 @@ import Modal from "./notes-modal";
 export function useDeleteNote() {
   return useCallback((note: { id: number }) => {
     return http()
-      .post("/api/notes/delete", note)
+      .post(`/api/notes/${note.id}/delete`, note)
       .then((res) => res.data)
       .catch((error) => {
         console.error("Failed to delete note:", error);
@@ -19,6 +19,38 @@ export function useDeleteNote() {
       });
   }, []);
 }
+
+export default function NoteModalWrapper() {
+  const { noteId } = useParams<{ noteId: string }>();
+  const navigate = useNavigate();
+  const context = useOutletContext<{
+    notes: Note[];
+    elderDetails: Elder[];
+    onDelete: (note: Note) => void;
+  }>();
+
+  const elderDetails = context.elderDetails;
+  const onDelete = context.onDelete;
+
+  const note = context.notes.find((n) => n.id === Number(noteId));
+
+  if (!note) {
+    navigate("/notes");
+    return null;
+  }
+
+  const handleClose = () => navigate("/notes");
+
+  return (
+    <Modal
+      onClose={handleClose}
+      note={note}
+      onDelete={onDelete}
+      elderDetails={elderDetails}
+    />
+  );
+}
+
 /**
  * Get all notes that the caregiver is associated with.
  */
@@ -31,24 +63,11 @@ export function NoteDetails() {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-  const [isOpen, setisOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-
-  const toggle = () => {
-    setisOpen(!isOpen);
-  };
-
-  const handleOpenModal = (note: Note) => {
-    setSelectedNote(note);
-    setisOpen(true);
-  };
 
   const onDelete = (deletedNote: Note) => {
     setNoteDetails((prev) =>
       prev?.filter((note) => note.id !== deletedNote.id)
     );
-    setSelectedNote(null);
-    setisOpen(false);
   };
 
   // Get notes with elder headers at the top
@@ -200,22 +219,19 @@ export function NoteDetails() {
                   {new Date(note.updated_at).toLocaleDateString("en-GB")}{" "}
                   {new Date(note.updated_at).toLocaleTimeString()}
                 </p>
-                <Button className="mt-4" onClick={() => handleOpenModal(note)}>Open me</Button>
+                <Button
+                  className="mt-4"
+                  onClick={() => navigate(`/notes/${note.id}`)}
+                >
+                  Open note
+                </Button>
               </li>
             </div>
           ))}
-
-          {selectedNote && (
-            <Modal
-              isOpen={isOpen}
-              toggle={toggle}
-              note={selectedNote}
-              onDelete={onDelete}
-              elderDetails={elderDetails}
-            ></Modal>
-          )}
         </ul>
       )}
+
+      <Outlet context={{ notes: NoteDetails, elderDetails, onDelete }} />
     </>
   );
 }

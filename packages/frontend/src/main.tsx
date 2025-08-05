@@ -19,6 +19,7 @@ import ProfilePage from "./caregiver/profile.page.tsx";
 import NotesPage from "./note/notes.page.tsx";
 import NewNotePage from "./note/new-note.page.tsx";
 import EditNotePage from "./note/edit-note.page.tsx";
+import NoteModalWrapper from "./note/use-notes-data.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -40,9 +41,11 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/elder/:id/invite" element={<InvitePage />} />
           <Route path="/invite" element={<AcceptInvitePage />} />
 
-          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/notes" element={<NotesPage />}>
+            <Route path=":noteId" element={<NoteModalWrapper />} />
+          </Route>
+          <Route path="/notes/:noteId/edit" element={<EditNotePage />} />
           <Route path="/notes/new" element={<NewNotePage />} />
-          <Route path="/notes/edit" element={<EditNotePage />} />
 
           <Route path="/calendar" element={<CalendarPage />} />
         </Route>

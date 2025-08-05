@@ -67,7 +67,7 @@ export const updateNotes = (
                 header = $2,
                 content = $3,
                 caregiver_id = $4,
-                updated_at = NOW()
+                updated_at = $5
             WHERE id = $1
             RETURNING *`,
       [

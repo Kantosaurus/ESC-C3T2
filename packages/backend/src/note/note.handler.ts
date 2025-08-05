@@ -4,6 +4,7 @@ import {
   insertNotes,
   updateNotes,
   deleteNotes,
+  getNoteDetails,
 } from "./note.entity";
 import { authenticated } from "#auth/guard.js";
 import z from "zod";
@@ -12,6 +13,18 @@ export const getNotesHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
   const notesDetails = await getNotesDetails(caregiverId);
   res.json(notesDetails);
+});
+
+export const getSingleNoteHandler = authenticated(async (req, res) => {
+  const noteId = Number(req.params.id);
+  if (isNaN(noteId)) {
+    return res.status(400).send("invalid noteId");
+  }
+  const note = await getNoteDetails(noteId);
+  if (!note) {
+    return res.status(404).send("Note not found");
+  }
+  res.json(note);
 });
 
 export const insertNotesHandler = authenticated(async (req, res) => {
@@ -46,7 +59,7 @@ export const updateNotesHandler = authenticated(async (req, res) => {
       caregiver_id: res.locals.user.userId,
       updated_at: now,
     });
-    res.status(201).json(saved);
+    res.status(200).json(saved);
   } catch (err) {
     console.error("update failed", err);
     res.status(400).json({ error: "Failed to update notes", details: err });
