@@ -86,12 +86,12 @@ export const updateSession = async (
   sessionData: Partial<SessionData>
 ): Promise<void> => {
   const updates: string[] = [];
-  const values: any[] = [];
+  const values: (string | null)[] = [];
   let paramCount = 1;
 
   if (sessionData.nonce !== undefined) {
     updates.push(`nonce = $${paramCount++}`);
-    values.push(sessionData.nonce);
+    values.push(sessionData.nonce || null);
   }
 
   if (sessionData.state !== undefined) {
@@ -101,17 +101,17 @@ export const updateSession = async (
 
   if (sessionData.accessToken !== undefined) {
     updates.push(`access_token = $${paramCount++}`);
-    values.push(sessionData.accessToken);
+    values.push(sessionData.accessToken || null);
   }
 
   if (sessionData.codeVerifier !== undefined) {
     updates.push(`code_verifier = $${paramCount++}`);
-    values.push(sessionData.codeVerifier);
+    values.push(sessionData.codeVerifier || null);
   }
 
   if (sessionData.sub !== undefined) {
     updates.push(`sub = $${paramCount++}`);
-    values.push(sessionData.sub);
+    values.push(sessionData.sub || null);
   }
 
   if (updates.length === 0) {

@@ -299,7 +299,15 @@ After implementing the security fixes, a 403 error was discovered when creating 
 - Removing overly strict content-length verification from JSON middleware
 - Adjusting rate limiting to be more generous in development environments
 
-See `docs/403-error-fix.md` for detailed information about this fix.
+### Test Failures Resolution
+
+The JWT secret validation security fix initially broke tests. This was resolved by:
+
+- Making JWT secret validation environment-aware (allows test secrets in test mode)
+- Updating test mocks to work with new database-backed session system
+- Fixing async test expectations
+
+See `docs/test-fixes.md` for detailed information about these fixes.
 
 ## Notes
 

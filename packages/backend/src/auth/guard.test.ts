@@ -36,7 +36,7 @@ describe("Auth Guard", async () => {
     const res = {} as Response;
     const next = vi.fn();
 
-    expect(async () => {
+    await expect(async () => {
       await authenticatedHandler(req, res, next);
     }).rejects.toThrowError();
   });

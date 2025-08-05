@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -135,8 +135,10 @@ export default function Calendarview() {
     }
   };
 
-  const findElder = (id: number) =>
-    elderDetails?.find((elder) => elder.id === id);
+  const findElder = useCallback(
+    (id: number) => elderDetails?.find((elder) => elder.id === id),
+    [elderDetails]
+  );
 
   //render
   useEffect(() => {
@@ -160,7 +162,7 @@ export default function Calendarview() {
         findElder(appointment.elder_id)?.name.toLowerCase().includes(query)
     );
     setSearchResults(filtered);
-  }, [searchQuery, appointments]);
+  }, [searchQuery, appointments, findElder]);
 
   const navigate = useNavigate();
 
