@@ -103,7 +103,7 @@ export const chatHandler = authenticated(
       console.error("AI Chat Error:", error);
       res.status(500).json({
         error: "Failed to get AI response. Please try again.",
-        details: error instanceof Error ? error.message : "Unknown error",
+        // Do not expose internal error details to prevent information leakage
       });
     }
   }

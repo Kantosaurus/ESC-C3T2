@@ -13,6 +13,7 @@ import {
 } from "./elder.entity";
 import z from "zod/v4";
 import { jwtVerify, SignJWT } from "jose";
+import { getValidatedFrontendHost } from "../misc/url-validation";
 import { authenticated } from "../auth/guard";
 import { jwtSecret } from "../auth/secret";
 import { JOSEError } from "jose/errors";
@@ -25,10 +26,7 @@ import { JOSEError } from "jose/errors";
 export const getEldersDetailsHandler = authenticated(async (req, res) => {
   try {
     const caregiverId = res.locals.user.userId;
-    console.log("Getting elders for caregiver:", caregiverId);
-
     const elders = await getEldersDetails(caregiverId);
-    console.log("Found elders:", elders);
 
     res.json(elders);
   } catch (error) {
@@ -69,17 +67,24 @@ export const getElderDetailsHandler = authenticated(async (req, res) => {
  * their user ID is available in `res.locals.user.userId`.
  */
 export const insertElderHandler = authenticated(async (req, res) => {
-  const caregiverId = res.locals.user.userId;
-  console.log("Inserting new elder for caregiver:", req.body);
-  const newElderDto = newElderDtoSchema.parse(req.body);
+  try {
+    const caregiverId = res.locals.user.userId;
+    // Parse and validate the request data
+    const newElderDto = newElderDtoSchema.parse(req.body);
 
-  console.log(newElderDto);
+    // Insert the new elder into the database
+    const newElder = await insertElder(caregiverId, newElderDto);
 
-  // Insert the new elder into the database
-  const newElder = await insertElder(caregiverId, newElderDto);
-
-  // Respond with the newly created elder
-  res.status(201).json(newElder);
+    // Respond with the newly created elder
+    res.status(201).json(newElder);
+  } catch (error) {
+    console.error("Error creating elder:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid request data" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 /**
@@ -114,10 +119,7 @@ export const getInviteLinkHandler = authenticated(async (req, res) => {
     .setSubject(`invite-${elderId}`)
     .sign(jwtSecret);
 
-  const url = new URL(
-    "/invite",
-    process.env.FRONTEND_HOST || "http://localhost:3000"
-  );
+  const url = new URL("/invite", getValidatedFrontendHost());
 
   url.searchParams.set("token", encodeURIComponent(btoa(token)));
   url.searchParams.set("elderName", thisElder.name);
@@ -191,15 +193,8 @@ export const updateElderHandler = authenticated(async (req, res) => {
       .object({ elderId: elderSchema.shape.id })
       .parse(req.params);
 
-    console.log(
-      "Updating elder for caregiver:",
-      caregiverId,
-      "elder:",
-      elderId
-    );
+    // Parse and validate the update data
     const updateElderDto = newElderDtoSchema.parse(req.body);
-
-    console.log("Update data:", updateElderDto);
 
     // Verify the caregiver has access to this elder
     const elders = await getEldersDetails(caregiverId);
@@ -238,13 +233,6 @@ export const deleteElderHandler = authenticated(async (req, res) => {
     const { elderId } = z
       .object({ elderId: elderSchema.shape.id })
       .parse(req.params);
-
-    console.log(
-      "Deleting elder for caregiver:",
-      caregiverId,
-      "elder:",
-      elderId
-    );
 
     // Verify the caregiver has access to this elder
     const elders = await getEldersDetails(caregiverId);

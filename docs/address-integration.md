@@ -10,6 +10,12 @@ This document describes the new robust address system that integrates with Googl
 - **Backward Compatibility**: Maintains support for the legacy address field
 - **Form Validation**: Ensures all required address fields are completed
 
+## Important: Google Maps API Update
+
+⚠️ **Note**: As of March 1st, 2025, `google.maps.places.Autocomplete` is not available to new customers. Google recommends using `google.maps.places.PlaceAutocompleteElement` instead.
+
+While the current implementation will continue to work for existing customers, new implementations should migrate to the new API. See the [migration guide](https://developers.google.com/maps/documentation/javascript/places-migration-overview) for details.
+
 ## Database Schema
 
 The new address system adds the following fields to both `caregivers` and `elders` tables:

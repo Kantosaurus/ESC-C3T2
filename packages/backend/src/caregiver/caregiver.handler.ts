@@ -34,7 +34,15 @@ export const getCaregiverById = authenticated(async (req, res) => {
     })
     .parse(req.params);
 
-  console.log("caregiverid: ", caregiver_id);
+  const authenticatedUserId = res.locals.user.userId;
+
+  // Security check: Only allow users to access their own caregiver details
+  if (caregiver_id !== authenticatedUserId) {
+    res.status(403).json({
+      error: "Access denied. You can only access your own caregiver profile.",
+    });
+    return;
+  }
 
   const caregiver = await getCaregiverDetails(caregiver_id);
 
@@ -123,8 +131,6 @@ export const updateCaregiverSelfHandler = authenticated(async (req, res) => {
 export const deleteCaregiverHandler = authenticated(async (req, res) => {
   try {
     const caregiverId = res.locals.user.userId;
-
-    console.log("Deleting caregiver:", caregiverId);
 
     // Delete the caregiver from the database
     const result = await deleteCaregiver(caregiverId);

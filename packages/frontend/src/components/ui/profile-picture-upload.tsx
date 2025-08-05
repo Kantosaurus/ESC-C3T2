@@ -22,28 +22,37 @@ export function ProfilePictureUpload({
   const handleFileSelect = (file: File) => {
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+    // Validate file type - be more specific about allowed image types
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please select a valid image file (JPEG, PNG, or WebP)");
       return;
     }
 
-    // Validate file size (max 10MB before compression)
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB");
+    // Validate file size (max 5MB before compression - reduced from 10MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB");
+      return;
+    }
+
+    // Additional security: check file extension matches MIME type
+    const extension = file.name.toLowerCase().split(".").pop();
+    const validExtensions = ["jpg", "jpeg", "png", "webp"];
+    if (!extension || !validExtensions.includes(extension)) {
+      alert("Invalid file extension. Please use .jpg, .png, or .webp files");
       return;
     }
 
     // Compress the image before converting to base64
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
-    
+
     img.onload = () => {
       // Calculate new dimensions (max 800x800)
       const maxSize = 800;
       let { width, height } = img;
-      
+
       if (width > height) {
         if (width > maxSize) {
           height = (height * maxSize) / width;
@@ -55,19 +64,33 @@ export function ProfilePictureUpload({
           height = maxSize;
         }
       }
-      
+
       canvas.width = width;
       canvas.height = height;
-      
+
       // Draw and compress
       ctx?.drawImage(img, 0, 0, width, height);
-      
+
       // Convert to base64 with compression
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+      // Security validation: ensure the result is a valid data URL for an image
+      if (!compressedDataUrl.startsWith("data:image/jpeg;base64,")) {
+        alert("Error processing image. Please try a different file.");
+        return;
+      }
+
+      // Additional check: ensure base64 data is reasonable length (max ~2MB after compression)
+      if (compressedDataUrl.length > 2 * 1024 * 1024 * 1.4) {
+        // base64 is ~1.4x larger than binary
+        alert("Processed image is too large. Please try a smaller image.");
+        return;
+      }
+
       setPreview(compressedDataUrl);
       onChange(compressedDataUrl);
     };
-    
+
     img.src = URL.createObjectURL(file);
   };
 

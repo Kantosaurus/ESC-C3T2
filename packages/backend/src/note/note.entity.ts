@@ -82,7 +82,6 @@ export const updateNotes = (
 
 export const deleteNotes = (id: number) =>
   db.query(`DELETE FROM notes WHERE id = $1 `, [id]).then((result) => {
-    console.log("Notes deleted:", result);
     if (result.rowCount == 0) {
       throw new Error("Row of note not found or already deleted");
     }

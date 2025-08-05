@@ -27,7 +27,7 @@ const getUpcomingAppointmentsQuery = (userId: string) =>
     )
     .then((result) => {
       const rows = result.rows || result;
-      console.log("Fetched:", rows);
+
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
       }

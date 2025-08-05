@@ -23,7 +23,6 @@ export const insertAppointment = (
       ]
     )
     .then((result) => {
-      console.log("Insert Appointment:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows) || rows.length === 0) {
         throw new Error("Invalid format");
@@ -41,7 +40,7 @@ export const getAppointmentsForElder = (elder_id: number) =>
     )
     .then((result) => {
       const rows = result.rows || result;
-      console.log("Fetched:", rows);
+
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
       }
@@ -57,8 +56,6 @@ export const getAppointmentForElder = (elder_id: number, appt_id: number) =>
       [elder_id, appt_id]
     )
     .then((result) => {
-      console.log("Fetched appointment:", result);
-
       return z.array(appointmentSchema).parse(result);
     });
 
@@ -72,7 +69,6 @@ export const deleteAppointment = (
       [appt.elder_id, appt.appt_id]
     )
     .then((result) => {
-      console.log("Appointment deleted:", result);
       if (result.rowCount == 0) {
         throw new Error("Row not found or already deleted");
       }
@@ -111,7 +107,6 @@ export const updateAppointment = (
       ]
     )
     .then((result) => {
-      console.log("Appointment updated:", result);
       return appointmentSchema.parse(result[0]);
     });
 
@@ -127,7 +122,6 @@ export const getPendingAppointments = (caregiver_id: string) =>
       [caregiver_id]
     )
     .then((result) => {
-      console.log("Pending Fetched:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
@@ -148,7 +142,6 @@ export const getAllAppointmentsForCaregiver = (caregiver_id: string) =>
       [caregiver_id]
     )
     .then((result) => {
-      console.log("All Appointments Fetched:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
@@ -170,7 +163,6 @@ export const acceptAppointment = (
       [caregiver_id, elder_id, appt_id]
     )
     .then((result) => {
-      console.log("Accepted:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");

@@ -21,7 +21,6 @@ export const getElderDetails = (caregiverId: string, elderId: number) =>
     });
 
 export const getEldersDetails = (caregiverId: string) => {
-  console.log("Querying elders for caregiver ID:", caregiverId);
   return db
     .query(
       `
@@ -33,7 +32,6 @@ export const getEldersDetails = (caregiverId: string) => {
       [caregiverId]
     )
     .then((result) => {
-      console.log("Database query result:", result);
       return z.array(elderSchema).parse(result);
     })
     .catch((error) => {
