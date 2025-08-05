@@ -4,14 +4,41 @@ import AppNavbar from "@/nav/navbar";
 import { Button } from "@/components/ui/button";
 import Card from "@/components/ui/card";
 import { PlaceholderInput } from "@/components/ui/placeholder-input";
-import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Sparkles,
+  Settings,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { http } from "@/lib/http";
+
+interface ToolCall {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
+interface ToolResult {
+  tool_call_id: string;
+  role: "tool";
+  content: string;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  tool_calls?: ToolCall[];
+  tool_results?: ToolResult[];
 }
 
 export default function AIPage() {
@@ -20,7 +47,7 @@ export default function AIPage() {
       id: "1",
       role: "assistant",
       content:
-        "Hello! I'm your AI assistant powered by Gemini. I'm here to help you with any questions about caregiving, scheduling, or general assistance. How can I help you today?",
+        "Hello! I'm your AI assistant powered by Gemini. I can help you with caregiving questions and I can also manage your notes and appointments directly. You can ask me to:\n\n• Create, edit, or delete notes for your elders\n• Schedule, update, or cancel appointments\n• Answer general caregiving questions\n\nJust tell me what you'd like to do and I'll take care of it for you!",
       timestamp: new Date(),
     },
   ]);
@@ -54,34 +81,7 @@ export default function AIPage() {
     setIsTyping(true);
 
     try {
-      const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response from AI");
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
+      await processAIConversation(userMessage);
     } catch (error) {
       console.error("AI Chat Error:", error);
       const errorMessage: Message = {
@@ -95,6 +95,103 @@ export default function AIPage() {
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+    }
+  };
+
+  const processAIConversation = async (
+    userMessage: Message,
+    toolCallsToExecute?: ToolCall[],
+    toolResponses?: ToolResult[]
+  ) => {
+    try {
+      const response = await http().post("/api/ai/chat", {
+        message: userMessage.content,
+        history: messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        tool_calls: toolCallsToExecute,
+        tool_responses: toolResponses,
+      });
+
+      const data = response.data;
+
+      // If AI wants to execute tool calls
+      if (data.requires_tool_calls && data.tool_calls) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+          tool_calls: data.tool_calls,
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // Execute the tool calls
+        const toolResponse = await http().post("/api/ai/chat", {
+          message: userMessage.content,
+          history: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          tool_calls: data.tool_calls,
+        });
+
+        const toolData = toolResponse.data;
+
+        // Show tool execution results
+        const toolMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          role: "assistant",
+          content:
+            toolData.tool_results
+              ?.map((result: ToolResult) => result.content)
+              .join("\n") || "Actions completed.",
+          timestamp: new Date(),
+          tool_results: toolData.tool_results,
+        };
+
+        setMessages((prev) => [...prev, toolMessage]);
+
+        // Get final AI response after tool execution
+        try {
+          const finalResponse = await http().post("/api/ai/chat", {
+            message: userMessage.content,
+            history: [...messages, assistantMessage, toolMessage].map(
+              (msg) => ({
+                role: msg.role,
+                content: msg.content,
+              })
+            ),
+            tool_responses: toolData.tool_results,
+          });
+
+          const finalData = finalResponse.data;
+          const finalMessage: Message = {
+            id: (Date.now() + 3).toString(),
+            role: "assistant",
+            content: finalData.response,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, finalMessage]);
+        } catch (error) {
+          console.error("Failed to get final AI response:", error);
+        }
+      } else {
+        // Regular text response
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -118,8 +215,9 @@ export default function AIPage() {
               <h1 className="text-3xl font-bold text-gray-900">AI Assistant</h1>
             </div>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Your intelligent companion for caregiving support, scheduling
-              assistance, and general help. Powered by Google Gemini.
+              Your intelligent companion for caregiving support with direct
+              action capabilities. I can manage your notes and appointments
+              while answering your questions. Powered by Google Gemini.
             </p>
           </div>
 
@@ -152,6 +250,54 @@ export default function AIPage() {
                     )}
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
+
+                    {/* Show tool calls if present */}
+                    {message.tool_calls && message.tool_calls.length > 0 && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Settings className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs font-medium text-blue-700">
+                            Performing Actions
+                          </span>
+                        </div>
+                        {message.tool_calls.map((toolCall) => {
+                          const args = JSON.parse(toolCall.function.arguments);
+                          return (
+                            <div
+                              key={toolCall.id}
+                              className="text-xs text-blue-600 mb-1"
+                            >
+                              • {toolCall.function.name.replace(/_/g, " ")}:{" "}
+                              {toolCall.function.name.includes("note")
+                                ? args.header || "Processing..."
+                                : args.name || "Processing..."}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Show tool results if present */}
+                    {message.tool_results &&
+                      message.tool_results.length > 0 && (
+                        <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-xs font-medium text-green-700">
+                              Actions Completed
+                            </span>
+                          </div>
+                          {message.tool_results.map((result) => (
+                            <div
+                              key={result.tool_call_id}
+                              className="text-xs text-green-600"
+                            >
+                              {result.content}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                     <p
                       className={cn(
                         "text-xs mt-2 opacity-70",
@@ -272,11 +418,11 @@ export default function AIPage() {
                 </svg>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">
-                Schedule Management
+                Smart Actions
               </h3>
               <p className="text-sm text-gray-600">
-                Optimize your schedule, plan appointments, and manage your time
-                effectively.
+                Create, edit, and manage notes and appointments directly through
+                conversation. No need to navigate between pages.
               </p>
             </Card>
 
