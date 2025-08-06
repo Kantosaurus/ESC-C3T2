@@ -24,9 +24,8 @@ export function DayView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-slate-900">
-          {new Date().toDateString() === new Date().toDateString()
-            ? "Today"
-            : "Selected Date"}
+          {appointments[0] &&
+            new Date(appointments[0].startDateTime).toDateString()}
         </h2>
         <div className="text-sm text-slate-500">
           {appointments.length} appointment
@@ -76,7 +75,7 @@ export function DayView({
             >
               {showTime ? (
                 <div>
-                  <div className="text-blue-800 font-semibold group-hover:text-blue-900 truncate transition-colors">
+                  <div className="text-blue-800 font-semibold -mt-1  group-hover:text-blue-900 truncate transition-colors">
                     {appt.name}
                   </div>
                   <div className="text-blue-700 text-xs mt-1 flex items-center gap-1">
@@ -93,7 +92,7 @@ export function DayView({
                   </div>
                 </div>
               ) : (
-                <div className="text-blue-800 font-semibold flex items-center gap-2 group-hover:text-blue-900 truncate transition-colors">
+                <div className="text-blue-800 font-semibold -mt-2 flex items-center gap-2 group-hover:text-blue-900 truncate transition-colors">
                   {appt.name}{" "}
                   <div className="text-blue-700 text-xs flex items-center gap-1">
                     <div className="w-1 h-1 bg-blue-500 rounded-full"></div>

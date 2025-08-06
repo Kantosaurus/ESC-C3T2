@@ -61,7 +61,7 @@ const hourOptions = generateHourOptions();
 
 //default time values
 const defaultMin = "00";
-const defaultStartHr = "07";
+const defaultStartHr = "08";
 const defaultEndHr = "09";
 
 // create string

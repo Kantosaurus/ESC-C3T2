@@ -28,15 +28,7 @@ export default function UpdateAppointmentForm({
   };
 
   return (
-    <div className="bg-white rounded-lg p-6">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Update {appointment.name}
-        </h2>
-        <p className="text-gray-600">
-          Make changes to the appointment information below.
-        </p>
-      </div>
+    <div className="bg-white rounded-lg">
       <AppointmentForm
         defaultValues={defaultValues}
         onSubmit={onSubmit}

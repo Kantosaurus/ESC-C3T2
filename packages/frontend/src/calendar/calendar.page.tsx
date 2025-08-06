@@ -6,10 +6,6 @@ import {
   Trash2,
   ArrowLeft,
   CalendarPlus,
-  Inbox,
-  Search,
-  Clock,
-  Download,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -45,15 +41,13 @@ import {
   useGetAppointments,
   useDeleteAppointment,
   useUpdateAppointment,
-  useGetPendingAppointments,
-  useGetDeclinedAppointments,
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
-import useCreateIcsFile from "./exportics";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import { cn } from "@/lib/utils";
+import CalendarBar from "./calendarbar";
 
 export default function Calendarview() {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -63,38 +57,21 @@ export default function Calendarview() {
   const { elderDetails } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Appointment[]>([]);
-  const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>(
-    []
-  );
+
   const [sheetView, setSheetView] = useState<
     "dayview" | "details" | "form" | "update"
   >("dayview");
-  const [showPending, setShowPending] = useState(false);
 
   //handlers
   const { appointments, refetch } = useGetAppointments(
     selectedElder?.id ?? null
   );
 
-  const { triggerDownload } = useCreateIcsFile(appointments);
-
-  const { declined } = useGetDeclinedAppointments(selectedElder?.id ?? null);
-
-  const { pending, refetchPending } = useGetPendingAppointments();
-  useEffect(() => {
-    if (pending) {
-      setPendingAppointments(pending);
-    }
-  }, [pending]);
-
   const addAppointment = useCreateAppointment();
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
       await addAppointment(values);
       await refetch();
-      await refetchPending();
       setViewDate(null);
       setSheetView("dayview");
       if (selectedElder) {
@@ -148,8 +125,18 @@ export default function Calendarview() {
     }
   };
 
-  const findElder = (id: number) =>
-    elderDetails?.find((elder) => elder.id === id);
+  const showAppointmentDetails = (appointment: Appointment) => {
+    const elder = elderDetails?.find((e) => e.id === appointment.elder_id);
+    if (elder) {
+      setSelectedElder(elder);
+      setSelectedAppointment(appointment);
+      setViewDate(new Date(appointment.startDateTime));
+      setSheetView("details");
+      navigate(`/calendar/${elder.id}/${appointment.appt_id}`, {
+        replace: true,
+      });
+    }
+  };
 
   //render
   useEffect(() => {
@@ -157,21 +144,6 @@ export default function Calendarview() {
       setSelectedElder(elderDetails[0]);
     }
   }, [elderDetails]);
-
-  useEffect(() => {
-    if (!appointments || searchQuery.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = appointments.filter(
-      (appt) =>
-        appt.name.toLowerCase().includes(query) ||
-        (appt.details?.toLowerCase().includes(query) ?? false)
-    );
-    setSearchResults(filtered);
-  }, [searchQuery, appointments]);
 
   const year = currDate.getFullYear();
   const month = currDate.getMonth();
@@ -216,19 +188,6 @@ export default function Calendarview() {
   const selectElder = (elder: Elder) => {
     setSelectedElder(elder);
     navigate(`/calendar/${elder.id}`, { replace: true });
-  };
-
-  const showAppointmentDetails = (appointment: Appointment) => {
-    const elder = elderDetails?.find((e) => e.id === appointment.elder_id);
-    if (elder) {
-      setSelectedElder(elder);
-      setSelectedAppointment(appointment);
-      setViewDate(new Date(appointment.startDateTime));
-      setSheetView("details");
-      navigate(`/calendar/${elder.id}/${appointment.appt_id}`, {
-        replace: false,
-      });
-    }
   };
 
   const goToToday = () => {
@@ -278,6 +237,9 @@ export default function Calendarview() {
       </CalendarCell>
     );
   }
+  for (let i = 0; i < 42 - firstDay - daysInMonth; i++) {
+    calCells.push(<CalendarCell variant="empty" key={`trailing-empty-${i}`} />);
+  }
   const prevMonth = () => setCurrDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrDate(new Date(year, month + 1, 1));
 
@@ -320,7 +282,7 @@ export default function Calendarview() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Left Section */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
               <button
                 className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900"
                 onClick={() => navigate("/dashboard")}
@@ -329,10 +291,10 @@ export default function Calendarview() {
               </button>
 
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-semibold text-slate-900">
+                <h1 className="text-xl font-semibold text-slate-900 hidden sm:block">
                   Calendar
                 </h1>
-                <div className="h-4 w-px bg-slate-300"></div>
+                <div className="h-4 w-px bg-slate-300 hidden sm:block"></div>
                 <span className="text-slate-600">for</span>
                 <Select
                   value={selectedElder?.id?.toString() || ""}
@@ -360,17 +322,17 @@ export default function Calendarview() {
             </div>
 
             {/* Center Section - Calendar Navigation */}
-            <div className="flex items-center gap-3">
+            <div className="flex sm:gap-1 items-center">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={prevMonth}
-                className="h-9 w-9 rounded-lg hover:bg-slate-100"
+                className="h-9 w-4 rounded-lg hover:bg-slate-100"
               >
                 <ChevronLeftIcon className="h-4 w-4" />
               </Button>
 
-              <div className="relative">
+              <div className="relative w-[120px] sm:w-[130px] scale-80 sm:scale-100 flex items-center justify-center">
                 <MiniCalendar
                   selected={currDate}
                   onSelect={(date) => setCurrDate(date)}
@@ -381,180 +343,26 @@ export default function Calendarview() {
                 variant="ghost"
                 size="icon"
                 onClick={nextMonth}
-                className="h-9 w-9 rounded-lg hover:bg-slate-100"
+                className="h-9 w-4 rounded-lg hover:bg-slate-100"
               >
                 <ChevronRightIcon className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search appointments..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-64 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-
-                {searchResults.length > 0 && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl border border-slate-200 rounded-xl z-50 overflow-hidden">
-                    <div className="p-3 bg-slate-50 border-b border-slate-200">
-                      <h3 className="text-sm font-medium text-slate-900">
-                        Search Results ({searchResults.length})
-                      </h3>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {searchResults.map((result) => (
-                        <div
-                          key={`${result.startDateTime}-${result.name}`}
-                          className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-b-0"
-                          onClick={() => {
-                            setSearchQuery("");
-                            showAppointmentDetails(result);
-                          }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-slate-900 truncate">
-                                {result.name}
-                              </div>
-                              <div className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                                <Clock className="w-3 h-3" />
-                                {new Date(
-                                  result.startDateTime
-                                ).toLocaleDateString()}{" "}
-                                –{" "}
-                                {new Date(
-                                  result.startDateTime
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {selectedElder.id && (
-                <Button variant="outline" onClick={() => triggerDownload()}>
-                  Export <Download />
-                </Button>
-              )}
-              {/* Pending Appointments */}
-              <div className="relative">
-                <Button
-                  onClick={() => {
-                    setShowPending((prev) => !prev);
-                    refetchPending();
-                  }}
-                  variant="outline"
-                  className="relative bg-white hover:bg-slate-50 border-slate-200"
-                >
-                  <Inbox className="w-4 h-4 mr-2" />
-                  Pending
-                  {pendingAppointments.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {pendingAppointments.length}
-                    </span>
-                  )}
-                </Button>
-
-                {showPending && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl border border-slate-200 rounded-xl z-50 overflow-hidden">
-                    {pendingAppointments.length > 0 ? (
-                      <div className="max-h-64 overflow-y-auto">
-                        <div className="p-3 bg-slate-50 border-b border-slate-200">
-                          <h3 className="text-sm font-medium text-slate-900">
-                            Pending Appointments ({pendingAppointments.length})
-                          </h3>
-                        </div>
-                        <div className="divide-y divide-slate-100">
-                          {pendingAppointments.map((result) => (
-                            <div
-                              key={result.appt_id}
-                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
-                              onClick={() => {
-                                showAppointmentDetails(result);
-                                setSearchQuery("");
-                                setShowPending(false);
-                              }}
-                            >
-                              <div className="flex items-start gap-3">
-                                {declined?.some(
-                                  (item) => item.appt_id === result.appt_id
-                                ) ? (
-                                  <div className="text-2xl font-semibold text-red-500 -mt-1 flex-shrink-0">
-                                    !
-                                  </div>
-                                ) : (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-slate-900 truncate">
-                                    {result.name}
-                                  </div>
-                                  <div className="text-sm text-slate-500 mt-1">
-                                    for {findElder(result.elder_id)?.name}
-                                  </div>
-                                  {result.startDateTime && (
-                                    <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {new Date(
-                                        result.startDateTime
-                                      ).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-6 text-center">
-                        <Inbox className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <div className="text-slate-500 text-sm font-medium">
-                          No pending appointments
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1">
-                          All appointments are accepted
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* Today Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToToday}
-                className="bg-white hover:bg-slate-50 border-slate-200"
-              >
-                Today
-              </Button>
+            <div className="ml-auto">
+              <CalendarBar
+                selectedElder={selectedElder}
+                goToToday={goToToday}
+              ></CalendarBar>
             </div>
           </div>
         </div>
       </header>
 
       {/* Calendar Grid */}
-      <main className="flex-1 p-6 overflow-hidden">
-        <div className="h-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <main className="flex-1 p-2 overflow-hidden">
+        <div className="bg-white h-full flex flex-col rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Calendar Header */}
           <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
             {days.map((day) => (
@@ -568,7 +376,9 @@ export default function Calendarview() {
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 h-full">{calCells}</div>
+          <div className="grid grid-cols-7 flex-1 h-full [grid-auto-rows:1fr] gap-px md:gap-0">
+            {calCells}
+          </div>
         </div>
       </main>
 
@@ -593,8 +403,22 @@ export default function Calendarview() {
           className="!w-full sm:!w-[600px] max-w-full p-0 overflow-hidden"
         >
           <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
-            <div className="grid grid-cols-3 items-center py-4 px-6">
+            <div className="justify-between flex items-center py-4 px-6">
               <div className="flex justify-start">
+                {sheetView == "dayview" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setViewDate(null);
+                      setSelectedAppointment(null);
+                    }}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
+                  </Button>
+                )}
                 {!(sheetView == "dayview") && (
                   <Button
                     variant="ghost"
@@ -606,12 +430,6 @@ export default function Calendarview() {
                     Back
                   </Button>
                 )}
-              </div>
-              <div className="flex justify-center font-semibold text-slate-900">
-                {sheetView == "dayview" && viewDate?.toDateString()}
-                {sheetView == "details" && "Details"}
-                {sheetView == "form" && "Create"}
-                {sheetView == "update" && "Update"}
               </div>
               <div className="flex justify-end">
                 {sheetView == "dayview" && (
@@ -639,7 +457,7 @@ export default function Calendarview() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>
+                          <DialogTitle className="max-w-[400px] truncate">
                             Delete {selectedAppointment.name}?
                           </DialogTitle>
                           <DialogDescription>
@@ -647,20 +465,18 @@ export default function Calendarview() {
                             delete the appointment
                           </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4">
-                          <Button
-                            className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                            onClick={async () => {
-                              if (!selectedElder) return;
-                              handleDeleteAppointment({
-                                elder_id: selectedAppointment.elder_id,
-                                appt_id: selectedAppointment.appt_id,
-                              });
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                          onClick={async () => {
+                            if (!selectedElder) return;
+                            handleDeleteAppointment({
+                              elder_id: selectedAppointment.elder_id,
+                              appt_id: selectedAppointment.appt_id,
+                            });
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </DialogContent>
                     </Dialog>
                     <Button

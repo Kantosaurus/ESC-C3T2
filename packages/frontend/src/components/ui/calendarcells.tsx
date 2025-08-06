@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const calendarCellVariants = cva(
-  "relative w-full h-full border-r border-b border-slate-300 bg-white p-3 text-left select-none flex flex-col justify-start items-start transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-400 cursor-pointer group",
+  "w-full h-full border-r border-b border-slate-300 bg-white p-3 text-left select-none flex flex-col justify-start items-start transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-400 cursor-pointer group",
   {
     variants: {
       variant: {
@@ -31,7 +31,7 @@ export interface CalendarCellProps
     VariantProps<typeof calendarCellVariants> {
   asChild?: boolean;
   children?: React.ReactNode;
-  eventLabel?: string | string[];
+  eventLabel?: string[];
 }
 
 const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
@@ -40,6 +40,12 @@ const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
     ref
   ) => {
     const Comp = asChild ? Slot : "div";
+    //prevent overflow
+    if (eventLabel && eventLabel?.length > 4) {
+      const extraEvents = eventLabel.length - 3;
+      eventLabel.length = 3;
+      eventLabel.push(`+${extraEvents} more`);
+    }
     return (
       <Comp
         ref={ref}

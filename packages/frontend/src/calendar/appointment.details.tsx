@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useGetAppointment } from "./use-appointment";
+import {
+  useGetAppointment,
+  useGetDeclinedAppointments,
+} from "./use-appointment";
 import { Label } from "@/components/ui/label";
 import type { Elder } from "@carely/core";
 import {
@@ -42,6 +45,8 @@ export default function AppointmentDetailsPage({
 
   const { caregiverDetails } = useCaregiver();
 
+  const { declined } = useGetDeclinedAppointments(elder.id ?? null);
+
   const acceptAppointment = useAcceptAppointment();
 
   const handleAcceptAppointment = async (values: {
@@ -64,6 +69,8 @@ export default function AppointmentDetailsPage({
       toast.error(message);
     }
   };
+
+  const allDeclined = declined?.some((item) => item.appt_id === appt_id);
 
   const declineAppointment = useDeclineAppointment();
   const handleDeclineAppointment = async (values: {
@@ -101,8 +108,7 @@ export default function AppointmentDetailsPage({
 
   return (
     <div>
-      Created By: {createcaregiver?.name}
-      <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
+      <div className="-mt-3 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div className="space-y-2">
           <Label className="text-gray-600">Elder</Label>
           <div className="p-2 border rounded bg-gray-50">{elder.name}</div>
@@ -110,7 +116,7 @@ export default function AppointmentDetailsPage({
 
         <div className="space-y-2">
           <Label className="text-gray-600">Appointment Title</Label>
-          <div className="p-2 border rounded bg-gray-50">
+          <div className="p-2 border rounded bg-gray-50 truncate">
             {appointment.name || "Missing title"}
           </div>
         </div>
@@ -135,7 +141,7 @@ export default function AppointmentDetailsPage({
 
         <div className="space-y-2">
           <Label className="text-gray-600">Details</Label>
-          <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap">
+          <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap break-words">
             {appointment.details || (
               <span className="text-gray-400">No details</span>
             )}
@@ -148,6 +154,12 @@ export default function AppointmentDetailsPage({
             {appointment.loc || (
               <span className="text-gray-400">No location specified</span>
             )}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label className="text-gray-600">Created by</Label>
+          <div className="p-2 border rounded bg-gray-50">
+            <span>{createcaregiver?.name}</span>
           </div>
         </div>
       </div>
@@ -200,9 +212,12 @@ export default function AppointmentDetailsPage({
                   <Undo /> Undo
                 </Button>
               </div>
-              <div className="p-2 border rounded bg-gray-100 text-gray-500 italic">
-                {appointment.declined}
-              </div>
+              {allDeclined && (
+                <div className="mt-1 text-xs text-red-500 italic">
+                  All caregivers have declined this appointment, kindly contact
+                  external caregivers for assistance
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-between">

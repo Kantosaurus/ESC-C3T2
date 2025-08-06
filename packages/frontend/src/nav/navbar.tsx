@@ -68,19 +68,22 @@ export default function AppNavbar() {
           <div ref={avatarRef} className="relative">
             <div
               className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
-              onClick={() => setAvatarDropdownOpen((open) => !open)}>
+              onClick={() => setAvatarDropdownOpen((open) => !open)}
+            >
               {getInitials(caregiverDetails?.name)}
             </div>
             {avatarDropdownOpen && (
               <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-900 rounded-md shadow-lg border border-gray-200 dark:border-neutral-800 z-50 py-2">
                 <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                  onClick={() => navigate("/caregiver/profile")}>
+                  onClick={() => navigate("/caregiver/profile")}
+                >
                   <User className="h-4 w-4 mr-2 inline-block" /> Profile
                 </button>
                 <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                  onClick={handleLogout}>
+                  onClick={handleLogout}
+                >
                   <LogOut className="h-4 w-4 mr-2 inline-block" /> Logout
                 </button>
               </div>
@@ -104,7 +107,8 @@ export default function AppNavbar() {
                 key={index}
                 href={item.link}
                 className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                onClick={() => setMobileMenuOpen(false)}>
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 {item.name}
               </a>
             ))}
@@ -117,7 +121,8 @@ export default function AppNavbar() {
                   handleLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                className="flex items-center text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </button>
