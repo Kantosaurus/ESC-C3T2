@@ -70,6 +70,9 @@ export function DayView({
           return (
             <div
               key={i}
+              data-testid={`appointment-${appt.name
+                .replace(/\s+/g, "-")
+                .replace(/[^a-zA-Z0-9-_]/g, "")}`}
               className="absolute left-[80px] right-4 bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 text-sm p-3 rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-all duration-200 hover:from-blue-100 hover:to-blue-200 group"
               style={{ top: `${top}px`, height: `${height}px` }}
               onClick={() => onSelect?.(appt)}

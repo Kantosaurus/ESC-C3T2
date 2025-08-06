@@ -219,6 +219,7 @@ export default function Calendarview() {
 
     calCells.push(
       <CalendarCell
+        data-testid={`calendar-cell-${day}`}
         variant={isToday ? "today" : "default"}
         hasEvent={dayAppointments.length > 0}
         key={day}
@@ -307,7 +308,10 @@ export default function Calendarview() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-auto border-0 bg-transparent text-slate-900 font-medium hover:bg-slate-100 px-3 py-1">
+                  <SelectTrigger
+                    data-testid="choose-elder-button"
+                    className="w-auto border-0 bg-transparent text-slate-900 font-medium hover:bg-slate-100 px-3 py-1"
+                  >
                     <SelectValue placeholder="Choose elder..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -468,6 +472,7 @@ export default function Calendarview() {
                           </DialogDescription>
                         </DialogHeader>
                         <Button
+                          data-testid={`confirm-delete-button`}
                           className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
                           onClick={async () => {
                             if (!selectedElder) return;

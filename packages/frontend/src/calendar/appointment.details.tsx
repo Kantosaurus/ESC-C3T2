@@ -170,6 +170,7 @@ export default function AppointmentDetailsPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-lg">Accepted by you</Label>
                 <Button
+                  data-testid="undo-accept-button"
                   variant="outline"
                   onClick={() => {
                     handleAcceptAppointment({
@@ -200,6 +201,7 @@ export default function AppointmentDetailsPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-lg">Declined by you</Label>
                 <Button
+                  data-testid="undo-decline-button"
                   variant="outline"
                   onClick={() => {
                     handleDeclineAppointment({
@@ -226,6 +228,7 @@ export default function AppointmentDetailsPage({
               </Label>
               <div className="flex gap-2">
                 <Button
+                  data-testid="accept-appointment-button"
                   variant="outline"
                   onClick={() => {
                     handleAcceptAppointment({
@@ -238,6 +241,7 @@ export default function AppointmentDetailsPage({
                   Accept
                 </Button>
                 <Button
+                  data-testid="decline-appointment-button"
                   variant="outline"
                   onClick={() => {
                     handleDeclineAppointment({
