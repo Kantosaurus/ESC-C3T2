@@ -324,6 +324,7 @@ export default function Calendarview() {
             {/* Center Section - Calendar Navigation */}
             <div className="flex sm:gap-1 items-center">
               <Button
+                data-testid="prev-month-button"
                 variant="ghost"
                 size="icon"
                 onClick={prevMonth}
@@ -340,6 +341,7 @@ export default function Calendarview() {
               </div>
 
               <Button
+                data-testid="next-month-button"
                 variant="ghost"
                 size="icon"
                 onClick={nextMonth}
@@ -495,6 +497,7 @@ export default function Calendarview() {
           <div className="h-full overflow-y-auto p-6">
             {sheetView == "dayview" && (
               <DayView
+                viewDateString={viewDate?.toDateString()}
                 date={viewDate!}
                 appointments={selectedDateAppointments}
                 onSelect={(appt) => {

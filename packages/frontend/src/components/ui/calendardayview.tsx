@@ -1,9 +1,11 @@
 import type { Appointment } from "@carely/core";
 
 export function DayView({
+  viewDateString,
   appointments,
   onSelect,
 }: {
+  viewDateString: string | undefined;
   date: Date;
   appointments: Appointment[];
   onSelect?: (appt: Appointment) => void;
@@ -24,8 +26,7 @@ export function DayView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-slate-900">
-          {appointments[0] &&
-            new Date(appointments[0].startDateTime).toDateString()}
+          {viewDateString}
         </h2>
         <div className="text-sm text-slate-500">
           {appointments.length} appointment
