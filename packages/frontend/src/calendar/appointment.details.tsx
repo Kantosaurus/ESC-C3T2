@@ -24,6 +24,29 @@ const extractTimeFromISO = (isoString: string): string => {
   });
 };
 
+const extractDateFromISO = (isoString: string): string => {
+  const date = new Date(isoString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+};
+
 export default function AppointmentDetailsPage({
   elder,
   appt_id,
@@ -123,6 +146,15 @@ export default function AppointmentDetailsPage({
         </div>
 
         <div className="space-y-2">
+          <Label className="text-gray-600">Date</Label>
+          <div className="p-2 border rounded bg-gray-50">
+            {appointment.startDateTime
+              ? extractDateFromISO(appointment.startDateTime.toString())
+              : "Missing Date"}
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <Label className="text-gray-600">Start Time</Label>
           <div className="p-2 border rounded bg-gray-50">
             {appointment.startDateTime
@@ -141,6 +173,15 @@ export default function AppointmentDetailsPage({
         </div>
 
         <div className="space-y-2">
+          <Label className="text-gray-600">Location</Label>
+          <div className="p-2 border rounded bg-gray-50">
+            {appointment.loc || (
+              <span className="text-gray-400">No location specified</span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <Label className="text-gray-600">Details</Label>
           <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap break-words">
             {appointment.details || (
@@ -149,14 +190,6 @@ export default function AppointmentDetailsPage({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-gray-600">Location</Label>
-          <div className="p-2 border rounded bg-gray-50">
-            {appointment.loc || (
-              <span className="text-gray-400">No location specified</span>
-            )}
-          </div>
-        </div>
         <div className="space-y-2">
           <Label className="text-gray-600">Created by</Label>
           <div className="p-2 border rounded bg-gray-50">

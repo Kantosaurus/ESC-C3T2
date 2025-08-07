@@ -22,7 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 import {
   Dialog,
@@ -226,7 +231,7 @@ export default function Calendarview() {
         onClick={() => {
           setViewDate(cellDate);
         }}
-        eventLabel={dayAppointments.map(
+        eventlabel={dayAppointments.map(
           (appt) =>
             `${new Date(appt.startDateTime).toLocaleTimeString([], {
               hour: "2-digit",
@@ -409,6 +414,10 @@ export default function Calendarview() {
           side="right"
           className="!w-full sm:!w-[600px] max-w-full p-0 overflow-hidden"
         >
+          <SheetTitle className="sr-only">
+            Sheet
+            <SheetDescription className="sr-only">Sidebar</SheetDescription>
+          </SheetTitle>
           <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
             <div className="justify-between flex items-center py-4 px-6">
               <div className="flex justify-start">
