@@ -4,11 +4,12 @@ import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
 import type { Note } from "@carely/core";
+import { useNoteLock } from "./use-note-lock";
 
 const useEditNote = () => {
   return useCallback((values: Partial<Note> & { id: number }) => {
     return http()
-      .patch(`/api/notes/${values.id}`, values)
+      .patch(`/api/notes/${values.id}/edit`, values) //Changed to include /edit at the end
       .then((res) => res.data)
       .catch((error) => {
         console.error("Error editing note:", error);
@@ -43,6 +44,7 @@ export default function EditNotePage() {
   const navigate = useNavigate();
   const editNote = useEditNote();
   const { note, loading } = useNoteById(Number(noteId));
+  const { lockNote, unlockNote } = useNoteLock();
 
   useEffect(() => {
     if (!loading && !note) {
@@ -50,6 +52,28 @@ export default function EditNotePage() {
       navigate("/notes");
     }
   }, [note, loading, navigate]);
+
+  useEffect(() => {
+    const handleLockNote = async () => {
+      if (note?.id) {
+        try {
+          await lockNote(note.id);
+        } catch {
+          navigate("/notes");
+        }
+      }
+    };
+
+    if (note?.id) {
+      handleLockNote();
+    }
+
+    return () => {
+      if (note?.id) {
+        unlockNote(note.id).catch(console.error);
+      }
+    };
+  }, [note?.id, lockNote, unlockNote, navigate]);
 
   if (!note) return null;
 

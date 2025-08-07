@@ -1,0 +1,1 @@
+ALTER TABLE notes ADD COLUMN locked_by VARCHAR REFERENCES caregivers(id) ON DELETE SET NULL;

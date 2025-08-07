@@ -2,7 +2,6 @@ import { noteSchema } from "@carely/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,10 +14,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useSpeechToText } from "./use-speech-to-text";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
+import { http } from "@/lib/http";
+import { toast } from "sonner";
 
 const editNoteFormSchema = z.object({
   id: noteSchema.shape.id,
@@ -27,7 +28,6 @@ const editNoteFormSchema = z.object({
   assigned_elder_id: noteSchema.shape.assigned_elder_id,
 });
 
-// export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
 export type EditNoteFormType = z.infer<typeof editNoteFormSchema>;
 export type EditNoteFormInput = z.input<typeof editNoteFormSchema>;
 
@@ -40,22 +40,22 @@ export function EditNoteForm({
 }) {
   const result = useEldersDetails();
   const elderDetails = result?.elderDetails ?? [];
+  const [isSaving, setIsSaving] = useState(false);
+  const { noteId } = useParams();
+  const navigate = useNavigate();
 
   const form = useForm<EditNoteFormInput, unknown, EditNoteFormType>({
     resolver: zodResolver(editNoteFormSchema),
     defaultValues,
   });
 
-  const navigate = useNavigate();
-
   const elderId = form.watch("assigned_elder_id");
-  
+
   const assignedElderName = useMemo(() => {
     if (!elderDetails.length || elderId == null) return "Loading...";
-    const elder = elderDetails?.find((e) => e.id === elderId)
+    const elder = elderDetails?.find((e) => e.id === elderId);
     return elder?.name ?? "Unknown";
-  }, [elderDetails, elderId])
-    
+  }, [elderDetails, elderId]);
 
   const {
     transcript,
@@ -65,37 +65,52 @@ export function EditNoteForm({
     setTranscript,
   } = useSpeechToText();
 
+  const handleSubmitWithUnlock = async (values: EditNoteFormType) => {
+    setIsSaving(true);
+    try {
+      await onSubmit(values);
+      await http().post(`/api/notes/${noteId}/unlock`);
+
+      toast.success("Note saved successfully!");
+      navigate("/notes");
+    } catch (error: any) {
+      console.error("Save failed:", error);
+
+      // Attempt to unlock on failure (unless it's a lock conflict)
+      if (error.response?.status !== 423) {
+        await http().post(`/api/notes/${noteId}/unlock`).catch(console.error);
+      }
+
+      toast.error(error.response?.data?.message || "Failed to save note");
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
-    // Set the default value for assigned_elder_id if not already set
     if (!defaultValues?.assigned_elder_id && elderDetails.length > 0) {
       form.setValue("assigned_elder_id", elderDetails[0].id.toString());
     }
   }, [elderId, elderDetails, form]);
 
   useEffect(() => {
-    // Reset the form values if form is mounted before data is ready
     if (defaultValues) {
       form.reset(defaultValues);
     }
   }, [defaultValues, form]);
 
-  // This updates the form content field every time speech is transcribed
   useEffect(() => {
     if (transcript) {
       form.setValue("content", form.getValues("content") + transcript);
-      setTranscript(""); // clear internal transcript so future additions are new
+      setTranscript("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript]);
 
   return (
     <Form {...form}>
-      {/* <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8"> */}
       <form
-        onSubmit={form.handleSubmit((values) => {
-          console.log("Form returned values:", values); // log the returned values
-          return onSubmit(values);
-        })}
+        onSubmit={form.handleSubmit(handleSubmitWithUnlock)}
         className="space-y-8"
       >
         <FormItem>
@@ -126,6 +141,7 @@ export function EditNoteForm({
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="content"
@@ -139,7 +155,6 @@ export function EditNoteForm({
               >
                 {listening ? "Stop Voice" : "Start Voice"}
               </Button>
-
               <FormControl>
                 <Textarea
                   placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
@@ -156,20 +171,25 @@ export function EditNoteForm({
             </FormItem>
           )}
         />
-        <Button
-          variant="outline"
-          className="mr-2 bg-slate-100 hover:bg-slate-200"
-          type="button"
-          onClick={() => navigate("/notes")}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}
-        >
-          Save changes
-        </Button>
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="bg-slate-100 hover:bg-slate-200"
+            type="button"
+            onClick={() => navigate("/notes")}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={
+              form.formState.isSubmitting || !form.formState.isDirty || isSaving
+            }
+          >
+            {isSaving ? "Saving..." : "Save changes"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

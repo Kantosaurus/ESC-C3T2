@@ -35,6 +35,8 @@ import {
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 
+import { lockNoteHandler } from "./note/note.handler";
+import { unlockNoteHandler } from "./note/note.handler";
 const app = express();
 const port = process.env.PORT ?? "3000";
 
@@ -84,11 +86,14 @@ app.post("/api/appointment/delete", deleteAppointmentHandler);
 app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 
+// index.ts
+app.post("/api/notes/:id/lock", lockNoteHandler);
+app.post("/api/notes/:id/unlock", unlockNoteHandler);
 app.get("/api/notes/details", getNotesHandler);
 app.get("/api/notes/:id", getSingleNoteHandler);
 app.post("/api/notes/new", insertNotesHandler);
 app.post("/api/notes/:id/delete", deleteNotesHandler);
-app.patch("/api/notes/:id", updateNotesHandler);
+app.patch("/api/notes/:id/edit", updateNotesHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 

@@ -11,6 +11,7 @@ export const noteSchema = z.object({
   assigned_elder_id: z.coerce.number(),
   created_at: z.date(),
   updated_at: z.date(),
+  locked_by: z.string().nullable(),
 });
 
 export type Note = z.infer<typeof noteSchema>;

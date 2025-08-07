@@ -58,7 +58,7 @@ export const insertNotes = (
 export const updateNotes = (
   noteDetails: Pick<
     Note,
-    "id" | "header" | "content" | "caregiver_id" | "updated_at"
+    "id" | "header" | "content" | "caregiver_id" | "updated_at" | "locked_by"
   >
 ) =>
   db
@@ -76,6 +76,7 @@ export const updateNotes = (
         noteDetails.content,
         noteDetails.caregiver_id,
         noteDetails.updated_at,
+        noteDetails.locked_by,
       ]
     )
     .then((result) => z.array(noteSchema).parse(result)[0]);
