@@ -45,7 +45,8 @@ export default function AppointmentDetailsPage({
 
   const { caregiverDetails } = useCaregiver();
 
-  const { declined } = useGetDeclinedAppointments(elder.id ?? null);
+  const { declined, refetchAppointment: refetchDeclinedAppointments } =
+    useGetDeclinedAppointments(elder.id ?? null);
 
   const acceptAppointment = useAcceptAppointment();
 
@@ -56,7 +57,7 @@ export default function AppointmentDetailsPage({
   }) => {
     try {
       await acceptAppointment(values);
-      await refetchAppointment();
+      await Promise.all([refetchAppointment(), refetchDeclinedAppointments()]);
       if (values.undo) {
         toast.success("Undo Successful");
       } else {
@@ -80,7 +81,7 @@ export default function AppointmentDetailsPage({
   }) => {
     try {
       await declineAppointment(values);
-      await refetchAppointment();
+      await Promise.all([refetchAppointment(), refetchDeclinedAppointments()]);
       if (values.undo) {
         toast.success("Undo Successful");
       } else {

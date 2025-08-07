@@ -4,5 +4,6 @@
     { "path": "packages/core" },
     { "path": "packages/frontend" },
     { "path": "packages/backend" }
-  ]
+  ],
+  "exclude": ["**/*.cy.ts"]
 }

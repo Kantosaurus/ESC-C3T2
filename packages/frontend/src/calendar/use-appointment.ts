@@ -210,18 +210,22 @@ export function useAcceptAppointment() {
 
 export function useDeclineAppointment() {
   return useCallback(
-    (values: {
-      elder_id: number;
-      appt_id: number | undefined;
-      undo: boolean;
-    }) => {
-      return http()
-        .post("/api/appointment/decline", values)
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error accepting appointment:", error);
-          throw error;
-        });
+    async (
+      values: {
+        elder_id: number;
+        appt_id: number | undefined;
+        undo: boolean;
+      },
+      refetch?: () => void
+    ) => {
+      try {
+        const res = await http().post("/api/appointment/decline", values);
+        if (refetch) refetch();
+        return res.data;
+      } catch (error) {
+        console.error("Error declining appointment:", error);
+        throw error;
+      }
     },
     []
   );

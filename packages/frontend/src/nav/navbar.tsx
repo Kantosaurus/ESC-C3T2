@@ -67,6 +67,7 @@ export default function AppNavbar() {
           {/* Avatar with dropdown */}
           <div ref={avatarRef} className="relative">
             <div
+              data-testid="avatar-button"
               className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold cursor-pointer border-2 border-primary/80 shadow-sm"
               onClick={() => setAvatarDropdownOpen((open) => !open)}
             >
@@ -81,6 +82,7 @@ export default function AppNavbar() {
                   <User className="h-4 w-4 mr-2 inline-block" /> Profile
                 </button>
                 <button
+                  data-testid="logout-button"
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
                   onClick={handleLogout}
                 >

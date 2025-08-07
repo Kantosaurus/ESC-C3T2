@@ -285,6 +285,7 @@ export default function Calendarview() {
             {/* Left Section */}
             <div className="flex items-center gap-3">
               <button
+                data-testid="back-to-dashboard-button"
                 className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900"
                 onClick={() => navigate("/dashboard")}
               >
