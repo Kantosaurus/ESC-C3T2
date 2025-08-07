@@ -7,7 +7,13 @@ import {
   afterEach,
   beforeAll,
 } from "vitest";
-import { db } from "../../db/db";
+import { testDb } from "../../db/test-db";
+
+// Mock the main database to use test database
+vi.mock("../../db/db", () => ({
+  db: testDb 
+}));
+// Ensures handlers use mocked db rather than main db
 import { getNotesHandler, insertNotesHandler } from "../note.handler";
 import type { Request, Response, NextFunction } from "express";
 
@@ -17,9 +23,9 @@ describe("note.handler integration tests", () => {
   beforeAll(async () => {
     // Clean the database before running tests
     try {
-      await db.query("DROP TABLE IF EXISTS notes CASCADE");
-      await db.query("DROP TABLE IF EXISTS elders CASCADE");
-      await db.query("DROP TABLE IF EXISTS caregiver_elder CASCADE");
+      await testDb.query("DROP TABLE IF EXISTS notes CASCADE");
+      await testDb.query("DROP TABLE IF EXISTS elders CASCADE");
+      await testDb.query("DROP TABLE IF EXISTS caregiver_elder CASCADE");
     } catch (error) {
       console.error("Error cleaning database:", error);
       throw error;
@@ -27,7 +33,7 @@ describe("note.handler integration tests", () => {
     // Create the database schema in case not created yet, before running tests
     try {
       // Create elders table
-      await db.query(`
+      await testDb.query(`
                 CREATE TABLE IF NOT EXISTS elders (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
@@ -45,7 +51,7 @@ describe("note.handler integration tests", () => {
             `);
 
       // Create notes table
-      await db.query(`
+      await testDb.query(`
                 CREATE TABLE IF NOT EXISTS notes (
                     id SERIAL PRIMARY KEY,
                     header VARCHAR(255) NOT NULL,
@@ -58,7 +64,7 @@ describe("note.handler integration tests", () => {
             `);
 
       // Create caregiver_elder relationship table
-      await db.query(`
+      await testDb.query(`
                 CREATE TABLE IF NOT EXISTS caregiver_elder (
                     caregiver_id VARCHAR(255),
                     elder_id INTEGER REFERENCES elders(id),
@@ -75,17 +81,17 @@ describe("note.handler integration tests", () => {
 
   beforeEach(async () => {
     // Reset the database before each test
-    await db.query("BEGIN");
+    await testDb.query("BEGIN");
   });
   afterEach(async () => {
     // Rollback the database changes after each test
-    await db.query("ROLLBACK");
+    await testDb.query("ROLLBACK");
   });
 
   test("check database connection, ensures tables exist", async () => {
     try {
       // Check if tables exist
-      const tables = await db.query(`
+      const tables = await testDb.query(`
             SELECT table_name 
             FROM information_schema.tables 
             WHERE table_schema = 'public';
@@ -97,8 +103,9 @@ describe("note.handler integration tests", () => {
   });
 
   test("successfully insert a note and get notes using handler functions", async () => {
+
     // Create test elder for note assignment
-    const elderInsertResult = await db.query(
+    const elderInsertResult = await testDb.query(
       `INSERT INTO elders (
             name, date_of_birth, gender, phone
             )  
@@ -107,9 +114,10 @@ describe("note.handler integration tests", () => {
       ["Test Elder", new Date("1933-01-01"), "male", "82345678"]
     );
     const elderId = elderInsertResult[0].id;
+    // console.log("Created elder:", elderInsertResult[0]);
 
     // Link caregiver to elder
-    await db.query(
+    await testDb.query(
       "INSERT INTO caregiver_elder (caregiver_id, elder_id) VALUES ($1, $2)",
       ["cgtest_123_xyz", elderId]
     );
