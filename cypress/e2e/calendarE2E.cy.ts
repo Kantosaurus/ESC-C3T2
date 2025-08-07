@@ -1,4 +1,27 @@
+import { SignJWT } from "jose";
+
 describe("create,edit,delete,accept,deny appointment", () => {});
+
+beforeEach(async () => {
+  const jwtSecret = new TextEncoder().encode(
+    "XlGw86hiYgGRZyi6abappQMhEHHptbtt6leocJ4Lfmc" // This is hardcoded, ensure that your local .env matches this secret
+  );
+  const token = await new SignJWT()
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setIssuer("carely")
+    .setAudience("carely")
+    .setSubject("user-id-1")
+    .setExpirationTime("2h")
+    .sign(jwtSecret);
+
+  cy.log("JWT Token:", token);
+
+  cy.window().then((win) => {
+    win.localStorage.setItem("carely-token", token);
+  });
+});
+
 it("full calendar end to end test", () => {
   cy.viewport(2560, 1440);
   cy.visit("http://localhost:5173/");
