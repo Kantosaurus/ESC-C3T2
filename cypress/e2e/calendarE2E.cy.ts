@@ -25,15 +25,23 @@ beforeEach(async () => {
 it("full calendar end to end test", () => {
   cy.viewport(2560, 1440);
   cy.visit("http://localhost:5173/");
+  cy.wait(1000);
   cy.contains("Login").click();
   cy.wait(10000);
+
+  //Create the caregiver
+  cy.get('input[placeholder="Enter your full name"]').type("test caregiver");
+  cy.get('[data-testid="dob-input"]').type("1999-01-01");
+  cy.contains("Male").click();
+  cy.contains("button", "Create Profile").click();
+  cy.wait(1000);
+
   //create the first elder
   cy.contains("Add Elder").click();
-  cy.get('input[placeholder="Enter their full name"]').type("Ahma");
+  cy.get('input[placeholder="Enter their full name"]').type("Ahmaaa");
   cy.get('input[name="date_of_birth"]').type("1940-05-21");
   cy.contains("Female").click();
   cy.contains("button", "Create Profile").click();
-
   //create the second elder
   cy.contains("Add Elder").click();
   cy.get('input[placeholder="Enter their full name"]').type("Ahgong");
@@ -41,6 +49,7 @@ it("full calendar end to end test", () => {
   cy.contains("Male").click();
   cy.contains("button", "Create Profile").click();
   cy.contains("Calendar").click();
+  cy.wait(1000);
   //choose ah ma
   cy.get("[data-testid='choose-elder-button']").click();
   cy.get('[role="listbox"]').contains("Ahma").click();
@@ -100,6 +109,7 @@ it("full calendar end to end test", () => {
   cy.get('input[placeholder="Additional notes or details..."]').type(
     "Annual check-up at Dr Lim"
   );
+  cy.wait(1000);
   cy.get('input[placeholder="Address or location"]').type("123 Avenue Clinic");
   cy.contains("Create Appointment").click();
 
@@ -141,13 +151,17 @@ it("full calendar end to end test", () => {
 
   //Accept and decline appt 2
   cy.get("body").type("{esc}");
+  cy.wait(1000);
   cy.contains("Pending").click();
   cy.wait(1000);
   cy.contains("Doctor Visit").click();
   cy.get('[data-testid="accept-appointment-button"]').click();
+  cy.wait(500);
   cy.get("body").should("contain", "Accepted by you");
   cy.get('[data-testid="undo-accept-button"]').click();
+  cy.wait(500);
   cy.get('[data-testid="decline-appointment-button"]').click();
+  cy.wait(500);
   cy.get("body").should("contain", "Declined by you");
   cy.get("body").type("{esc}");
 

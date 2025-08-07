@@ -85,6 +85,7 @@ export function CaregiverForm({
                 <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
                   <Input
+                    data-testid="dob-input"
                     type="date"
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}
@@ -115,7 +116,8 @@ export function CaregiverForm({
                           field.value === option.value ? "default" : "outline"
                         }
                         aria-pressed={field.value === option.value}
-                        onClick={() => field.onChange(option.value)}>
+                        onClick={() => field.onChange(option.value)}
+                      >
                         {option.label}
                       </Button>
                     ))}
@@ -149,7 +151,8 @@ export function CaregiverForm({
 
         <div
           className={`pt-8 border-t border-gray-200/60 transition-all duration-700`}
-          style={{ transitionDelay: "400ms" }}>
+          style={{ transitionDelay: "400ms" }}
+        >
           <Button
             type="submit"
             disabled={
@@ -157,7 +160,8 @@ export function CaregiverForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold rounded-xl">
+            className="w-full h-14 text-base font-semibold rounded-xl"
+          >
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
                 <Loader className="animate-spin h-5 w-5" />
@@ -169,7 +173,8 @@ export function CaregiverForm({
                   className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
