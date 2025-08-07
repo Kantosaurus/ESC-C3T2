@@ -24,7 +24,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { useSpeechToText } from "./use-speech-to-text";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
 import { User, FileText, Mic, MicOff, Save, X } from "lucide-react";
 
@@ -43,7 +43,12 @@ export function EditNoteForm({
   onSubmit,
 }: {
   defaultValues: Partial<EditNoteFormType>;
-  onSubmit: (values: EditNoteFormType) => Promise<void>;
+  onSubmit: (values: {
+    id: number;
+    header: string;
+    content?: string | null;
+    assigned_elder_id: number;
+  }) => Promise<void>;
 }) {
   const { elderDetails, isLoading: isLoadingRecipients } = useEldersDetails();
 
@@ -53,8 +58,6 @@ export function EditNoteForm({
   });
 
   const navigate = useNavigate();
-
-  const elderId = form.watch("assigned_elder_id");
 
   const {
     transcript,
@@ -95,7 +98,7 @@ export function EditNoteForm({
             ...values,
             assigned_elder_id: values.assigned_elder_id
               ? Number(values.assigned_elder_id)
-              : undefined,
+              : 0,
           };
           return onSubmit(apiValues);
         })}

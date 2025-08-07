@@ -16,7 +16,9 @@ import AppNavbar from "@/nav/navbar";
 export default function CaregiverProfilePage() {
   const { caregiverId } = useParams<{ caregiverId: string }>();
   const navigate = useNavigate();
-  const { caregiverDetails, isLoading, error } = useCaregiverById(caregiverId);
+  const { caregiverDetails, isLoading, error } = useCaregiverById(
+    caregiverId || null
+  );
 
   const getAge = (dateOfBirth: Date) => {
     const today = new Date();

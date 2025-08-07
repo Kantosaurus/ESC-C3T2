@@ -1,5 +1,5 @@
 import { http } from "@/lib/http";
-import { EditNoteForm, type EditNoteFormType } from "./edit-note.form";
+import { EditNoteForm } from "./edit-note.form";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
@@ -58,7 +58,7 @@ const useNoteById = (noteId: string | null) => {
 
 export default function EditNotePage() {
   const { id } = useParams<{ id: string }>();
-  const { note, isLoading, error } = useNoteById(id);
+  const { note, isLoading, error } = useNoteById(id || null);
   const navigate = useNavigate();
   const editNote = useEditNote();
 
@@ -69,7 +69,12 @@ export default function EditNotePage() {
     }
   }, [error, navigate]);
 
-  const handleUpdateNote = async (values: EditNoteFormType) => {
+  const handleUpdateNote = async (values: {
+    id: number;
+    header: string;
+    content?: string | null;
+    assigned_elder_id: number;
+  }) => {
     if (!note) return;
 
     console.log("Submitting note with values:", values);
@@ -147,7 +152,7 @@ export default function EditNotePage() {
               id: note.id,
               header: note.header,
               content: note.content,
-              assigned_elder_id: note.assigned_elder_id,
+              assigned_elder_id: note.assigned_elder_id?.toString() || "",
             }}
             onSubmit={handleUpdateNote}
           />
