@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Card from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface DashboardCardProps {
   title: string;
@@ -25,9 +26,12 @@ export const DashboardCard = ({
   icon,
   color = "blue",
   onClick,
+  className,
 }: DashboardCardProps) => {
   return (
-    <Card onClick={onClick}>
+    <Card
+      onClick={onClick}
+      className={cn("p-4 flex items-center space-x-4", className)}>
       <div className="flex items-center">
         <div className="flex-shrink-0">
           <div className={colorClasses[color]}>{icon}</div>

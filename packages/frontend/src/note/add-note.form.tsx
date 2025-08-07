@@ -85,7 +85,8 @@ export function AddNoteForm({
           console.log("Form returned values:", values); // log the returned values
           return onSubmit(values);
         })}
-        className="space-y-8">
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="assigned_elder_id"
@@ -100,7 +101,8 @@ export function AddNoteForm({
                   value={field.value as string}
                   onValueChange={(value) => {
                     field.onChange(value);
-                  }}>
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a care recipient" />
                   </SelectTrigger>
@@ -146,7 +148,8 @@ export function AddNoteForm({
               <Button
                 type="button"
                 onClick={listening ? stopListening : startListening}
-                className={listening ? "bg-red-500" : "bg-green-500"}>
+                className={listening ? "bg-red-500" : "bg-green-500"}
+              >
                 {listening ? "Stop Voice" : "Start Voice"}
               </Button>
 
@@ -168,14 +171,16 @@ export function AddNoteForm({
         />
         <Button
           variant="outline"
-          className="mr-2 bg-slate-100 onHover:bg-slate-200"
+          className="mr-2 bg-slate-100 hover:bg-slate-200"
           type="button"
-          onClick={() => navigate("/notes")}>
+          onClick={() => navigate("/notes")}
+        >
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+          disabled={form.formState.isSubmitting || !form.formState.isDirty}
+        >
           Done
         </Button>
       </form>

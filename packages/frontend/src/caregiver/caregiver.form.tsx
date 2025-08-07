@@ -23,11 +23,12 @@ const caregiverFormSchema = z.object({
   gender: z.enum(["male", "female", "other"]),
   phone: z
     .string()
-    .refine(
-      (val) => !val || /^[986]\d{7}$/.test(val),
-      "Phone number must be exactly 8 digits and start with 9, 8, or 6"
-    )
-    .optional(),
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(caregiverSchema.shape.phone.unwrap().unwrap().optional()),
   street_address: caregiverSchema.shape.street_address
     .unwrap()
     .unwrap()

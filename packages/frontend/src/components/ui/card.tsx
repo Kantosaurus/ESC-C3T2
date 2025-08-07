@@ -20,7 +20,7 @@ export default function Card(props: CardProps) {
       animate={{ opacity: 1, [key]: 0 }}
       transition={{ duration: 0.5, delay }}
       className={cn(
-        `bg-white dark:bg-gray-800 rounded-xl border p-6`,
+        `bg-white dark:bg-gray-800 rounded-xl border p-6 soft-shadow`,
         rest.onClick &&
           "hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]",
         className

@@ -1,0 +1,3 @@
+ALTER TABLE appointments
+ADD COLUMN loc TEXT,
+ADD COLUMN accepted TEXT;

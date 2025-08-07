@@ -1,16 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authMiddleware } from "./middleware";
+import { NextFunction, Request, Response } from "express";
 
 describe("Auth Middleware", async () => {
-  let req, res, next;
+  let req: Request, res: Response, next: NextFunction;
 
   beforeEach(() => {
-    req = { headers: { authorization: "Bearer test-token" } };
+    req = { headers: { authorization: "Bearer test-token" } } as Request;
     res = {
       status: vi.fn().mockReturnThis(),
       send: vi.fn(),
       locals: {},
-    };
+    } as unknown as Response;
     next = vi.fn();
   });
 
@@ -60,5 +61,7 @@ describe("Auth Middleware", async () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.send).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
+
+    expect(res.locals.user).toBeUndefined();
   });
 });

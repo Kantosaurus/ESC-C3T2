@@ -21,7 +21,14 @@ const elderFormSchema = z.object({
   name: elderSchema.shape.name,
   date_of_birth: z.string().min(1, "Date of birth is required"),
   gender: elderSchema.shape.gender,
-  phone: elderSchema.shape.phone.unwrap().unwrap().optional(),
+  phone: z
+    .string()
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(elderSchema.shape.phone.unwrap().unwrap().optional()),
   street_address: elderSchema.shape.street_address.unwrap().unwrap().optional(),
   unit_number: elderSchema.shape.unit_number.unwrap().unwrap().optional(),
   postal_code: elderSchema.shape.postal_code.unwrap().unwrap().optional(),

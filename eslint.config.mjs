@@ -7,6 +7,14 @@ export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   {
-    ignores: ["./**/*.js"],
+    ignores: ["**/*.js", "**/dist/**"],
+    languageOptions: {
+      globals: {
+        URL: "readonly",
+      },
+      parserOptions: {
+        tsconfigRootDir: ".",
+      },
+    },
   }
 );
