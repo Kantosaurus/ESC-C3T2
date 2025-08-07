@@ -212,9 +212,7 @@ export function NoteDetails() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            navigate("/notes/edit", { state: { note } })
-                          }
+                          onClick={() => navigate(`/notes/${note.id}/edit`)}
                           className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
                           <Edit className="h-4 w-4" />

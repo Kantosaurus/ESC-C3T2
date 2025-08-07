@@ -10,6 +10,7 @@ import {
   deleteCaregiverHandler,
   getCaregiverById,
   getCaregiversByElderIdHandler,
+  getCaregiverProfileHandler,
 } from "./caregiver/caregiver.handler";
 import {
   getEldersDetailsHandler,
@@ -23,6 +24,7 @@ import {
 import {
   deleteNotesHandler,
   getNotesHandler,
+  getNoteByIdHandler,
   insertNotesHandler,
   updateNotesHandler,
   getNotesByElderIdHandler,
@@ -113,6 +115,7 @@ app.patch("/api/caregiver/self", updateCaregiverSelfHandler);
 app.delete("/api/caregiver/self", deleteCaregiverHandler);
 
 app.get("/api/caregiver/:caregiver_id", getCaregiverById);
+app.get("/api/caregiver/profile/:caregiver_id", getCaregiverProfileHandler);
 app.get("/api/caregiver/elder/:elderId", getCaregiversByElderIdHandler);
 
 app.get("/api/elder/details", getEldersDetailsHandler);
@@ -135,6 +138,7 @@ app.get("/api/appointment/all", getAllAppointmentsForCaregiverHandler);
 app.post("/api/appointment/import-ics", importIcsFileHandler);
 
 app.get("/api/notes/details", getNotesHandler);
+app.get("/api/notes/:id", getNoteByIdHandler);
 app.get("/api/notes/elder/:elderId", getNotesByElderIdHandler);
 app.post("/api/notes/new", insertNotesHandler);
 app.post("/api/notes/delete", deleteNotesHandler);

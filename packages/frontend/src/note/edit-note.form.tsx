@@ -14,20 +14,27 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { useSpeechToText } from "./use-speech-to-text";
 import { useEffect, useMemo } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
+import { User, FileText, Mic, MicOff, Save, X } from "lucide-react";
 
 const editNoteFormSchema = z.object({
   id: noteSchema.shape.id,
   header: noteSchema.shape.header,
   content: noteSchema.shape.content.optional(),
-  assigned_elder_id: noteSchema.shape.assigned_elder_id,
+  assigned_elder_id: z.string().min(1, "Please select a care recipient"),
 });
 
-// export type AddNoteFormType = z.infer<typeof addNoteFormSchema>;
 export type EditNoteFormType = z.infer<typeof editNoteFormSchema>;
 export type EditNoteFormInput = z.input<typeof editNoteFormSchema>;
 
@@ -38,8 +45,7 @@ export function EditNoteForm({
   defaultValues: Partial<EditNoteFormType>;
   onSubmit: (values: EditNoteFormType) => Promise<void>;
 }) {
-  const result = useEldersDetails();
-  const elderDetails = useMemo(() => result?.elderDetails ?? [], [result]);
+  const { elderDetails, isLoading: isLoadingRecipients } = useEldersDetails();
 
   const form = useForm<EditNoteFormInput, unknown, EditNoteFormType>({
     resolver: zodResolver(editNoteFormSchema),
@@ -50,12 +56,6 @@ export function EditNoteForm({
 
   const elderId = form.watch("assigned_elder_id");
 
-  const assignedElderName = useMemo(() => {
-    if (!elderDetails.length || elderId == null) return "Loading...";
-    const elder = elderDetails?.find((e) => e.id === elderId);
-    return elder?.name ?? "Unknown";
-  }, [elderDetails, elderId]);
-
   const {
     transcript,
     listening,
@@ -65,16 +65,14 @@ export function EditNoteForm({
   } = useSpeechToText();
 
   useEffect(() => {
-    // Set the default value for assigned_elder_id if not already set
-    if (!defaultValues?.assigned_elder_id && elderDetails.length > 0) {
-      form.setValue("assigned_elder_id", elderDetails[0].id.toString());
-    }
-  }, [elderId, elderDetails, form, defaultValues?.assigned_elder_id]);
-
-  useEffect(() => {
-    // Reset the form values if form is mounted before data is ready
-    if (defaultValues) {
-      form.reset(defaultValues);
+    // Reset the form values when defaultValues change
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      // Ensure assigned_elder_id is converted to string for the Select component
+      const formValues = {
+        ...defaultValues,
+        assigned_elder_id: defaultValues.assigned_elder_id?.toString() || "",
+      };
+      form.reset(formValues);
     }
   }, [defaultValues, form]);
 
@@ -89,82 +87,166 @@ export function EditNoteForm({
 
   return (
     <Form {...form}>
-      {/* <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8"> */}
       <form
         onSubmit={form.handleSubmit((values) => {
-          console.log("Form returned values:", values); // log the returned values
-          return onSubmit(values);
+          console.log("Form returned values:", values);
+          // Convert assigned_elder_id back to number for API
+          const apiValues = {
+            ...values,
+            assigned_elder_id: values.assigned_elder_id
+              ? Number(values.assigned_elder_id)
+              : undefined,
+          };
+          return onSubmit(apiValues);
         })}
-        className="space-y-8">
-        <FormItem>
-          <FormLabel>Name of Care Recipient</FormLabel>
-          <p className="text-md font-semibold">{assignedElderName}</p>
-          <FormDescription>
-            You cannot modify the care recipient that this note is related to.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-        <input type="hidden" {...form.register("assigned_elder_id")} />
-        <input type="hidden" {...form.register("id")} />
+        className="space-y-8"
+      >
+        {/* Care Recipient Selection */}
+        <FormField
+          control={form.control}
+          name="assigned_elder_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2 text-base font-medium text-gray-900 dark:text-white">
+                <User className="h-4 w-4" />
+                Care Recipient
+              </FormLabel>
+              <FormControl>
+                <Select
+                  required
+                  disabled={isLoadingRecipients}
+                  value={field.value?.toString() || ""}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                  }}
+                >
+                  <SelectTrigger className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20">
+                    <SelectValue placeholder="Select a care recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {elderDetails?.map((e) => (
+                      <SelectItem key={e.id.toString()} value={e.id.toString()}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormDescription className="text-gray-600 dark:text-gray-400">
+                Select the care recipient this note is related to
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        {/* Note Header */}
         <FormField
           control={form.control}
           name="header"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Header</FormLabel>
+              <FormLabel className="flex items-center gap-2 text-base font-medium text-gray-900 dark:text-white">
+                <FileText className="h-4 w-4" />
+                Note Title
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Add note header" {...field} required />
+                <Input
+                  placeholder="Enter a clear title for your note..."
+                  {...field}
+                  required
+                  className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20"
+                />
               </FormControl>
-              <FormDescription>
-                Add a header for the top of the note to search for this note
-                easily.
+              <FormDescription className="text-gray-600 dark:text-gray-400">
+                A descriptive title helps you find this note easily later
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Note Content */}
         <FormField
           control={form.control}
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content</FormLabel>
-              <Button
-                type="button"
-                onClick={listening ? stopListening : startListening}
-                className={listening ? "bg-red-500" : "bg-green-500"}>
-                {listening ? "Stop Voice" : "Start Voice"}
-              </Button>
+              <FormLabel className="flex items-center gap-2 text-base font-medium text-gray-900 dark:text-white">
+                <FileText className="h-4 w-4" />
+                Note Content
+              </FormLabel>
+
+              {/* Voice Input Button */}
+              <div className="flex items-center gap-3 mb-3">
+                <Button
+                  type="button"
+                  variant={listening ? "destructive" : "outline"}
+                  size="sm"
+                  onClick={listening ? stopListening : startListening}
+                  className="gap-2 transition-all duration-200"
+                >
+                  {listening ? (
+                    <>
+                      <MicOff className="h-4 w-4" />
+                      Stop Recording
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4" />
+                      Voice Input
+                    </>
+                  )}
+                </Button>
+                {listening && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    Recording...
+                  </div>
+                )}
+              </div>
 
               <FormControl>
                 <Textarea
-                  placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
-                  rows={4}
+                  placeholder="Add your note content here... You can include reminders, medical information, dosage instructions, or any other important details."
+                  rows={6}
                   {...field}
                   value={field.value || ""}
+                  className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 resize-none"
                 />
               </FormControl>
-              <FormDescription>
-                Optional. Add note content here. You can add to-do tasks,
-                reminders, medical information and dosage.
+              <FormDescription className="text-gray-600 dark:text-gray-400">
+                Optional. Add detailed content including tasks, reminders,
+                medical information, or dosage instructions
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button
-          variant="outline"
-          className="mr-2 bg-slate-100 hover:bg-slate-200"
-          type="button"
-          onClick={() => navigate("/notes")}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={form.formState.isSubmitting || !form.formState.isDirty}>
-          Save changes
-        </Button>
+
+        {/* Hidden fields for form data */}
+        <input type="hidden" {...form.register("id")} />
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => navigate("/notes")}
+            className="flex-1 sm:flex-none gap-2 h-12"
+          >
+            <X className="h-4 w-4" />
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || !form.formState.isDirty}
+            className="flex-1 sm:flex-none gap-2 h-12 shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Save className="h-4 w-4" />
+            {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

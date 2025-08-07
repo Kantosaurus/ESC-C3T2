@@ -139,7 +139,7 @@ export default function Modal({
             Close
           </Button>
           <Button
-            onClick={() => navigate("/notes/edit", { state: { note } })}
+            onClick={() => navigate(`/notes/${note.id}/edit`)}
             className="flex-1 sm:flex-none gap-2"
           >
             <Edit className="h-4 w-4" />

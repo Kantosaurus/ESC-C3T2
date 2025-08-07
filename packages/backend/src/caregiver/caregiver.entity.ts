@@ -152,3 +152,20 @@ export const deleteCaregiver = (caregiverId: string) =>
           return { success: true, message: "Caregiver deleted successfully" };
         })
     );
+
+/**
+ * Get elders that are shared between two caregivers
+ */
+export const getSharedElders = (caregiverId1: string, caregiverId2: string) =>
+  db
+    .query(
+      `
+        SELECT DISTINCT e.*
+        FROM elders e
+        INNER JOIN caregiver_elder ce1 ON e.id = ce1.elder_id
+        INNER JOIN caregiver_elder ce2 ON e.id = ce2.elder_id
+        WHERE ce1.caregiver_id = $1 AND ce2.caregiver_id = $2;
+      `,
+      [caregiverId1, caregiverId2]
+    )
+    .then((result) => result);

@@ -12,7 +12,7 @@ export const insertAppointment = (
     .query(
       `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name, loc)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING appt_id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name, loc`,
+       RETURNING appt_id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name, loc, accepted`,
       [
         appt.elder_id,
         appt.startDateTime,
@@ -33,7 +33,7 @@ export const insertAppointment = (
 export const getAppointmentsForElder = (elder_id: number) =>
   db
     .query(
-      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc
+      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc, accepted
       FROM appointments
       WHERE elder_id = $1;`,
       [elder_id]
@@ -95,7 +95,7 @@ export const updateAppointment = (
            endDateTime = $4,
            loc = $5
        WHERE elder_id = $6 AND appt_id = $7
-       RETURNING appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc`,
+       RETURNING appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc, accepted`,
       [
         appt.name,
         appt.details,
@@ -114,7 +114,7 @@ export const getPendingAppointments = (caregiver_id: string) =>
   db
     .query(
       `SELECT a.appt_id, a.elder_id, a.startDateTime AS "startDateTime", 
-        a.endDateTime AS "endDateTime", a.details, a.name, a.loc
+        a.endDateTime AS "endDateTime", a.details, a.name, a.loc, a.accepted
  FROM appointments a 
  JOIN elders e ON a.elder_id = e.id 
  JOIN caregiver_elder ce ON e.id = ce.elder_id 

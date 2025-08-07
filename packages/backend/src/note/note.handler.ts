@@ -1,6 +1,7 @@
 import { newNoteDtoSchema, noteSchema } from "@carely/core";
 import {
   getNotesDetails,
+  getNoteDetails,
   insertNotes,
   updateNotes,
   deleteNotes,
@@ -13,6 +14,45 @@ export const getNotesHandler = authenticated(async (req, res) => {
   const caregiverId = res.locals.user.userId;
   const notesDetails = await getNotesDetails(caregiverId);
   res.json(notesDetails);
+});
+
+export const getNoteByIdHandler = authenticated(async (req, res) => {
+  try {
+    const { id } = z
+      .object({
+        id: z.coerce.number(),
+      })
+      .parse(req.params);
+
+    const caregiverId = res.locals.user.userId;
+
+    // First get all notes for the caregiver to check access
+    const allNotes = await getNotesDetails(caregiverId);
+    const hasAccess = allNotes.some((note) => note.id === id);
+
+    if (!hasAccess) {
+      res
+        .status(403)
+        .json({ error: "You are not authorized to access this note." });
+      return;
+    }
+
+    const note = await getNoteDetails(id);
+
+    if (!note) {
+      res.status(404).json({ error: "Note not found" });
+      return;
+    }
+
+    res.json(note);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid note ID" });
+    } else {
+      console.error("Error getting note by ID:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 export const insertNotesHandler = authenticated(async (req, res) => {

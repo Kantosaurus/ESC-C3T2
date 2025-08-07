@@ -5,6 +5,7 @@ import {
   updateCaregiver,
   deleteCaregiver,
   getCaregiversByElderId,
+  getSharedElders,
 } from "./caregiver.entity";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
@@ -53,6 +54,62 @@ export const getCaregiverById = authenticated(async (req, res) => {
   }
 
   res.json(caregiver);
+});
+
+/**
+ * Handler to get caregiver details by ID for caregivers who share an elder.
+ * This allows caregivers to view other caregivers' profiles if they care for the same elder.
+ */
+export const getCaregiverProfileHandler = authenticated(async (req, res) => {
+  try {
+    const { caregiver_id } = z
+      .object({
+        caregiver_id: z.string(),
+      })
+      .parse(req.params);
+
+    const authenticatedUserId = res.locals.user.userId;
+
+    // If the user is trying to access their own profile, use the existing logic
+    if (caregiver_id === authenticatedUserId) {
+      const caregiver = await getCaregiverDetails(caregiver_id);
+      if (!caregiver) {
+        res.status(404).json({ error: "Caregiver not found" });
+        return;
+      }
+      res.json(caregiver);
+      return;
+    }
+
+    // For other caregivers, check if they share an elder
+    const sharedElders = await getSharedElders(
+      authenticatedUserId,
+      caregiver_id
+    );
+
+    if (sharedElders.length === 0) {
+      res.status(403).json({
+        error:
+          "Access denied. You can only view profiles of caregivers who share an elder with you.",
+      });
+      return;
+    }
+
+    const caregiver = await getCaregiverDetails(caregiver_id);
+    if (!caregiver) {
+      res.status(404).json({ error: "Caregiver not found" });
+      return;
+    }
+
+    res.json(caregiver);
+  } catch (error) {
+    console.error("Error getting caregiver profile:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid caregiver ID" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 /**
