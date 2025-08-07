@@ -120,6 +120,16 @@ export const deleteNotesHandler = authenticated(async (req, res) => {
   }
 });
 
+// Add to your note.handler.ts
+export const getLockStatusHandler = authenticated(async (req, res) => {
+  const noteId = Number(req.params.id);
+  const note = await getNoteDetails(noteId);
+  if (!note) {
+    return res.status(404).send("Note not found");
+  }
+  res.json({ locked_by: note.locked_by });
+});
+
 export const lockNoteHandler = authenticated(async (req, res) => {
   const noteId = Number(req.params.id);
   if (isNaN(noteId)) {

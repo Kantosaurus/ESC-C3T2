@@ -18,6 +18,7 @@ import {
 } from "./elder/elder.handler";
 import {
   deleteNotesHandler,
+  getLockStatusHandler,
   getNotesHandler,
   getSingleNoteHandler,
   insertNotesHandler,
@@ -94,6 +95,7 @@ app.get("/api/notes/:id", getSingleNoteHandler);
 app.post("/api/notes/new", insertNotesHandler);
 app.post("/api/notes/:id/delete", deleteNotesHandler);
 app.patch("/api/notes/:id/edit", updateNotesHandler);
+app.get("/api/notes/:id/lock-status", getLockStatusHandler);
 
 app.get("/api/dashboard/upcoming-appointments", getUpcomingAppointmentsHandler);
 

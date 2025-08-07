@@ -53,6 +53,54 @@ export default function Modal({
 
   const handleDeleteNote = async () => {
     setIsDeleting(true);
+
+    try {
+      // 1. First check lock status
+      const lockStatus = await http().get(`/api/notes/${note.id}/lock-status`);
+
+      if (lockStatus.data.locked_by) {
+        // Note is locked - show error immediately
+        toast.error(
+          "Cannot delete note: It's currently being edited by another caregiver"
+        );
+        return;
+      }
+
+      // 2. Only show confirmation if note isn't locked
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this note?"
+      );
+      if (!confirmDelete) return;
+
+      // 3. Proceed with deletion
+      await deleteNote({ id: note.id });
+      onDelete(note);
+      onClose();
+      toast.success("Note deleted successfully");
+    } catch (error: any) {
+      if (error.response?.status === 423) {
+        toast.error("Cannot delete - note is currently locked");
+      } else {
+        toast.error("Failed to delete note");
+        console.error("Delete error:", error);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  /*const handleDeleteNote = async () => {
+    setIsDeleting(true);
+    const noteId = Number(req.params.id);
+    const userId = res.locals.user.userId;
+    const note = await getNoteDetails(noteId);
+    if (note.locked_by !== null) {
+        return res.status(423).json({
+        error: "Note is locked",
+        message: "Cannot delete note when another caregiver is editing. Please wait.",
+      });
+    }
+
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this note?"
     );
@@ -68,7 +116,7 @@ export default function Modal({
     } finally {
       setIsDeleting(false);
     }
-  };
+  }; */
 
   return (
     <div
