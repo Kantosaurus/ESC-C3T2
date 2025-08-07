@@ -1,6 +1,9 @@
 import { SgidClient } from "@opengovsg/sgid-client";
+import { validateFrontendHost } from "../../misc/url-validation";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = validateFrontendHost(
+  process.env.BASE_URL || "http://localhost:3000"
+);
 
 /**
  * We will use SGID as our Singpass broker so that it's free!

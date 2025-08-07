@@ -12,13 +12,17 @@ vi.mock("./singpass/client", () => ({
   },
 }));
 
-vi.mock("./session", () => ({
-  sessionData: {
-    someSessionId: {
-      codeVerifier: "someCodeVerifier",
-      nonce: "someNonce",
-    },
-  },
+vi.mock("./session.entity", () => ({
+  getSession: vi.fn().mockImplementation((sessionId: string) => {
+    if (sessionId === "someSessionId") {
+      return Promise.resolve({
+        codeVerifier: "someCodeVerifier",
+        nonce: "someNonce",
+      });
+    }
+    return Promise.resolve(null);
+  }),
+  deleteSession: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Top down integration tests for redirectHandler

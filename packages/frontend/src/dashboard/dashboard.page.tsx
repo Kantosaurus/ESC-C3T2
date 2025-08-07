@@ -16,6 +16,7 @@ import { EmptyState } from "./empty-state";
 import { useMemo } from "react";
 import UpcomingAppointments from "./upcoming-appointments";
 import AppNavbar from "@/nav/navbar";
+import { useTodayTasks } from "./use-today-tasks";
 
 const DashboardPage = () => {
   const { caregiverDetails } = useCaregiver();
@@ -25,6 +26,8 @@ const DashboardPage = () => {
     isLoading: eldersLoading,
     refetch: refetchElders,
   } = useEldersDetails();
+
+  const { todayTasks, isLoading: tasksLoading } = useTodayTasks();
 
   const elderNames = useMemo(() => {
     const names: Record<string, string> = {};
@@ -65,7 +68,7 @@ const DashboardPage = () => {
           />
           <DashboardCard
             title="Today's Tasks"
-            value={0}
+            value={tasksLoading ? "..." : todayTasks}
             icon={<Calendar className="h-8 w-8" />}
             delay={0.1}
           />

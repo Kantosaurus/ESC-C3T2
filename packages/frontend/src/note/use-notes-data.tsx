@@ -8,6 +8,8 @@ import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
 import Card from "@/components/ui/card";
+import { Calendar, Clock, User, Eye, Edit, Trash2 } from "lucide-react";
+import { Link } from "react-router";
 
 /**
  * Get all notes that the caregiver is associated with.
@@ -127,15 +129,38 @@ export function NoteDetails() {
     };
   }, []);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="text-center py-12">
+        <div className="text-red-500 mb-4">⚠️</div>
+        <p className="text-gray-600 dark:text-gray-400">{error}</p>
+      </Card>
+    );
+  }
 
   if (!elderDetails || elderDetails.length === 0) {
     return (
-      <Card className="text-center">
-        <p className="text-gray-600 mb-4">Need an elder to assign for notes</p>
-        <Button onClick={() => navigate("/dashboard")} className="mt-4">
-          Add an Elder profile to continue
+      <Card className="text-center py-16 max-w-md mx-auto">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          No Elders Found
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          You need to add an elder profile before creating notes.
+        </p>
+        <Button onClick={() => navigate("/dashboard")} className="gap-2">
+          <User className="h-4 w-4" />
+          Add Elder Profile
         </Button>
       </Card>
     );
@@ -144,51 +169,106 @@ export function NoteDetails() {
   return (
     <>
       {NoteDetails && NoteDetails.length === 0 ? (
-        <p className="text-gray-500">
-          No notes created, please create a new note! :)
-        </p>
+        <Card className="text-center py-16 max-w-md mx-auto">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Edit className="h-8 w-8 text-green-600 dark:text-green-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            No Notes Yet
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Start by creating your first note to keep track of important
+            information.
+          </p>
+          <Link to="/notes/new">
+            <Button className="gap-2">
+              <Edit className="h-4 w-4" />
+              Create First Note
+            </Button>
+          </Link>
+        </Card>
       ) : (
-        <ul className="space-y-4">
+        <div className="space-y-8">
           {notesWithHeaders.map(({ note, matchingElder, showElderHeading }) => (
             <div key={note.id}>
               {showElderHeading && (
-                <h2 className="text-lg font-bold mt-6 mb-2">
-                  {matchingElder?.name}
-                </h2>
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {matchingElder?.name}
+                  </h2>
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+                </div>
               )}
-              <li className="bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Assigned to: {matchingElder ? matchingElder.name : "Unknown"}
-                </p>
-                <p className="font-extrabold">{note.header}</p>
-                <p
-                  className="text-sm text-gray-800 whitespace-pre-wrap"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 5,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>
-                  {note.content}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Created By: {caregiverDetails?.name || "Unknown"}
-                </p>
-                {/* Date format as DD/MM/YYYY */}
-                <p className="text-xs text-gray-500">
-                  Created at:{" "}
-                  {new Date(note.created_at).toLocaleDateString("en-GB")}{" "}
-                  {new Date(note.created_at).toLocaleTimeString()}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Updated at:{" "}
-                  {new Date(note.updated_at).toLocaleDateString("en-GB")}{" "}
-                  {new Date(note.updated_at).toLocaleTimeString()}
-                </p>
-                <Button className="mt-4" onClick={() => handleOpenModal(note)}>
-                  Open me
-                </Button>
-              </li>
+
+              <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                  {/* Main Content */}
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                        {note.header}
+                      </h3>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/notes/${note.id}/edit`)}
+                          className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenModal(note)}
+                          className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                      {note.content}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        <span>{caregiverDetails?.name || "Unknown"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {new Date(note.created_at).toLocaleDateString(
+                            "en-GB"
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          {new Date(note.updated_at).toLocaleDateString(
+                            "en-GB"
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="lg:flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenModal(note)}
+                      className="gap-2 w-full lg:w-auto"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              </Card>
             </div>
           ))}
 
@@ -198,9 +278,10 @@ export function NoteDetails() {
               toggle={toggle}
               note={selectedNote}
               onDelete={onDelete}
-              elderDetails={elderDetails}></Modal>
+              elderDetails={elderDetails}
+            />
           )}
-        </ul>
+        </div>
       )}
     </>
   );

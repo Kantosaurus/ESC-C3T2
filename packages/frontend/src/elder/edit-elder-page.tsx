@@ -2,9 +2,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useElderDetails } from "./use-elder-details";
 import { ElderForm, type ElderFormType } from "./elder.form";
 import { http } from "@/lib/http";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
+import AppNavbar from "@/nav/navbar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const updateElder = (elderId: number, values: ElderFormType) =>
   http()
@@ -65,9 +75,21 @@ export default function EditElderPage() {
     }
   };
 
+  const handleDeleteElder = async () => {
+    if (!elderId) return;
+    try {
+      await http().delete(`/api/elder/${elderId}`);
+      toast.success("Elder deleted successfully");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Failed to delete elder:", error);
+      toast.error("Failed to delete elder");
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading elder details...</p>
@@ -78,7 +100,7 @@ export default function EditElderPage() {
 
   if (error || !elderDetails) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Failed to load elder details</p>
           <Button onClick={() => navigate("/dashboard")}>
@@ -98,6 +120,8 @@ export default function EditElderPage() {
       .split("T")[0],
     gender: elderDetails.gender,
     phone: elderDetails.phone ?? undefined,
+    bio: elderDetails.bio ?? undefined,
+    profile_picture: elderDetails.profile_picture ?? undefined,
     street_address: elderDetails.street_address ?? undefined,
     unit_number: elderDetails.unit_number ?? undefined,
     postal_code: elderDetails.postal_code ?? undefined,
@@ -106,41 +130,95 @@ export default function EditElderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-white">
+      <AppNavbar />
+
+      {/* Main Content with top padding for fixed navbar */}
+      <div className="pt-24 px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-4 mb-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate(`/elder/${elderId}/profile`)}
-              className="text-gray-600 hover:text-gray-900">
+              className="text-gray-600 hover:text-gray-900"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Profile
             </Button>
-            <h1 className="text-xl font-bold text-gray-900">
-              Edit Elder Profile
-            </h1>
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Edit Profile
+          </h1>
+          <p className="text-gray-600">
+            Update {elderDetails.name}'s information and preferences.
+          </p>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Update {elderDetails.name}'s Information
-            </h2>
-            <p className="text-gray-600">
-              Make changes to the elder's profile information below.
-            </p>
+        {/* Form Container */}
+        <div className="max-w-4xl mx-auto">
+          <div>
+            <ElderForm
+              defaultValues={defaultValues}
+              onSubmit={handleSubmit}
+              submitLabel="Update Profile"
+            />
           </div>
-          <ElderForm
-            defaultValues={defaultValues}
-            onSubmit={handleSubmit}
-            submitLabel="Update Elder"
-          />
+
+          {/* Delete Account Section */}
+          <div className="mt-8 bg-white rounded-2xl border border-red-200 shadow-sm">
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-red-900">
+                    Delete Elder Account
+                  </h3>
+                  <p className="text-sm text-red-600 mt-1">
+                    This action cannot be undone. This will permanently delete{" "}
+                    {elderDetails.name}'s account and remove all associated
+                    data.
+                  </p>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Elder Account</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete {elderDetails.name}'s
+                        account? This action cannot be undone and will
+                        permanently remove all data associated with this elder.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-3 mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const dialog = document.querySelector(
+                            '[role="dialog"]'
+                          ) as HTMLDialogElement;
+                          if (dialog) {
+                            dialog.close();
+                          }
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={handleDeleteElder}>
+                        Delete Account
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

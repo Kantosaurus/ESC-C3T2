@@ -12,7 +12,7 @@ export const insertAppointment = (
     .query(
       `INSERT INTO appointments (elder_id, startDateTime, endDateTime, details, name, loc)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING appt_id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name, loc`,
+       RETURNING appt_id, elder_id, startDateTime as "startDateTime", endDateTime as "endDateTime", details, name, loc, accepted`,
       [
         appt.elder_id,
         appt.startDateTime,
@@ -23,7 +23,6 @@ export const insertAppointment = (
       ]
     )
     .then((result) => {
-      console.log("Insert Appointment:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows) || rows.length === 0) {
         throw new Error("Invalid format");
@@ -34,14 +33,14 @@ export const insertAppointment = (
 export const getAppointmentsForElder = (elder_id: number) =>
   db
     .query(
-      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc
+      `SELECT appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc, accepted
       FROM appointments
       WHERE elder_id = $1;`,
       [elder_id]
     )
     .then((result) => {
       const rows = result.rows || result;
-      console.log("Fetched:", rows);
+
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
       }
@@ -57,8 +56,6 @@ export const getAppointmentForElder = (elder_id: number, appt_id: number) =>
       [elder_id, appt_id]
     )
     .then((result) => {
-      console.log("Fetched appointment:", result);
-
       return z.array(appointmentSchema).parse(result);
     });
 
@@ -72,7 +69,6 @@ export const deleteAppointment = (
       [appt.elder_id, appt.appt_id]
     )
     .then((result) => {
-      console.log("Appointment deleted:", result);
       if (result.rowCount == 0) {
         throw new Error("Row not found or already deleted");
       }
@@ -99,7 +95,7 @@ export const updateAppointment = (
            endDateTime = $4,
            loc = $5
        WHERE elder_id = $6 AND appt_id = $7
-       RETURNING appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc`,
+       RETURNING appt_id, elder_id, startDateTime AS "startDateTime", endDateTime AS "endDateTime", details, name, loc, accepted`,
       [
         appt.name,
         appt.details,
@@ -111,7 +107,6 @@ export const updateAppointment = (
       ]
     )
     .then((result) => {
-      console.log("Appointment updated:", result);
       return appointmentSchema.parse(result[0]);
     });
 
@@ -119,7 +114,7 @@ export const getPendingAppointments = (caregiver_id: string) =>
   db
     .query(
       `SELECT a.appt_id, a.elder_id, a.startDateTime AS "startDateTime", 
-        a.endDateTime AS "endDateTime", a.details, a.name, a.loc
+        a.endDateTime AS "endDateTime", a.details, a.name, a.loc, a.accepted
  FROM appointments a 
  JOIN elders e ON a.elder_id = e.id 
  JOIN caregiver_elder ce ON e.id = ce.elder_id 
@@ -127,7 +122,26 @@ export const getPendingAppointments = (caregiver_id: string) =>
       [caregiver_id]
     )
     .then((result) => {
-      console.log("Pending Fetched:", result);
+      const rows = result.rows || result;
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid format");
+      }
+      return z.array(appointmentSchema).parse(rows);
+    });
+
+export const getAllAppointmentsForCaregiver = (caregiver_id: string) =>
+  db
+    .query(
+      `SELECT a.appt_id, a.elder_id, a.startDateTime AS "startDateTime", 
+        a.endDateTime AS "endDateTime", a.details, a.name, a.loc, a.accepted
+ FROM appointments a 
+ JOIN elders e ON a.elder_id = e.id 
+ JOIN caregiver_elder ce ON e.id = ce.elder_id 
+ WHERE ce.caregiver_id = $1
+ ORDER BY a.startDateTime ASC`,
+      [caregiver_id]
+    )
+    .then((result) => {
       const rows = result.rows || result;
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
@@ -149,7 +163,6 @@ export const acceptAppointment = (
       [caregiver_id, elder_id, appt_id]
     )
     .then((result) => {
-      console.log("Accepted:", result);
       const rows = result.rows || result;
       if (!Array.isArray(rows)) {
         throw new Error("Invalid format");
