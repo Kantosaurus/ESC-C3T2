@@ -14,7 +14,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AddressForm } from "@/components/ui/address-form";
+import { ProfilePictureUpload } from "@/components/ui/profile-picture-upload";
 import { Loader } from "lucide-react";
 
 const caregiverFormSchema = z.object({
@@ -23,11 +25,14 @@ const caregiverFormSchema = z.object({
   gender: z.enum(["male", "female", "other"]),
   phone: z
     .string()
-    .refine(
-      (val) => !val || /^[986]\d{7}$/.test(val),
-      "Phone number must be exactly 8 digits and start with 9, 8, or 6"
-    )
-    .optional(),
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(caregiverSchema.shape.phone.unwrap().unwrap().optional()),
+  bio: z.string().optional(),
+  profile_picture: z.string().nullish(),
   street_address: caregiverSchema.shape.street_address
     .unwrap()
     .unwrap()
@@ -140,6 +145,49 @@ export function CaregiverForm({
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   Optional. We will use this to contact you only in case of
                   emergencies.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Tell us about yourself" 
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Share a brief description of your experience and
+                  skills.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="profile_picture"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Profile Picture</FormLabel>
+                <FormControl>
+                  <ProfilePictureUpload
+                    value={field.value || null}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Upload a profile picture to personalize your
+                  account. Supported formats: PNG, JPG. Max size: 10MB (will be compressed automatically).
                 </FormDescription>
                 <FormMessage />
               </FormItem>

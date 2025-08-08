@@ -6,6 +6,7 @@ import {
   deleteAppointment,
   updateAppointment,
   getPendingAppointments,
+  getAllAppointmentsForCaregiver,
   acceptAppointment,
   declineAppointment,
   undoDeclineAppointment,
@@ -15,7 +16,7 @@ import {
 import { getCaregiverDetails } from "#caregiver/caregiver.entity.js";
 import { authenticated } from "../auth/guard";
 import z from "zod/v4";
-
+import * as ical from "ical";
 import type { Request, Response } from "express";
 
 export const createAppointmentHandler = authenticated(async (req, res) => {
@@ -52,8 +53,6 @@ export const createAppointmentHandler = authenticated(async (req, res) => {
 });
 
 export const getAppointmentsHandler = authenticated(async (req, res) => {
-  console.log("at getAppointmentsHandler");
-
   const { elder_id } = z
     .object({
       elder_id: z.string().transform((val) => parseInt(val, 10)),
@@ -69,8 +68,6 @@ export const getAppointmentsHandler = authenticated(async (req, res) => {
 });
 
 export const getAppointmentHandler = authenticated(async (req, res) => {
-  console.log("at getAppointmentHandler");
-
   const { elder_id, appt_id } = z
     .object({
       elder_id: z.string().transform((val) => parseInt(val, 10)),
@@ -83,7 +80,6 @@ export const getAppointmentHandler = authenticated(async (req, res) => {
 });
 
 export const deleteAppointmentHandler = authenticated(async (req, res) => {
-  console.log("at delete");
   const apptToDelete = z
     .object({
       elder_id: z.number(),
@@ -101,7 +97,6 @@ export const deleteAppointmentHandler = authenticated(async (req, res) => {
 });
 
 export const updateAppointmentHandler = authenticated(async (req, res) => {
-  console.log("at update");
   const apptToUpdate = z
     .object({
       elder_id: z.number(),
@@ -156,6 +151,19 @@ export const getPendingAppointmentsHandler = authenticated(async (req, res) => {
   }
 });
 
+export const getAllAppointmentsForCaregiverHandler = authenticated(
+  async (req, res) => {
+    try {
+      const caregiver_id = res.locals.user.userId;
+      const appts = await getAllAppointmentsForCaregiver(caregiver_id);
+      res.json(appts);
+    } catch (error) {
+      console.error("Failed to fetch all appointments:", error);
+      res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+  }
+);
+
 export const getDeclinedAppointmentsHandler = authenticated(
   async (req, res) => {
     console.log(req.params);
@@ -173,7 +181,6 @@ export const getDeclinedAppointmentsHandler = authenticated(
 );
 
 export const acceptAppointmentHandler = authenticated(async (req, res) => {
-  console.log("at accept appointment");
   let caregiver_id = null;
 
   const { elder_id, appt_id, undo } = z
@@ -243,6 +250,79 @@ export const getCaregiverById = authenticated(async (req, res) => {
   }
 
   res.json(caregiver);
+});
+
+export const importIcsFileHandler = authenticated(async (req, res) => {
+  try {
+    const caregiver_id = res.locals.user.userId;
+
+    // Get the caregiver's first elder (or create a default one if needed)
+    const caregiver = await getCaregiverDetails(caregiver_id);
+    if (!caregiver) {
+      return res.status(404).json({ error: "Caregiver not found" });
+    }
+
+    // Import elder details to get the caregiver's elders
+    const { getEldersDetails } = await import("#elder/elder.entity.js");
+    const elders = await getEldersDetails(caregiver_id);
+
+    // Use the first elder, or create a special elder for imported appointments
+    let elderId = 1; // Default fallback
+    if (elders && elders.length > 0) {
+      elderId = elders[0].id;
+    }
+
+    const icsContent = req.body.icsContent;
+    if (!icsContent) {
+      return res.status(400).json({ error: "ICS content is required" });
+    }
+
+    // Parse the ICS content
+    const calendar = ical.parseICS(icsContent);
+    const importedAppointments = [];
+    const errors = [];
+
+    for (const event of Object.values(calendar)) {
+      if (event.type === "VEVENT") {
+        const startDate = event.start;
+        const endDate =
+          event.end ||
+          (startDate ? new Date(startDate.getTime() + 60 * 60 * 1000) : null); // Default 1 hour duration
+        const summary = event.summary || "Imported Event";
+        const description = event.description || "";
+        const location = event.location || "";
+
+        if (startDate && endDate) {
+          try {
+            const appointment = await insertAppointment({
+              elder_id: elderId,
+              startDateTime: startDate,
+              endDateTime: endDate,
+              name: summary,
+              details: description,
+              loc: location,
+            });
+            importedAppointments.push(appointment);
+          } catch (error) {
+            console.error("Error inserting appointment:", error);
+            errors.push(`Failed to import: ${summary}`);
+            // Continue with other appointments even if one fails
+          }
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      importedCount: importedAppointments.length,
+      errorCount: errors.length,
+      errors: errors,
+      appointments: importedAppointments,
+    });
+  } catch (error) {
+    console.error("Failed to import ICS file:", error);
+    res.status(500).json({ error: "Failed to import ICS file" });
+  }
 });
 
 //unwrapped appointment handler 4 testing purposes

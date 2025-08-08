@@ -1,4 +1,6 @@
-const pglib = require("pg-promise");
+import pglib from "pg-promise";
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
 
 const pgp = pglib();
 

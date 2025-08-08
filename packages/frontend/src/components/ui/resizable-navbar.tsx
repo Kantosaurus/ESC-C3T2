@@ -215,10 +215,10 @@ export const MobileNavToggle = ({
   );
 };
 
-export const NavbarLogo = () => {
+export const NavbarLogo = ({ to = "/" }: { to?: string }) => {
   return (
     <Link
-      to="/"
+      to={to}
       className="relative z-20 mr-4 flex items-center space-x-2 py-1 text-sm font-normal text-black">
       <img
         src="/Official-Logo_LB-Original-Blue-01-clear.png"

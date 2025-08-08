@@ -5,5 +5,8 @@
     { "path": "packages/frontend" },
     { "path": "packages/backend" }
   ],
-  "exclude": ["**/*.cy.ts"]
+  "exclude": ["**/*.cy.ts"],
+  "compilerOptions": {
+    "esModuleInterop": true
+  }
 }

@@ -6,6 +6,8 @@ import {
   Trash2,
   ArrowLeft,
   CalendarPlus,
+  Calendar,
+  User,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,7 @@ import {
 import { useEldersDetails } from "@/elder/use-elder-details";
 import type { Elder } from "@carely/core";
 import { AppointmentForm, type AppointmentFormType } from "./appointment.form";
+import { PageLoader } from "@/components/ui/page-loader";
 import {
   useCreateAppointment,
   useGetAppointments,
@@ -59,7 +62,7 @@ export default function Calendarview() {
   const [currDate, setCurrDate] = useState(new Date());
   const [viewDate, setViewDate] = useState<Date | null>(null);
   const [selectedElder, setSelectedElder] = useState<Elder | null>(null);
-  const { elderDetails } = useEldersDetails();
+  const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
 
@@ -158,6 +161,7 @@ export default function Calendarview() {
 
   //url things
   const navigate = useNavigate();
+
   const { elder_id, appt_id } = useParams<{
     elder_id?: string;
     appt_id?: string;
@@ -257,21 +261,33 @@ export default function Calendarview() {
             viewDate.toDateString()
         )
       : [];
+  if (eldersLoading) {
+    return <PageLoader loading={true} pageType="calendar" />;
+  }
   if (!selectedElder) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto bg-slate-200 rounded-full flex items-center justify-center">
-            <CalendarPlus className="w-8 h-8 text-slate-400" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center space-y-6">
+            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl flex items-center justify-center">
+              <Calendar className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                No Elders Found
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                You need to add an elder profile before managing appointments.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/elder/new")}
+              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <User className="h-4 w-4" />
+              Add Your First Elder
+            </Button>
           </div>
-          <p className="text-slate-600 text-lg font-medium">No elders found</p>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/elder/new")}
-            className="bg-white hover:bg-slate-50"
-          >
-            Add your first elder
-          </Button>
         </div>
       </div>
     );
@@ -376,11 +392,11 @@ export default function Calendarview() {
       <main className="flex-1 p-2 overflow-hidden">
         <div className="bg-white h-full flex flex-col rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Calendar Header */}
-          <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+          <div className="grid grid-cols-7 bg-gray-50/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
             {days.map((day) => (
               <div
                 key={day}
-                className="text-center text-sm font-medium text-slate-600 py-4 px-2"
+                className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 py-4 px-2"
               >
                 {day}
               </div>
@@ -440,7 +456,7 @@ export default function Calendarview() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSheetView("dayview")}
-                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
@@ -452,7 +468,7 @@ export default function Calendarview() {
                   <Button
                     variant="outline"
                     onClick={() => setSheetView("form")}
-                    className="bg-white hover:bg-slate-50"
+                    className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
                   >
                     <CalendarPlus className="w-4 h-4 mr-2" />
                     Add Appointment
@@ -465,7 +481,7 @@ export default function Calendarview() {
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="bg-white hover:bg-slate-50"
+                          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
@@ -499,7 +515,7 @@ export default function Calendarview() {
                     <Button
                       onClick={() => setSheetView("update")}
                       variant="outline"
-                      className="bg-white hover:bg-slate-50"
+                      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit

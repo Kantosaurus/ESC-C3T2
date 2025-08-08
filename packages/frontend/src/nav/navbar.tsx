@@ -32,6 +32,7 @@ export default function AppNavbar() {
     { name: "Dashboard", link: "/dashboard" },
     { name: "Calendar", link: "/calendar" },
     { name: "Notes", link: "/notes" },
+    { name: "AI Assistant", link: "/ai" },
   ];
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function AppNavbar() {
   return (
     <Navbar>
       <NavBody>
-        <NavbarLogo />
+        <NavbarLogo to="/dashboard" />
         <NavItems items={navItems} />
         <div className="flex items-center space-x-4 relative">
           {/* Avatar with dropdown */}

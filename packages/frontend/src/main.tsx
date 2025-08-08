@@ -16,9 +16,11 @@ import ElderProfilePage from "./elder/profile.page.tsx";
 import EditElderPage from "./elder/edit-elder-page.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import ProfilePage from "./caregiver/profile.page.tsx";
+import CaregiverProfilePage from "./caregiver/caregiver-profile.page.tsx";
 import NotesPage from "./note/notes.page.tsx";
 import NewNotePage from "./note/new-note.page.tsx";
 import EditNotePage from "./note/edit-note.page.tsx";
+import AIPage from "./ai/ai.page.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -31,6 +33,10 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/caregiver/new" element={<NewCaregiverPage />} />
           <Route path="/caregiver/profile" element={<ProfilePage />} />
+          <Route
+            path="/caregiver/:caregiverId"
+            element={<CaregiverProfilePage />}
+          />
           <Route path="/elder/new" element={<NewElderPage />} />
           <Route
             path="/elder/:elderId/profile"
@@ -42,7 +48,7 @@ createRoot(document.getElementById("root")!).render(
 
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/notes/new" element={<NewNotePage />} />
-          <Route path="/notes/edit" element={<EditNotePage />} />
+          <Route path="/notes/:id/edit" element={<EditNotePage />} />
 
           <Route path="/calendar" element={<CalendarPage />} />
           <Route
@@ -50,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
             element={<CalendarPage />}
           />
           <Route path="/calendar/:elder_id" element={<CalendarPage />} />
+          <Route path="/ai" element={<AIPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

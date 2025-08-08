@@ -1,5 +1,7 @@
-const { migrate } = require("postgres-migrations");
-const pg = require("pg");
+import pg from "pg";
+import { migrate } from "postgres-migrations";
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
 
 /**
  * Converts a PostgreSQL connection string into a configuration object.
