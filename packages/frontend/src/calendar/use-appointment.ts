@@ -17,7 +17,7 @@ export function useCreateAppointment() {
 }
 
 export function useGetAppointments(elder_id: number | null) {
-  const [appointments, setAppointments] = useState<AppointmentFormType[]>();
+  const [appointments, setAppointments] = useState<Appointment[]>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,7 +63,7 @@ export function useGetAppointment(elder_id: number, appt_id: number) {
       .get(`/api/appointment/${elder_id}/${appt_id}`)
       .then(
         (res) => {
-          setAppointment(res.data[0]);
+          setAppointment(res.data);
           setError(undefined);
         },
         (error) => {
@@ -210,6 +210,47 @@ export function useImportIcsFile() {
   return { importIcsFile, isImporting, importResult };
 }
 
+export function useGetDeclinedAppointments(elder_id: number | null) {
+  const [declined, setDeclined] = useState<
+    Pick<Appointment, "appt_id">[] | null
+  >(null);
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchAppointment = useCallback(() => {
+    if (!elder_id) return;
+
+    setIsLoading(true);
+    http()
+      .get(`/api/declined/${elder_id}`)
+      .then(
+        (res) => {
+          setDeclined(res.data);
+          setError(undefined);
+        },
+        (error) => {
+          if (error.response?.status === 404) {
+            setError("Appointments not found");
+          } else {
+            setError("Failed to fetch appointments");
+          }
+        }
+      )
+      .finally(() => setIsLoading(false));
+  }, [elder_id]);
+
+  useEffect(() => {
+    fetchAppointment();
+  }, [fetchAppointment]);
+
+  return {
+    declined,
+    error,
+    isLoading,
+    refetchAppointment: fetchAppointment,
+  };
+}
+
 export function useAcceptAppointment() {
   return useCallback(
     (values: {
@@ -224,6 +265,29 @@ export function useAcceptAppointment() {
           console.error("Error accepting appointment:", error);
           throw error;
         });
+    },
+    []
+  );
+}
+
+export function useDeclineAppointment() {
+  return useCallback(
+    async (
+      values: {
+        elder_id: number;
+        appt_id: number | undefined;
+        undo: boolean;
+      },
+      refetch?: () => void
+    ) => {
+      try {
+        const res = await http().post("/api/appointment/decline", values);
+        if (refetch) refetch();
+        return res.data;
+      } catch (error) {
+        console.error("Error declining appointment:", error);
+        throw error;
+      }
     },
     []
   );

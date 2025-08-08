@@ -51,6 +51,11 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/notes/:id/edit" element={<EditNotePage />} />
 
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route
+            path="/calendar/:elder_id/:appt_id"
+            element={<CalendarPage />}
+          />
+          <Route path="/calendar/:elder_id" element={<CalendarPage />} />
           <Route path="/ai" element={<AIPage />} />
         </Route>
       </Routes>

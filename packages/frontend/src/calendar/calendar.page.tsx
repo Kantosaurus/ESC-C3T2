@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -6,19 +6,15 @@ import {
   Trash2,
   ArrowLeft,
   CalendarPlus,
-  Inbox,
-  Search,
-  Clock,
   Calendar,
   User,
 } from "lucide-react";
 import { CalendarCell } from "@/components/ui/calendarcells";
 import { Button } from "@/components/ui/button";
 import { DayView } from "@/components/ui/calendardayview";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Appointment } from "@carely/core";
 import { MiniCalendar } from "@/components/ui/calendar-mini";
-import AppNavbar from "@/nav/navbar";
 
 import {
   Select,
@@ -28,7 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 import {
   Dialog,
@@ -48,13 +49,13 @@ import {
   useGetAppointments,
   useDeleteAppointment,
   useUpdateAppointment,
-  useGetPendingAppointments,
 } from "./use-appointment";
 import AppointmentDetailsPage from "./appointment.details";
 import UpdateAppointmentForm from "./update.appointment.form";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import { cn } from "@/lib/utils";
+import CalendarBar from "./calendarbar";
 
 export default function Calendarview() {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -64,36 +65,28 @@ export default function Calendarview() {
   const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Appointment[]>([]);
-  const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>(
-    []
-  );
+
   const [sheetView, setSheetView] = useState<
     "dayview" | "details" | "form" | "update"
   >("dayview");
-  const [showPending, setShowPending] = useState(false);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   //handlers
   const { appointments, refetch } = useGetAppointments(
     selectedElder?.id ?? null
   );
-  const { pending, refetchPending } = useGetPendingAppointments();
-  useEffect(() => {
-    if (pending) {
-      setPendingAppointments(pending);
-    }
-  }, [pending]);
 
   const addAppointment = useCreateAppointment();
   const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
       await addAppointment(values);
       await refetch();
-      await refetchPending();
       setViewDate(null);
       setSheetView("dayview");
+      if (selectedElder) {
+        navigate(`/calendar/${selectedElder.id}`, { replace: true });
+      } else {
+        navigate("/calendar", { replace: true });
+      }
       toast.success("Appointment created");
     } catch (error) {
       const axiosErr = error as AxiosError<{ error: string }>;
@@ -126,6 +119,11 @@ export default function Calendarview() {
       await refetch();
       setSelectedAppointment(null);
       setSheetView("dayview");
+      if (selectedElder) {
+        navigate(`/calendar/${selectedElder.id}`, { replace: true });
+      } else {
+        navigate("/calendar", { replace: true });
+      }
       toast.success("Appointment deleted");
     } catch (error) {
       console.error("Error deleting appointment:", error);
@@ -135,10 +133,18 @@ export default function Calendarview() {
     }
   };
 
-  const findElder = useCallback(
-    (id: number) => elderDetails?.find((elder) => elder.id === id),
-    [elderDetails]
-  );
+  const showAppointmentDetails = (appointment: Appointment) => {
+    const elder = elderDetails?.find((e) => e.id === appointment.elder_id);
+    if (elder) {
+      setSelectedElder(elder);
+      setSelectedAppointment(appointment);
+      setViewDate(new Date(appointment.startDateTime));
+      setSheetView("details");
+      navigate(`/calendar/${elder.id}/${appointment.appt_id}`, {
+        replace: true,
+      });
+    }
+  };
 
   //render
   useEffect(() => {
@@ -147,35 +153,51 @@ export default function Calendarview() {
     }
   }, [elderDetails]);
 
-  useEffect(() => {
-    if (!appointments || searchQuery.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = appointments.filter(
-      (appointment) =>
-        appointment.name.toLowerCase().includes(query) ||
-        appointment.details?.toLowerCase().includes(query) ||
-        appointment.loc?.toLowerCase().includes(query) ||
-        findElder(appointment.elder_id)?.name.toLowerCase().includes(query)
-    );
-    setSearchResults(filtered);
-  }, [searchQuery, appointments, findElder]);
-
-  const navigate = useNavigate();
-
-  // Show loading state while data is being fetched
-  if (eldersLoading) {
-    return <PageLoader loading={true} pageType="calendar" />;
-  }
-
   const year = currDate.getFullYear();
   const month = currDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const today = new Date();
+
+  //url things
+  const navigate = useNavigate();
+
+  const { elder_id, appt_id } = useParams<{
+    elder_id?: string;
+    appt_id?: string;
+  }>();
+
+  //if url has elder id only
+  useEffect(() => {
+    if (elder_id && elderDetails) {
+      const urlElder = elderDetails.find(
+        (e) => e.id === parseInt(elder_id, 10)
+      );
+      if (urlElder) {
+        setSelectedElder(urlElder);
+      }
+    }
+  }, [elder_id, elderDetails]);
+
+  //if url has elder id and appt id
+  useEffect(() => {
+    if (elder_id && elderDetails && appt_id && appointments) {
+      const urlAppointment = appointments.find(
+        (a) => a.appt_id === parseInt(appt_id, 10)
+      );
+      if (urlAppointment) {
+        setSelectedAppointment(urlAppointment);
+        setViewDate(new Date(urlAppointment.startDateTime));
+        setSheetView("details");
+      }
+    }
+  }, [elder_id, elderDetails, appt_id, appointments]);
+
+  //update url when elder selected
+  const selectElder = (elder: Elder) => {
+    setSelectedElder(elder);
+    navigate(`/calendar/${elder.id}`, { replace: true });
+  };
 
   const goToToday = () => {
     setCurrDate(new Date());
@@ -206,13 +228,14 @@ export default function Calendarview() {
 
     calCells.push(
       <CalendarCell
+        data-testid={`calendar-cell-${day}`}
         variant={isToday ? "today" : "default"}
         hasEvent={dayAppointments.length > 0}
         key={day}
         onClick={() => {
           setViewDate(cellDate);
         }}
-        eventLabel={dayAppointments.map(
+        eventlabel={dayAppointments.map(
           (appt) =>
             `${new Date(appt.startDateTime).toLocaleTimeString([], {
               hour: "2-digit",
@@ -223,6 +246,9 @@ export default function Calendarview() {
         {day}
       </CalendarCell>
     );
+  }
+  for (let i = 0; i < 42 - firstDay - daysInMonth; i++) {
+    calCells.push(<CalendarCell variant="empty" key={`trailing-empty-${i}`} />);
   }
   const prevMonth = () => setCurrDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrDate(new Date(year, month + 1, 1));
@@ -235,10 +261,12 @@ export default function Calendarview() {
             viewDate.toDateString()
         )
       : [];
+  if (eldersLoading) {
+    return <PageLoader loading={true} pageType="calendar" />;
+  }
   if (!selectedElder) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-        <AppNavbar />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-6">
             <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl flex items-center justify-center">
@@ -265,276 +293,104 @@ export default function Calendarview() {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-      <AppNavbar />
-
-      {/* Header Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-        {/* Main Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Calendar className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Calendar
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Manage appointments and schedules
-              </p>
-            </div>
-          </div>
-
-          {/* Elder Selection */}
-          <div className="flex items-center gap-3">
-            <span className="text-gray-600 dark:text-gray-400">for</span>
-            <Select
-              value={selectedElder?.id?.toString() || ""}
-              onValueChange={(value) => {
-                const elderObj = elderDetails?.find(
-                  (elder) => elder.id.toString() === value
-                );
-                setSelectedElder(elderObj || null);
-              }}
-            >
-              <SelectTrigger className="w-auto border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white font-medium hover:bg-white dark:hover:bg-gray-800 px-4 py-2 shadow-sm">
-                <SelectValue placeholder="Choose elder..." />
-              </SelectTrigger>
-              <SelectContent>
-                {elderDetails?.map((elder) => (
-                  <SelectItem key={elder.id} value={elder.id.toString()}>
-                    {elder.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Controls Bar */}
-        <div className="flex items-center justify-between">
-          {/* Calendar Navigation */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={prevMonth}
-              className="h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <ChevronLeftIcon className="h-4 w-4" />
-            </Button>
-
-            <MiniCalendar
-              selected={currDate}
-              onSelect={(date) => setCurrDate(date)}
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={nextMonth}
-              className="h-9 w-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <ChevronRightIcon className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToToday}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 shadow-sm"
-            >
-              Today
-            </Button>
-
-            {/* Expandable Search */}
-            <div className="relative">
-              <div
-                className={cn(
-                  "flex items-center transition-all duration-300 ease-in-out origin-right",
-                  isSearchExpanded ? "w-64" : "w-10"
-                )}
-                onMouseEnter={() => setIsSearchExpanded(true)}
-                onMouseLeave={() => {
-                  if (!searchQuery) {
-                    setIsSearchExpanded(false);
-                  }
-                }}
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Modern Header */}
+      <header
+        className={cn(
+          "bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-20 transition-all duration-300",
+          !!viewDate && !!selectedElder && "backdrop-blur-xl bg-white/30"
+        )}
+      >
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left Section */}
+            <div className="flex items-center gap-3">
+              <button
+                data-testid="back-to-dashboard-button"
+                className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900"
+                onClick={() => navigate("/dashboard")}
               >
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
-                  <input
-                    type="text"
-                    placeholder="Search appointments..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsSearchExpanded(true)}
-                    onBlur={() => {
-                      if (!searchQuery) {
-                        setIsSearchExpanded(false);
-                      }
-                    }}
-                    className={cn(
-                      "pl-10 pr-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent transition-all duration-300",
-                      isSearchExpanded ? "w-full opacity-100" : "w-10 opacity-0"
-                    )}
-                    style={{
-                      width: isSearchExpanded ? "100%" : "40px",
-                      opacity: isSearchExpanded ? 1 : 0,
-                    }}
-                  />
-                  {!isSearchExpanded && (
-                    <div className="absolute inset-0 w-10 h-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center cursor-pointer shadow-sm">
-                      <Search className="w-4 h-4 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-              </div>
+                <ArrowLeft className="w-5 h-5" />
+              </button>
 
-              {searchResults.length > 0 && isSearchExpanded && (
-                <div className="absolute right-0 mt-2 w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl border border-gray-200 dark:border-gray-700 rounded-xl z-50 overflow-hidden">
-                  <div className="p-3 bg-gray-50/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                      Search Results ({searchResults.length})
-                    </h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {searchResults.map((result) => (
-                      <div
-                        key={`${result.startDateTime}-${result.name}`}
-                        className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                        onClick={() => {
-                          setSelectedAppointment(result);
-                          setSearchQuery("");
-                          setViewDate(new Date(result.startDateTime));
-                          setSheetView("details");
-                        }}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 dark:text-white truncate">
-                              {result.name}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(
-                                result.startDateTime
-                              ).toLocaleDateString()}{" "}
-                              –{" "}
-                              {new Date(
-                                result.startDateTime
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-semibold text-slate-900 hidden sm:block">
+                  Calendar
+                </h1>
+                <div className="h-4 w-px bg-slate-300 hidden sm:block"></div>
+                <span className="text-slate-600">for</span>
+                <Select
+                  value={selectedElder?.id?.toString() || ""}
+                  onValueChange={(value) => {
+                    const elderObj = elderDetails?.find(
+                      (elder) => elder.id.toString() === value
+                    );
+                    if (elderObj) {
+                      selectElder(elderObj);
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    data-testid="choose-elder-button"
+                    className="w-auto border-0 bg-transparent text-slate-900 font-medium hover:bg-slate-100 px-3 py-1"
+                  >
+                    <SelectValue placeholder="Choose elder..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {elderDetails?.map((elder) => (
+                      <SelectItem key={elder.id} value={elder.id.toString()}>
+                        {elder.name}
+                      </SelectItem>
                     ))}
-                  </div>
-                </div>
-              )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Pending Appointments */}
-            <div className="relative">
+            {/* Center Section - Calendar Navigation */}
+            <div className="flex sm:gap-1 items-center">
               <Button
-                onClick={() => {
-                  setShowPending((prev) => !prev);
-                  refetchPending();
-                }}
-                variant="outline"
-                className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm"
+                data-testid="prev-month-button"
+                variant="ghost"
+                size="icon"
+                onClick={prevMonth}
+                className="h-9 w-4 rounded-lg hover:bg-slate-100"
               >
-                <Inbox className="w-4 h-4 mr-2" />
-                Pending
-                {pendingAppointments.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {pendingAppointments.length}
-                  </span>
-                )}
+                <ChevronLeftIcon className="h-4 w-4" />
               </Button>
 
-              {showPending && (
-                <div className="absolute right-0 mt-2 w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl border border-gray-200 dark:border-gray-700 rounded-xl z-50 overflow-hidden">
-                  {pendingAppointments.length > 0 ? (
-                    <div className="max-h-64 overflow-y-auto">
-                      <div className="p-3 bg-gray-50/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                          Pending Appointments ({pendingAppointments.length})
-                        </h3>
-                      </div>
-                      <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {pendingAppointments.map((result) => (
-                          <div
-                            key={result.appt_id}
-                            className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setSelectedAppointment(result);
-                              setSelectedElder(
-                                findElder(result.elder_id) || null
-                              );
-                              setSearchQuery("");
-                              setViewDate(new Date(result.startDateTime));
-                              setSheetView("details");
-                              setShowPending(false);
-                            }}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 dark:text-white truncate">
-                                  {result.name}
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                  for {findElder(result.elder_id)?.name}
-                                </div>
-                                {result.startDateTime && (
-                                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {new Date(
-                                      result.startDateTime
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center">
-                      <Inbox className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                      <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                        No pending appointments
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        All appointments are accepted
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="relative w-[120px] sm:w-[130px] scale-80 sm:scale-100 flex items-center justify-center">
+                <MiniCalendar
+                  selected={currDate}
+                  onSelect={(date) => setCurrDate(date)}
+                />
+              </div>
+
+              <Button
+                data-testid="next-month-button"
+                variant="ghost"
+                size="icon"
+                onClick={nextMonth}
+                className="h-9 w-4 rounded-lg hover:bg-slate-100"
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Right Section */}
+            <div className="ml-auto">
+              <CalendarBar
+                selectedElder={selectedElder}
+                goToToday={goToToday}
+              ></CalendarBar>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Calendar Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-soft overflow-hidden">
+      <main className="flex-1 p-2 overflow-hidden">
+        <div className="bg-white h-full flex flex-col rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Calendar Header */}
           <div className="grid grid-cols-7 bg-gray-50/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
             {days.map((day) => (
@@ -548,9 +404,11 @@ export default function Calendarview() {
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 min-h-[600px]">{calCells}</div>
+          <div className="grid grid-cols-7 flex-1 h-full [grid-auto-rows:1fr] gap-px md:gap-0">
+            {calCells}
+          </div>
         </div>
-      </div>
+      </main>
 
       {/* Sheet for Day View */}
       <Sheet
@@ -559,6 +417,12 @@ export default function Calendarview() {
           if (!open) {
             setViewDate(null);
             setSheetView("dayview");
+            setSelectedAppointment(null);
+            if (selectedElder) {
+              navigate(`/calendar/${selectedElder.id}`, { replace: true });
+            } else {
+              navigate("/calendar", { replace: true });
+            }
           }
         }}
       >
@@ -566,9 +430,27 @@ export default function Calendarview() {
           side="right"
           className="!w-full sm:!w-[600px] max-w-full p-0 overflow-hidden"
         >
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-            <div className="grid grid-cols-3 items-center py-4 px-6">
+          <SheetTitle className="sr-only">
+            Sheet
+            <SheetDescription className="sr-only">Sidebar</SheetDescription>
+          </SheetTitle>
+          <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
+            <div className="justify-between flex items-center py-4 px-6">
               <div className="flex justify-start">
+                {sheetView == "dayview" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setViewDate(null);
+                      setSelectedAppointment(null);
+                    }}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
+                  </Button>
+                )}
                 {!(sheetView == "dayview") && (
                   <Button
                     variant="ghost"
@@ -580,12 +462,6 @@ export default function Calendarview() {
                     Back
                   </Button>
                 )}
-              </div>
-              <div className="flex justify-center font-semibold text-gray-900 dark:text-white">
-                {sheetView == "dayview" && viewDate?.toDateString()}
-                {sheetView == "details" && "Details"}
-                {sheetView == "form" && "Create"}
-                {sheetView == "update" && "Update"}
               </div>
               <div className="flex justify-end">
                 {sheetView == "dayview" && (
@@ -613,7 +489,7 @@ export default function Calendarview() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>
+                          <DialogTitle className="max-w-[400px] truncate">
                             Delete {selectedAppointment.name}?
                           </DialogTitle>
                           <DialogDescription>
@@ -621,20 +497,19 @@ export default function Calendarview() {
                             delete the appointment
                           </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4">
-                          <Button
-                            className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                            onClick={async () => {
-                              if (!selectedElder) return;
-                              handleDeleteAppointment({
-                                elder_id: selectedAppointment.elder_id,
-                                appt_id: selectedAppointment.appt_id,
-                              });
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          data-testid={`confirm-delete-button`}
+                          className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                          onClick={async () => {
+                            if (!selectedElder) return;
+                            handleDeleteAppointment({
+                              elder_id: selectedAppointment.elder_id,
+                              appt_id: selectedAppointment.appt_id,
+                            });
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </DialogContent>
                     </Dialog>
                     <Button
@@ -653,11 +528,11 @@ export default function Calendarview() {
           <div className="h-full overflow-y-auto p-6">
             {sheetView == "dayview" && (
               <DayView
+                viewDateString={viewDate?.toDateString()}
                 date={viewDate!}
                 appointments={selectedDateAppointments}
                 onSelect={(appt) => {
-                  setSelectedAppointment(appt);
-                  setSheetView("details");
+                  showAppointmentDetails(appt);
                 }}
               />
             )}

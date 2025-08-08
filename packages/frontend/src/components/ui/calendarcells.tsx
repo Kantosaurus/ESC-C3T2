@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const calendarCellVariants = cva(
-  "relative w-full h-full border-r border-b border-slate-300 bg-white p-3 text-left select-none flex flex-col justify-start items-start transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-400 cursor-pointer group",
+  "w-full h-full border-r border-b border-slate-300 bg-white p-3 text-left select-none flex flex-col justify-start items-start transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-400 cursor-pointer group",
   {
     variants: {
       variant: {
@@ -31,15 +31,21 @@ export interface CalendarCellProps
     VariantProps<typeof calendarCellVariants> {
   asChild?: boolean;
   children?: React.ReactNode;
-  eventLabel?: string | string[];
+  eventlabel?: string[];
 }
 
 const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
   (
-    { className, variant, hasEvent, asChild, children, eventLabel, ...props },
+    { className, variant, hasEvent, asChild, children, eventlabel, ...props },
     ref
   ) => {
     const Comp = asChild ? Slot : "div";
+    //prevent overflow
+    if (eventlabel && eventlabel?.length > 4) {
+      const extraEvents = eventlabel.length - 3;
+      eventlabel.length = 3;
+      eventlabel.push(`+${extraEvents} more`);
+    }
     return (
       <Comp
         ref={ref}
@@ -63,8 +69,8 @@ const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
             children
           )}
         </div>
-        {Array.isArray(eventLabel) &&
-          eventLabel.map((label, i) => (
+        {Array.isArray(eventlabel) &&
+          eventlabel.map((label, i) => (
             <div
               key={i}
               className="mt-2 w-full text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-md truncate border border-blue-200/50 shadow-sm transition-all duration-300 ease-out group-hover:bg-blue-200 group-hover:text-blue-800 group-hover:shadow-md group-hover:scale-[1.02]"
@@ -72,7 +78,7 @@ const CalendarCell = React.forwardRef<HTMLDivElement, CalendarCellProps>(
               {label}
             </div>
           ))}
-        {hasEvent && !Array.isArray(eventLabel) && (
+        {hasEvent && !Array.isArray(eventlabel) && (
           <div className="absolute bottom-2 right-2 w-2 h-2 bg-blue-500 rounded-full transition-all duration-300 ease-out group-hover:scale-125 group-hover:bg-blue-600 group-hover:shadow-sm"></div>
         )}
       </Comp>

@@ -993,6 +993,7 @@ export default function ProfilePage() {
           <div className="h-full overflow-y-auto p-6">
             {sheetView == "dayview" && (
               <DayView
+                viewDateString={viewDate?.toDateString()}
                 date={viewDate!}
                 appointments={selectedDateAppointments}
                 onSelect={(appt) => {

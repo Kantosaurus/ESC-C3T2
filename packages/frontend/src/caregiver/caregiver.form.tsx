@@ -90,6 +90,7 @@ export function CaregiverForm({
                 <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
                   <Input
+                    data-testid="dob-input"
                     type="date"
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}

@@ -8,6 +8,9 @@ import {
   getPendingAppointments,
   getAllAppointmentsForCaregiver,
   acceptAppointment,
+  declineAppointment,
+  undoDeclineAppointment,
+  getDeclinedAppointments,
 } from "./appointment.entity";
 
 import { getCaregiverDetails } from "#caregiver/caregiver.entity.js";
@@ -17,16 +20,23 @@ import * as ical from "ical";
 import type { Request, Response } from "express";
 
 export const createAppointmentHandler = authenticated(async (req, res) => {
-  const appt = appointmentSchema.parse(req.body);
+  console.log("at createAppointmentHandler");
+  const caregiver_id = res.locals.user.userId;
+  const appt = appointmentSchema.parse({
+    created_by: caregiver_id,
+    ...req.body,
+  });
+
+  console.log("created: ", appt);
   const newStart = new Date(appt.startDateTime).getTime();
   const newEnd = new Date(appt.endDateTime).getTime();
   const existingAppts = await getAppointmentsForElder(appt.elder_id);
-
   const isClashing = existingAppts?.some((exist) => {
     const existingStart = new Date(exist.startDateTime).getTime();
     const existingEnd = new Date(exist.endDateTime).getTime();
     return newStart < existingEnd && newEnd > existingStart;
   });
+
   if (isClashing) {
     return res.status(409).json({
       error: "Appointment clashes with an existing appointment",
@@ -36,8 +46,9 @@ export const createAppointmentHandler = authenticated(async (req, res) => {
     return res.status(400).json({
       error: "Appointment end must be after start",
     });
-
+  console.log("geeaee");
   const newAppt = await insertAppointment(appt);
+  console.log("here??");
   res.status(201).json(newAppt);
 });
 
@@ -64,8 +75,8 @@ export const getAppointmentHandler = authenticated(async (req, res) => {
     })
     .parse(req.params);
 
-  const appts = await getAppointmentForElder(elder_id, appt_id);
-  res.json(appts);
+  const appt = await getAppointmentForElder(elder_id, appt_id);
+  res.json(appt);
 });
 
 export const deleteAppointmentHandler = authenticated(async (req, res) => {
@@ -153,6 +164,22 @@ export const getAllAppointmentsForCaregiverHandler = authenticated(
   }
 );
 
+export const getDeclinedAppointmentsHandler = authenticated(
+  async (req, res) => {
+    console.log(req.params);
+    try {
+      const { elder_id } = z
+        .object({ elder_id: z.string().transform((val) => parseInt(val, 10)) })
+        .parse(req.params);
+      const appt_ids = await getDeclinedAppointments(elder_id);
+      console.log("Declined: ", appt_ids);
+      res.json(appt_ids);
+    } catch (error) {
+      console.error("Failed to fetch declined appointments:", error);
+    }
+  }
+);
+
 export const acceptAppointmentHandler = authenticated(async (req, res) => {
   let caregiver_id = null;
 
@@ -163,8 +190,10 @@ export const acceptAppointmentHandler = authenticated(async (req, res) => {
       undo: z.boolean(),
     })
     .parse(req.body);
+
+  const checkappt = await getAppointmentForElder(elder_id, appt_id);
   try {
-    if (!undo) {
+    if (!undo && !checkappt.accepted) {
       caregiver_id = res.locals.user.userId;
     }
 
@@ -172,6 +201,37 @@ export const acceptAppointmentHandler = authenticated(async (req, res) => {
     res.json(appt);
   } catch (error) {
     console.error("Failed to accept appointment:", error);
+  }
+});
+
+export const declineAppointmentHandler = authenticated(async (req, res) => {
+  console.log("at decline appointment");
+  const caregiver_id = res.locals.user.userId;
+
+  const { elder_id, appt_id, undo } = z
+    .object({
+      elder_id: z.number(),
+      appt_id: z.number(),
+      undo: z.boolean(),
+    })
+    .parse(req.body);
+
+  try {
+    if (!undo) {
+      console.log("decclining");
+      const appt = await declineAppointment(caregiver_id, elder_id, appt_id);
+      res.json(appt);
+    } else {
+      console.log("undo decline");
+      const appt = await undoDeclineAppointment(
+        caregiver_id,
+        elder_id,
+        appt_id
+      );
+      res.json(appt);
+    }
+  } catch (error) {
+    console.error("Failed to decline appointment:", error);
   }
 });
 
@@ -270,7 +330,12 @@ export const _createAppointmentHandler = async (
   req: Request,
   res: Response
 ) => {
-  const appt = appointmentSchema.parse(req.body);
+  console.log("at createAppointmentHandler");
+  const caregiver_id = "testUserId";
+  const appt = appointmentSchema.parse({
+    created_by: caregiver_id,
+    ...req.body,
+  });
   const newStart = new Date(appt.startDateTime).getTime();
   const newEnd = new Date(appt.endDateTime).getTime();
   const existingAppts = await getAppointmentsForElder(appt.elder_id);

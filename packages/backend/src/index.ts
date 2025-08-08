@@ -40,6 +40,8 @@ import {
   getAllAppointmentsForCaregiverHandler,
   importIcsFileHandler,
   acceptAppointmentHandler,
+  declineAppointmentHandler,
+  getDeclinedAppointmentsHandler,
 } from "./appointment/appointment.handler";
 import { getUpcomingAppointmentsHandler } from "#dashboard/upcoming-appointments.handler.js";
 import { chatHandler } from "./ai/ai.handler.js";
@@ -128,12 +130,14 @@ app.get("/api/elder/invite", getInviteLinkHandler);
 app.post("/api/elder/invite", createElderRelationshipHandler);
 
 app.post("/api/appointment/accept", acceptAppointmentHandler);
+app.post("/api/appointment/decline", declineAppointmentHandler);
 app.post("/api/appointment/new", createAppointmentHandler);
 app.get("/api/appointments/:elder_id", getAppointmentsHandler);
 app.get("/api/appointment/:elder_id/:appt_id", getAppointmentHandler);
 app.post("/api/appointment/delete", deleteAppointmentHandler);
 app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
+app.get("/api/declined/:elder_id", getDeclinedAppointmentsHandler);
 app.get("/api/appointment/all", getAllAppointmentsForCaregiverHandler);
 app.post("/api/appointment/import-ics", importIcsFileHandler);
 

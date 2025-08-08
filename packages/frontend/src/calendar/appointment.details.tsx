@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { useGetAppointment } from "./use-appointment";
+import {
+  useGetAppointment,
+  useGetDeclinedAppointments,
+} from "./use-appointment";
 import { Label } from "@/components/ui/label";
 import type { Elder } from "@carely/core";
-import { useAcceptAppointment, useGetCaregiver } from "./use-appointment";
+import {
+  useAcceptAppointment,
+  useGetCaregiver,
+  useDeclineAppointment,
+} from "./use-appointment";
 import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useCaregiver } from "@/caregiver/use-caregiver";
@@ -10,18 +17,34 @@ import { Undo } from "lucide-react";
 
 const extractTimeFromISO = (isoString: string): string => {
   const date = new Date(isoString);
-  let ampm = "AM";
-  let hours = date.getHours();
-  if (hours > 11) {
-    ampm = "PM";
-    if (hours > 12) {
-      hours -= 12;
-    }
-  }
-  return `${hours.toString().padStart(2, "0")}:${date
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")} ${ampm}`;
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const extractDateFromISO = (isoString: string): string => {
+  const date = new Date(isoString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
 };
 
 export default function AppointmentDetailsPage({
@@ -35,9 +58,18 @@ export default function AppointmentDetailsPage({
     useGetAppointment(elder.id, appt_id);
 
   const caregiverId = appointment?.accepted;
-  const { caregiver } = useGetCaregiver(caregiverId ?? undefined);
+  const { caregiver: acceptcaregiver } = useGetCaregiver(
+    caregiverId ?? undefined
+  );
+
+  const { caregiver: createcaregiver } = useGetCaregiver(
+    appointment?.created_by
+  );
 
   const { caregiverDetails } = useCaregiver();
+
+  const { declined, refetchAppointment: refetchDeclinedAppointments } =
+    useGetDeclinedAppointments(elder.id ?? null);
 
   const acceptAppointment = useAcceptAppointment();
 
@@ -48,7 +80,7 @@ export default function AppointmentDetailsPage({
   }) => {
     try {
       await acceptAppointment(values);
-      await refetchAppointment();
+      await Promise.all([refetchAppointment(), refetchDeclinedAppointments()]);
       if (values.undo) {
         toast.success("Undo Successful");
       } else {
@@ -56,6 +88,30 @@ export default function AppointmentDetailsPage({
       }
     } catch (error) {
       console.error("Error accepting appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
+  const allDeclined = declined?.some((item) => item.appt_id === appt_id);
+
+  const declineAppointment = useDeclineAppointment();
+  const handleDeclineAppointment = async (values: {
+    elder_id: number;
+    appt_id: number | undefined;
+    undo: boolean;
+  }) => {
+    try {
+      await declineAppointment(values);
+      await Promise.all([refetchAppointment(), refetchDeclinedAppointments()]);
+      if (values.undo) {
+        toast.success("Undo Successful");
+      } else {
+        toast.success("Appointment Declined");
+      }
+    } catch (error) {
+      console.error("Error declining appointment:", error);
       const axiosErr = error as AxiosError<{ error: string }>;
       const message = axiosErr.response?.data?.error ?? "Unexpected error";
       toast.error(message);
@@ -76,7 +132,7 @@ export default function AppointmentDetailsPage({
 
   return (
     <div>
-      <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
+      <div className="-mt-3 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div className="space-y-2">
           <Label className="text-gray-600">Elder</Label>
           <div className="p-2 border rounded bg-gray-50">{elder.name}</div>
@@ -84,8 +140,17 @@ export default function AppointmentDetailsPage({
 
         <div className="space-y-2">
           <Label className="text-gray-600">Appointment Title</Label>
-          <div className="p-2 border rounded bg-gray-50">
+          <div className="p-2 border rounded bg-gray-50 truncate">
             {appointment.name || "Missing title"}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-gray-600">Date</Label>
+          <div className="p-2 border rounded bg-gray-50">
+            {appointment.startDateTime
+              ? extractDateFromISO(appointment.startDateTime.toString())
+              : "Missing Date"}
           </div>
         </div>
 
@@ -108,15 +173,6 @@ export default function AppointmentDetailsPage({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-gray-600">Details</Label>
-          <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap">
-            {appointment.details || (
-              <span className="text-gray-400">No details</span>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-2">
           <Label className="text-gray-600">Location</Label>
           <div className="p-2 border rounded bg-gray-50">
             {appointment.loc || (
@@ -124,14 +180,31 @@ export default function AppointmentDetailsPage({
             )}
           </div>
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-gray-600">Details</Label>
+          <div className="p-2 border rounded bg-gray-50 whitespace-pre-wrap break-words">
+            {appointment.details || (
+              <span className="text-gray-400">No details</span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-gray-600">Created by</Label>
+          <div className="p-2 border rounded bg-gray-50">
+            <span>{createcaregiver?.name}</span>
+          </div>
+        </div>
       </div>
       <div className="mt-4 p-4 border rounded bg-white shadow space-y-6 max-w-xl mx-auto">
         <div>
-          {appointment.accepted ? (
-            caregiverDetails && appointment.accepted === caregiverDetails.id ? (
+          {caregiverDetails && appointment.accepted ? (
+            appointment.accepted === caregiverDetails.id ? (
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-lg">Accepted by you</Label>
                 <Button
+                  data-testid="undo-accept-button"
                   variant="outline"
                   onClick={() => {
                     handleAcceptAppointment({
@@ -150,27 +223,71 @@ export default function AppointmentDetailsPage({
                   Already accepted by another caregiver
                 </Label>
                 <div className="p-2 border rounded bg-gray-100 text-gray-500 italic">
-                  {caregiver ? caregiver.name : "Name cannot be found"}
+                  {acceptcaregiver
+                    ? acceptcaregiver.name
+                    : "Name cannot be found"}
                 </div>
               </div>
             )
+          ) : caregiverDetails &&
+            appointment.declined?.includes(caregiverDetails.id) ? (
+            <div>
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold text-lg">Declined by you</Label>
+                <Button
+                  data-testid="undo-decline-button"
+                  variant="outline"
+                  onClick={() => {
+                    handleDeclineAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: true,
+                    });
+                  }}
+                >
+                  <Undo /> Undo
+                </Button>
+              </div>
+              {allDeclined && (
+                <div className="mt-1 text-xs text-red-500 italic">
+                  All caregivers have declined this appointment, kindly contact
+                  external caregivers for assistance
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex items-center justify-between">
               <Label className="font-semibold text-lg">
-                Accept Appointment?
+                Accept/Decline Appointment?
               </Label>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  handleAcceptAppointment({
-                    elder_id: appointment.elder_id,
-                    appt_id: appointment.appt_id,
-                    undo: false,
-                  });
-                }}
-              >
-                Accept
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  data-testid="accept-appointment-button"
+                  variant="outline"
+                  onClick={() => {
+                    handleAcceptAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: false,
+                    });
+                  }}
+                >
+                  Accept
+                </Button>
+                <Button
+                  data-testid="decline-appointment-button"
+                  variant="outline"
+                  onClick={() => {
+                    handleDeclineAppointment({
+                      elder_id: appointment.elder_id,
+                      appt_id: appointment.appt_id,
+                      undo: false,
+                    });
+                  }}
+                >
+                  Decline
+                </Button>
+              </div>
             </div>
           )}
         </div>
