@@ -114,7 +114,9 @@ export function EditNoteForm({
             <FormItem>
               <FormLabel>Header</FormLabel>
               <FormControl>
-                <Input placeholder="Add note header" {...field} required />
+                <Input 
+                data-testid="note-header-edit-input"
+                placeholder="Add note header" {...field} required />
               </FormControl>
               <FormDescription>
                 Add a header for the top of the note to search for this note
@@ -139,6 +141,7 @@ export function EditNoteForm({
 
               <FormControl>
                 <Textarea
+                  data-testid="note-content-edit-input"
                   placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
                   rows={4}
                   {...field}

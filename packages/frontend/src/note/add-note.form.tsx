@@ -103,7 +103,9 @@ export function AddNoteForm({
                     field.onChange(value);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger
+                    data-testid="select-elder-assigned-button"
+                  >
                     <SelectValue placeholder="Select a care recipient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -129,7 +131,9 @@ export function AddNoteForm({
             <FormItem>
               <FormLabel>Header</FormLabel>
               <FormControl>
-                <Input placeholder="Add note header" {...field} required />
+                <Input  
+                data-testid="note-header-input"
+                placeholder="Add note header" {...field} required />
               </FormControl>
               <FormDescription>
                 Add a header for the top of the note to search for this note
@@ -155,6 +159,7 @@ export function AddNoteForm({
 
               <FormControl>
                 <Textarea
+                  data-testid="note-content-input"
                   placeholder="Feed medication at 10am and 7pm. Both take after meals. Take blood pressure at noon"
                   rows={4}
                   {...field}

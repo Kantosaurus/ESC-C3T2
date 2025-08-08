@@ -58,7 +58,7 @@ export default function Modal({
           onClick={() => navigate("/notes/edit", { state: { note } })}
           variant="outline">
           <Edit className="h-4 w-4 mr-2" />
-          Edit note
+          Edit Note
         </Button>
         <p className="mt-4 text-sm text-gray-600">
           Assigned to:{" "}

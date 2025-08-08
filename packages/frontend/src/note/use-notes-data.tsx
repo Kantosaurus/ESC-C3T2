@@ -156,7 +156,9 @@ export function NoteDetails() {
                   {matchingElder?.name}
                 </h2>
               )}
-              <li className="bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
+              <li 
+                data-testid="note-card"
+                className="bg-indigo-20 rounded-lg shadow-md p-6 border border-gray-200">
                 <p className="text-sm text-gray-600">
                   Assigned to: {matchingElder ? matchingElder.name : "Unknown"}
                 </p>
