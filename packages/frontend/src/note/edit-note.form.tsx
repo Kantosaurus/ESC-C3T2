@@ -102,10 +102,13 @@ export function EditNoteForm({
 
   useEffect(() => {
     if (transcript) {
-      form.setValue("content", form.getValues("content") + transcript);
+      const currentContent = form.getValues("content") || "";
+      form.setValue("content", currentContent + transcript, {
+        shouldDirty: true, // This marks the field as changed
+      });
       setTranscript("");
     }
-  }, [transcript]);
+  }, [transcript, form, setTranscript]);
 
   return (
     <Form {...form}>
