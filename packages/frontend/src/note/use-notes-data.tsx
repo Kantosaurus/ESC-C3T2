@@ -55,9 +55,10 @@ export default function NoteModalWrapper() {
  * Get all notes that the caregiver is associated with.
  */
 export function NoteDetails() {
-  const [NoteDetails, setNoteDetails] = useState<Note[]>();
   const [elderDetails, setElderDetails] = useState<Elder[]>();
   const { caregiverDetails } = useCaregiver();
+  const [NoteDetails, setNoteDetails] =
+    useState<(Note & { creator_name?: string })[]>();
 
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
@@ -136,10 +137,7 @@ export function NoteDetails() {
       http().get("/api/elder/details", { signal: controller.signal }),
     ])
       .then(
-        ([noteRes, elderRes]: [
-          AxiosResponse<Note[]>,
-          AxiosResponse<Elder[]>
-        ]) => {
+        ([noteRes, elderRes]) => {
           setNoteDetails(noteRes.data);
           setElderDetails(elderRes.data);
         },
@@ -206,7 +204,7 @@ export function NoteDetails() {
                   {note.content}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Created By: {caregiverDetails?.name || "Unknown"}
+                  Created By: {note.creator_name || "Unknown"}
                 </p>
                 {/* Date format as DD/MM/YYYY */}
                 <p className="text-xs text-gray-500">

@@ -6,11 +6,13 @@ import { db } from "../db/db";
 export const getNotesDetails = (caregiverId: string) =>
   db
     .query(
-      `SELECT n.*, e.name AS elder_name FROM notes n
-            JOIN caregiver_elder ce ON n.assigned_elder_id = ce.elder_id
-            JOIN elders e ON ce.elder_id = e.id
-            WHERE ce.caregiver_id = $1
-            ORDER BY n.updated_at DESC`,
+      `SELECT n.*, e.name AS elder_name, c.name AS creator_name 
+     FROM notes n
+     JOIN caregiver_elder ce ON n.assigned_elder_id = ce.elder_id
+     JOIN elders e ON ce.elder_id = e.id
+     JOIN caregivers c ON n.caregiver_id = c.id
+     WHERE ce.caregiver_id = $1
+     ORDER BY n.updated_at DESC`,
       [caregiverId]
     )
     .then((result) =>
@@ -18,6 +20,7 @@ export const getNotesDetails = (caregiverId: string) =>
         .array(
           noteSchema.extend({
             elder_name: z.string(),
+            creator_name: z.string(),
           })
         )
         .parse(result)
