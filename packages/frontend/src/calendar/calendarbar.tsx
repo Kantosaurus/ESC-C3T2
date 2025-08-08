@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import type { Appointment, Elder } from "@carely/core";
 import { Download, Inbox, Clock, Search, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import {
   useGetAppointments,
   useGetDeclinedAppointments,

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { http } from "@/lib/http";
 import { elderSchema, getInviteLinkResponseDtoSchema } from "@carely/core";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useElderDetails } from "./use-elder-details";
 

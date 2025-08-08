@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Caregiver } from "@carely/core";
 import type { AxiosError, AxiosResponse } from "axios";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { http } from "@/lib/http";
 
 /**

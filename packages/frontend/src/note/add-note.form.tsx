@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useSpeechToText } from "./use-speech-to-text";
 import { useEffect } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";

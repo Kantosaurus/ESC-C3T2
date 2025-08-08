@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/resizable-navbar";
 import { User, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export default function AppNavbar() {
   const { caregiverDetails } = useCaregiver();

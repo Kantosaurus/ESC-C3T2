@@ -2,7 +2,7 @@ import "./index.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { RouteGuard } from "@/components/authenticated-route.tsx";
 import LoginPage from "./auth/login.page.tsx";
 import DashboardPage from "./dashboard/dashboard.page.tsx";

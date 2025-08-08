@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
 import { ElderForm, type ElderFormType } from "./elder.form";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import type { NewElderDto } from "@carely/core";
 import { ArrowLeft } from "lucide-react";
 import { env } from "@/lib/env";
@@ -69,7 +69,8 @@ export default function NewElderPage() {
           <Button
             className="mb-4"
             variant="outline"
-            onClick={() => navigate("/dashboard")}>
+            onClick={() => navigate("/dashboard")}
+          >
             <ArrowLeft />
             Back
           </Button>

@@ -1,6 +1,6 @@
 import { useAfter } from "@/lib/use-after";
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function RedirectPage() {
   const navigate = useNavigate();

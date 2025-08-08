@@ -4,7 +4,7 @@ import { useCaregiverNotes } from "./use-caregiver-notes";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback, useState } from "react";
 import { http } from "@/lib/http";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,

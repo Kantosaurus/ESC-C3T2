@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
 import { EditNoteForm } from "./edit-note.form";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
 import type { Note } from "@carely/core";

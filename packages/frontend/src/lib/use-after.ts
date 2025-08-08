@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 /**
  * Custom hook to handle redirection after an action.

@@ -1,7 +1,7 @@
 import { http } from "@/lib/http";
 import type { NewNoteDto } from "@carely/core";
 import { AddNoteForm, type AddNoteFormType } from "./add-note.form";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppNavbar from "@/nav/navbar";
 import { ArrowLeft, Plus } from "lucide-react";

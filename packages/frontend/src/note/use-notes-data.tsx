@@ -3,13 +3,13 @@ import type { Note } from "@carely/core";
 import type { Elder } from "@carely/core";
 import { useCaregiver } from "@/caregiver/use-caregiver";
 import type { AxiosError, AxiosResponse } from "axios";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { http } from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import Modal from "./notes-modal";
 import Card from "@/components/ui/card";
 import { Calendar, Clock, User, Eye, Edit, Trash2 } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 /**
  * Get all notes that the caregiver is associated with.

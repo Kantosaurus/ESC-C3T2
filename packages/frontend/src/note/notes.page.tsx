@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { NoteDetails } from "./use-notes-data";
 import { useEldersDetails } from "@/elder/use-elder-details";
 import { PageLoader } from "@/components/ui/page-loader";
