@@ -38,7 +38,6 @@ import {
   updateAppointmentHandler,
   getPendingAppointmentsHandler,
   getAllAppointmentsForCaregiverHandler,
-  importIcsFileHandler,
   acceptAppointmentHandler,
   declineAppointmentHandler,
   getDeclinedAppointmentsHandler,
@@ -139,7 +138,6 @@ app.patch("/api/appointment/update", updateAppointmentHandler);
 app.get("/api/appointment/pending", getPendingAppointmentsHandler);
 app.get("/api/declined/:elder_id", getDeclinedAppointmentsHandler);
 app.get("/api/appointment/all", getAllAppointmentsForCaregiverHandler);
-app.post("/api/appointment/import-ics", importIcsFileHandler);
 
 app.get("/api/notes/details", getNotesHandler);
 app.get("/api/notes/:id", getNoteByIdHandler);
