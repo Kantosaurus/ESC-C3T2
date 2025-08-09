@@ -196,18 +196,19 @@ export function NoteDetails() {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     {matchingElder?.name}
                   </h2>
-                  <div 
-                className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+                  <div
+                    className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
                 </div>
               )}
 
               <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                <div
+                  data-testid="note-card"
+                  className="flex flex-col lg:flex-row lg:items-start gap-4">
                   {/* Main Content */}
                   <div className="flex-1 space-y-3">
-                    <div 
-                        data-testid="note-card"
-                        className="flex items-start justify-between gap-4">
+                    <div
+                      className="flex items-start justify-between gap-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
                         {note.header}
                       </h3>
