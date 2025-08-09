@@ -1,14 +1,17 @@
 import type { Appointment } from "@carely/core";
+import { Trash2 } from "lucide-react";
 
 export function DayView({
   viewDateString,
   appointments,
   onSelect,
+  onDelete,
 }: {
   viewDateString: string | undefined;
   date: Date;
   appointments: Appointment[];
   onSelect?: (appt: Appointment) => void;
+  onDelete?: (appt: Appointment) => void;
 }) {
   const startHour = 0;
   const endHour = 24;
@@ -77,6 +80,19 @@ export function DayView({
               style={{ top: `${top}px`, height: `${height}px` }}
               onClick={() => onSelect?.(appt)}
             >
+              {/* Quick delete button */}
+              {onDelete && (
+                <button
+                  aria-label="Delete appointment"
+                  className="absolute top-2 right-2 hidden group-hover:flex items-center justify-center w-6 h-6 rounded hover:bg-red-50 text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(appt);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
               {showTime ? (
                 <div>
                   <div className="text-blue-800 font-semibold -mt-1  group-hover:text-blue-900 truncate transition-colors">

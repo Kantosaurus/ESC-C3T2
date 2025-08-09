@@ -534,6 +534,17 @@ export default function Calendarview() {
                 onSelect={(appt) => {
                   showAppointmentDetails(appt);
                 }}
+                onDelete={(appt) => {
+                  if (!selectedElder) return;
+                  const confirmed = window.confirm(
+                    `Delete "${appt.name}"? This cannot be undone.`
+                  );
+                  if (!confirmed) return;
+                  handleDeleteAppointment({
+                    elder_id: appt.elder_id,
+                    appt_id: appt.appt_id,
+                  });
+                }}
               />
             )}
 

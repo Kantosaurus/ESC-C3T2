@@ -272,6 +272,7 @@ async function executeToolCall(
           endDateTime: new Date(parsedArgs.endDateTime),
           details: parsedArgs.details || null,
           loc: parsedArgs.loc || null,
+          created_by: caregiverId,
         };
         const result = await insertAppointment(appointmentData);
         return `Successfully created appointment with ID ${result.appt_id}: "${result.name}" on ${result.startDateTime}`;

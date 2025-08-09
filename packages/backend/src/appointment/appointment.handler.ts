@@ -301,6 +301,7 @@ export const importIcsFileHandler = authenticated(async (req, res) => {
               name: summary,
               details: description,
               loc: location,
+              created_by: caregiver_id,
             });
             importedAppointments.push(appointment);
           } catch (error) {

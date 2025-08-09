@@ -9,7 +9,7 @@ export const appointmentSchema = z.object({
   name: z.string(),
   loc: z.string().nullish(),
   accepted: z.string().nullish(),
-  created_by: z.string(),
+  created_by: z.string().nullish(),
   declined: z.array(z.string()).nullish(),
 });
 
