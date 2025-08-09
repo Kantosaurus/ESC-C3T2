@@ -1,9 +1,11 @@
 import type { Appointment } from "@carely/core";
 
 export function DayView({
+  viewDateString,
   appointments,
   onSelect,
 }: {
+  viewDateString: string | undefined;
   date: Date;
   appointments: Appointment[];
   onSelect?: (appt: Appointment) => void;
@@ -24,9 +26,7 @@ export function DayView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-slate-900">
-          {new Date().toDateString() === new Date().toDateString()
-            ? "Today"
-            : "Selected Date"}
+          {viewDateString}
         </h2>
         <div className="text-sm text-slate-500">
           {appointments.length} appointment
@@ -65,30 +65,51 @@ export function DayView({
           const end = new Date(appt.endDateTime);
           const top = getMinutesSinceStart(start) * pxPerMinute;
           const height = getDuration(start, end) * pxPerMinute;
-          const showTime = height >= 40;
+          const showTime = height >= 50;
 
           return (
             <div
               key={i}
+              data-testid={`appointment-${appt.name
+                .replace(/\s+/g, "-")
+                .replace(/[^a-zA-Z0-9-_]/g, "")}`}
               className="absolute left-[80px] right-4 bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 text-sm p-3 rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-all duration-200 hover:from-blue-100 hover:to-blue-200 group"
               style={{ top: `${top}px`, height: `${height}px` }}
               onClick={() => onSelect?.(appt)}
             >
-              <div className="text-blue-800 font-semibold group-hover:text-blue-900 transition-colors">
-                {appt.name}
-              </div>
-              {showTime && (
-                <div className="text-blue-700 text-xs mt-1 flex items-center gap-1">
-                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                  {start.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  –{" "}
-                  {end.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+              {showTime ? (
+                <div>
+                  <div className="text-blue-800 font-semibold -mt-1  group-hover:text-blue-900 truncate transition-colors">
+                    {appt.name}
+                  </div>
+                  <div className="text-blue-700 text-xs mt-1 flex items-center gap-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                    {start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {end.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-blue-800 font-semibold -mt-2 flex items-center gap-2 group-hover:text-blue-900 truncate transition-colors">
+                  {appt.name}{" "}
+                  <div className="text-blue-700 text-xs flex items-center gap-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                    {start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {end.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
                 </div>
               )}
             </div>

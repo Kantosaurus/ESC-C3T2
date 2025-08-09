@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Navigate, useSearchParams } from "react-router";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { getSingpassAuthUrl } from "./singpass-auth-url";
 import { getToken } from "./token";
 

@@ -14,7 +14,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AddressForm } from "@/components/ui/address-form";
+import { ProfilePictureUpload } from "@/components/ui/profile-picture-upload";
 import { Loader } from "lucide-react";
 
 const elderFormSchema = z.object({
@@ -29,6 +31,8 @@ const elderFormSchema = z.object({
       return x;
     })
     .pipe(elderSchema.shape.phone.unwrap().unwrap().optional()),
+  bio: z.string().optional(),
+  profile_picture: z.string().nullish(),
   street_address: elderSchema.shape.street_address.unwrap().unwrap().optional(),
   unit_number: elderSchema.shape.unit_number.unwrap().unwrap().optional(),
   postal_code: elderSchema.shape.postal_code.unwrap().unwrap().optional(),
@@ -63,9 +67,7 @@ export function ElderForm({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Full Name
-                </FormLabel>
+                <FormLabel>Full Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter their full name" {...field} />
                 </FormControl>
@@ -83,11 +85,13 @@ export function ElderForm({
             name="date_of_birth"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Date of Birth
-                </FormLabel>
+                <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -99,9 +103,7 @@ export function ElderForm({
             name="gender"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Gender
-                </FormLabel>
+                <FormLabel>Gender</FormLabel>
                 <FormControl>
                   <div className="flex gap-3">
                     {[
@@ -116,7 +118,8 @@ export function ElderForm({
                           field.value === option.value ? "default" : "outline"
                         }
                         aria-pressed={field.value === option.value}
-                        onClick={() => field.onChange(option.value)}>
+                        onClick={() => field.onChange(option.value)}
+                      >
                         {option.label}
                       </Button>
                     ))}
@@ -132,9 +135,7 @@ export function ElderForm({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-semibold text-gray-900 mb-3 block">
-                  Phone Number
-                </FormLabel>
+                <FormLabel>Phone Number</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter their phone number" {...field} />
                 </FormControl>
@@ -147,12 +148,56 @@ export function ElderForm({
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Tell us about them"
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Share a brief description about them.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="profile_picture"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Profile Picture</FormLabel>
+                <FormControl>
+                  <ProfilePictureUpload
+                    value={field.value || null}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Upload a profile picture to personalize their
+                  account. Supported formats: PNG, JPG. Max size: 10MB (will be
+                  compressed automatically).
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <AddressForm />
         </div>
 
         <div
-          className={`pt-8 border-t border-gray-200/60 transition-all duration-700`}
-          style={{ transitionDelay: "400ms" }}>
+          className={`pt-8 transition-all duration-700`}
+          style={{ transitionDelay: "400ms" }}
+        >
           <Button
             type="submit"
             disabled={
@@ -160,7 +205,8 @@ export function ElderForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold rounded-xl">
+            className="w-full h-14 text-base font-semibold rounded-xl"
+          >
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
                 <Loader className="animate-spin h-5 w-5" />
@@ -172,7 +218,8 @@ export function ElderForm({
                   className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

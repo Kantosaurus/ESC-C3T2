@@ -14,7 +14,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AddressForm } from "@/components/ui/address-form";
+import { ProfilePictureUpload } from "@/components/ui/profile-picture-upload";
 import { Loader } from "lucide-react";
 
 const caregiverFormSchema = z.object({
@@ -29,6 +31,8 @@ const caregiverFormSchema = z.object({
       return x;
     })
     .pipe(caregiverSchema.shape.phone.unwrap().unwrap().optional()),
+  bio: z.string().optional(),
+  profile_picture: z.string().nullish(),
   street_address: caregiverSchema.shape.street_address
     .unwrap()
     .unwrap()
@@ -86,6 +90,7 @@ export function CaregiverForm({
                 <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
                   <Input
+                    data-testid="dob-input"
                     type="date"
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}
@@ -116,7 +121,8 @@ export function CaregiverForm({
                           field.value === option.value ? "default" : "outline"
                         }
                         aria-pressed={field.value === option.value}
-                        onClick={() => field.onChange(option.value)}>
+                        onClick={() => field.onChange(option.value)}
+                      >
                         {option.label}
                       </Button>
                     ))}
@@ -145,12 +151,56 @@ export function CaregiverForm({
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Tell us about yourself" 
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Share a brief description of your experience and
+                  skills.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="profile_picture"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Profile Picture</FormLabel>
+                <FormControl>
+                  <ProfilePictureUpload
+                    value={field.value || null}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500 text-sm mt-2">
+                  Optional. Upload a profile picture to personalize your
+                  account. Supported formats: PNG, JPG. Max size: 10MB (will be compressed automatically).
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <AddressForm />
         </div>
 
         <div
           className={`pt-8 border-t border-gray-200/60 transition-all duration-700`}
-          style={{ transitionDelay: "400ms" }}>
+          style={{ transitionDelay: "400ms" }}
+        >
           <Button
             type="submit"
             disabled={
@@ -158,7 +208,8 @@ export function CaregiverForm({
               !form.formState.isDirty ||
               !form.formState.isValid
             }
-            className="w-full h-14 text-base font-semibold rounded-xl">
+            className="w-full h-14 text-base font-semibold rounded-xl"
+          >
             {form.formState.isSubmitting ? (
               <div className="flex items-center gap-3">
                 <Loader className="animate-spin h-5 w-5" />
@@ -170,7 +221,8 @@ export function CaregiverForm({
                   className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

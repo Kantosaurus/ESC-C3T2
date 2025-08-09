@@ -1,0 +1,2 @@
+ALTER TABLE elders
+ADD COLUMN bio TEXT; 

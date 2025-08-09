@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Caregiver } from "@carely/core";
 import type { AxiosError, AxiosResponse } from "axios";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { http } from "@/lib/http";
 
 /**
@@ -14,7 +14,7 @@ export function useCaregiver(config?: { onNotFound?: () => void }) {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchCaregiverDetails = useCallback(() => {
     setIsLoading(true);
     const controller = new AbortController();
 
@@ -25,6 +25,7 @@ export function useCaregiver(config?: { onNotFound?: () => void }) {
       .then(
         (res: AxiosResponse<Caregiver>) => {
           setCaregiverDetails(res.data);
+          setError(undefined);
         },
         (error: AxiosError) => {
           if (error.status === 404) {
@@ -45,8 +46,11 @@ export function useCaregiver(config?: { onNotFound?: () => void }) {
     return () => {
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [config, navigate]);
 
-  return { caregiverDetails, error, isLoading };
+  useEffect(() => {
+    fetchCaregiverDetails();
+  }, [fetchCaregiverDetails]);
+
+  return { caregiverDetails, error, isLoading, refetch: fetchCaregiverDetails };
 }

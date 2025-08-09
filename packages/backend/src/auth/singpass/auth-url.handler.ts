@@ -3,9 +3,12 @@ import { generatePkcePair } from "@opengovsg/sgid-client";
 import { singpassClient } from "./client";
 import z from "zod/v4";
 import { RequestHandler } from "express";
-import { sessionData } from "../session";
+import { createSession } from "../session.entity";
+import { validateFrontendHost } from "../../misc/url-validation";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = validateFrontendHost(
+  process.env.BASE_URL || "http://localhost:3000"
+);
 
 export const singpassAuthUrlHandler: RequestHandler = async (req, res) => {
   // Generate a session ID
@@ -34,13 +37,18 @@ export const singpassAuthUrlHandler: RequestHandler = async (req, res) => {
     redirectUri: `${BASE_URL}/api/redirect`,
   });
 
-  // Store code verifier, state, and nonce
-  sessionData[sessionId] = {
-    state,
-    nonce,
-    codeVerifier,
-  };
+  // Store code verifier, state, and nonce in database
+  try {
+    await createSession(sessionId, {
+      state,
+      nonce,
+      codeVerifier,
+    });
 
-  // Return the authorization URL
-  res.json({ url });
+    // Return the authorization URL
+    res.json({ url });
+  } catch (error) {
+    console.error("Failed to create session:", error);
+    res.status(500).json({ error: "Failed to create authentication session" });
+  }
 };

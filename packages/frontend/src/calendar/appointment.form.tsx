@@ -61,8 +61,8 @@ const hourOptions = generateHourOptions();
 
 //default time values
 const defaultMin = "00";
-const defaultStartHr = "9";
-const defaultEndHr = "10";
+const defaultStartHr = "08";
+const defaultEndHr = "09";
 
 // create string
 const constructISOString = (
@@ -108,23 +108,16 @@ export function AppointmentForm({
   const form = useForm<AppointmentFormInput, unknown, AppointmentFormType>({
     defaultValues: {
       name: "",
+      startDateTime: selectedDate
+        ? constructISOString(selectedDate, defaultStartHr, defaultMin)
+        : undefined,
+      endDateTime: selectedDate
+        ? constructISOString(selectedDate, defaultEndHr, defaultMin)
+        : undefined,
       ...defaultValues,
     },
     resolver: zodResolver(appointmentFormSchema),
   });
-
-  useEffect(() => {
-    if (!defaultValues && selectedDate) {
-      form.setValue(
-        "startDateTime",
-        constructISOString(selectedDate, defaultStartHr, defaultMin)
-      );
-      form.setValue(
-        "endDateTime",
-        constructISOString(selectedDate, defaultEndHr, defaultMin)
-      );
-    }
-  }, [selectedDate, defaultValues, form]);
 
   useEffect(() => {
     if (elder_id) {

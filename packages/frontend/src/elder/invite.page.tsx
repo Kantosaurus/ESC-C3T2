@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { http } from "@/lib/http";
 import { elderSchema, getInviteLinkResponseDtoSchema } from "@carely/core";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useElderDetails } from "./use-elder-details";
 
@@ -81,7 +81,8 @@ export function InvitePage() {
               onClick={() => {
                 navigator.clipboard.writeText(inviteLink);
                 toast.success("Invite link copied to clipboard!");
-              }}>
+              }}
+            >
               Copy
             </Button>
           </div>
@@ -132,7 +133,8 @@ export function AcceptInvitePage() {
     return (
       <section
         className="w-screen h-screen flex flex-col items-center justify-center gap-
-4 p-8">
+4 p-8"
+      >
         <h2 className="text-2xl font-bold mb-4">
           You are already a caregiver for {elderDetails.name}.
         </h2>
@@ -148,6 +150,7 @@ export function AcceptInvitePage() {
       </h2>
       <h1 className="text-4xl font-bold">Accept Invite</h1>
       <Button
+        data-testid="accept-invite-button"
         disabled={isAlreadyCaregiver}
         onClick={() => {
           acceptInvite(token).then(
@@ -159,7 +162,8 @@ export function AcceptInvitePage() {
               toast.error("Failed to accept invite. Please try again.");
             }
           );
-        }}>
+        }}
+      >
         Accept invite to be a caregiver for{" "}
         {searchParams.get("elderName") || "an elder"}
       </Button>

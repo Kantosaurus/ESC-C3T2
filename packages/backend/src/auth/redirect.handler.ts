@@ -1,10 +1,11 @@
 import { RequestHandler } from "express";
 import { jwtSecret } from "./secret";
-import { sessionData } from "./session";
+import { getSession, deleteSession } from "./session.entity";
 import { singpassClient } from "./singpass/client";
 import { SignJWT } from "jose";
+import { getValidatedFrontendHost } from "../misc/url-validation";
 
-const FRONTEND_HOST = process.env.FRONTEND_HOST || "http://localhost:3000";
+const FRONTEND_HOST = getValidatedFrontendHost();
 
 export const redirectHandler: RequestHandler = async (
   req,
@@ -21,8 +22,8 @@ export const redirectHandler: RequestHandler = async (
     return;
   }
 
-  // Retrieve the code verifier from memory
-  const session = sessionData[sessionId];
+  // Retrieve the session from database
+  const session = await getSession(sessionId);
 
   // Validate that the code verifier exists for this session
   if (!session?.codeVerifier) {
@@ -53,6 +54,14 @@ export const redirectHandler: RequestHandler = async (
   if (after) {
     // If an after parameter is provided, add it to the redirect URL
     redirectUrl.searchParams.set("after", after);
+  }
+
+  // Clean up the session after successful authentication
+  try {
+    await deleteSession(sessionId);
+  } catch (error) {
+    console.error("Failed to delete session:", error);
+    // Continue anyway - the session will expire naturally
   }
 
   res.redirect(redirectUrl.toString());

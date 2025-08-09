@@ -39,6 +39,7 @@ describe("createAppointmentHandler", () => {
         name: "Existing",
         startDateTime: new Date("2025-07-23T10:30:00.000Z"),
         endDateTime: new Date("2025-07-23T11:30:00.000Z"),
+        created_by: "",
       },
     ]);
 
@@ -149,6 +150,7 @@ describe("createAppointmentHandler", () => {
         name: "Existing",
         startDateTime: new Date("2025-07-23T10:30:00.000Z"),
         endDateTime: new Date("2025-07-23T11:30:00.000Z"),
+        created_by: "",
       },
     ]);
 

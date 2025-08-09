@@ -1,59 +1,171 @@
 import { useCaregiver } from "./use-caregiver";
 import { useEldersDetails } from "@/elder/use-elder-details";
+import { useCaregiverNotes } from "./use-caregiver-notes";
 import { CaregiverForm, type CaregiverFormType } from "./caregiver.form";
 import { useCallback, useState } from "react";
 import { http } from "@/lib/http";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
-  Phone,
   MapPin,
   Users,
   Heart,
-  Edit3,
   ArrowLeft,
   Clock,
-  Star,
+  Plus,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  CalendarPlus,
+  Edit,
+  Trash2,
+  FileText,
 } from "lucide-react";
-import Card from "@/components/ui/card";
+import AppNavbar from "@/nav/navbar";
+import { useGetAllAppointmentsForCaregiver } from "@/calendar/use-appointment";
+import type { Appointment } from "@carely/core";
+import { DayView } from "@/components/ui/calendardayview";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { IcsImport } from "@/components/ui/ics-import";
+import { GlassmorphicModal } from "@/components/ui/glassmorphic-modal";
+import { PageLoader } from "@/components/ui/page-loader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AppointmentForm,
+  type AppointmentFormType,
+} from "@/calendar/appointment.form";
+import {
+  useCreateAppointment,
+  useDeleteAppointment,
+  useUpdateAppointment,
+} from "@/calendar/use-appointment";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 
 export default function ProfilePage() {
-  const { caregiverDetails, isLoading: caregiverLoading } = useCaregiver();
+  const {
+    caregiverDetails,
+    isLoading: caregiverLoading,
+    refetch: refetchCaregiver,
+  } = useCaregiver();
   const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
+  const {
+    notes,
+    isLoading: notesLoading,
+    error: notesError,
+  } = useCaregiverNotes();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("elders");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewDate, setViewDate] = useState<Date | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
+  const [sheetView, setSheetView] = useState<
+    "dayview" | "details" | "form" | "update"
+  >("dayview");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = useCallback(async (values: CaregiverFormType) => {
-    setSuccess("");
-    setError("");
+  // Get all appointments for the caregiver
+  const { appointments, refetch: refetchAppointments } =
+    useGetAllAppointmentsForCaregiver();
+
+  // Appointment handlers
+  const addAppointment = useCreateAppointment();
+  const handleAppointmentSubmit = async (values: AppointmentFormType) => {
     try {
-      await http().patch("/api/caregiver/self", values);
-      setSuccess("Profile updated successfully.");
-      setIsEditing(false);
-    } catch {
-      setError("Failed to update profile. Please try again.");
+      await addAppointment(values);
+      await refetchAppointments();
+      setViewDate(null);
+      setSheetView("dayview");
+      toast.success("Appointment created");
+    } catch (error) {
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
     }
-  }, []);
+  };
 
-  const isLoading = caregiverLoading || eldersLoading;
+  const updateAppointment = useUpdateAppointment();
+  const handleUpdateSubmit = async (values: AppointmentFormType) => {
+    try {
+      await updateAppointment(values);
+      await refetchAppointments();
+      setSheetView("dayview");
+      toast.success("Appointment updated");
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your profile...</p>
-        </div>
-      </div>
-    );
+  const deleteAppointment = useDeleteAppointment();
+  const handleDeleteAppointment = async (
+    values: Pick<AppointmentFormType, "elder_id" | "appt_id">
+  ) => {
+    try {
+      await deleteAppointment(values);
+      await refetchAppointments();
+      setSelectedAppointment(null);
+      setSheetView("dayview");
+      toast.success("Appointment deleted");
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+      const axiosErr = error as AxiosError<{ error: string }>;
+      const message = axiosErr.response?.data?.error ?? "Unexpected error";
+      toast.error(message);
+    }
+  };
+
+  const handleSubmit = useCallback(
+    async (values: CaregiverFormType) => {
+      setSuccess("");
+      setError("");
+      try {
+        await http().patch("/api/caregiver/self", values);
+        await refetchCaregiver(); // Refetch caregiver details after successful update
+        setSuccess("Profile updated successfully.");
+        setIsEditing(false);
+      } catch {
+        setError("Failed to update profile. Please try again.");
+      }
+    },
+    [refetchCaregiver]
+  );
+
+  const handleDeleteAccount = async () => {
+    try {
+      await http().delete("/api/caregiver/self");
+      toast.success("Account deleted successfully");
+      // Clear local storage and redirect to landing page
+      localStorage.removeItem("carely-token");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      toast.error("Failed to delete account");
+    }
+  };
+
+  // Show loading state while data is being fetched
+  if (caregiverLoading || eldersLoading) {
+    return <PageLoader loading={true} pageType="profile" />;
   }
 
   if (!caregiverDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Unable to load profile information.</p>
           <Button onClick={() => navigate("/dashboard")} className="mt-4">
@@ -71,6 +183,8 @@ export default function ProfilePage() {
       ? new Date(caregiverDetails.date_of_birth).toISOString().slice(0, 10)
       : "",
     phone: caregiverDetails.phone ?? undefined,
+    bio: caregiverDetails.bio ?? "",
+    profile_picture: caregiverDetails.profile_picture ?? null,
     street_address: caregiverDetails.street_address ?? "",
     postal_code: caregiverDetails.postal_code ?? "",
     unit_number: caregiverDetails.unit_number ?? "",
@@ -107,324 +221,879 @@ export default function ProfilePage() {
     });
   };
 
-  const getGenderIcon = (gender: string) => {
-    switch (gender) {
-      case "male":
-        return "👨";
-      case "female":
-        return "👩";
-      default:
-        return "👤";
-    }
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const isToday = (day: number) => {
+    const today = new Date();
+    return (
+      day === today.getDate() &&
+      currentDate.getMonth() === today.getMonth() &&
+      currentDate.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const getAppointmentsForDay = (day: number) => {
+    if (!appointments) return [];
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+    return appointments.filter((appt) => {
+      const apptDate = new Date(appt.startDateTime);
+      return apptDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const navigateToMonth = (direction: "prev" | "next") => {
+    setCurrentDate(
+      new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + (direction === "next" ? 1 : -1),
+        1
+      )
+    );
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const selectedDateAppointments =
+    viewDate && appointments
+      ? appointments.filter(
+          (appointment) =>
+            new Date(appointment.startDateTime).toDateString() ===
+            viewDate.toDateString()
+        )
+      : [];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/dashboard")}
-                className="text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
+    <div className="min-h-screen bg-white">
+      <AppNavbar />
+
+      {/* Main Content with top padding for fixed navbar */}
+      <div className="pt-24 px-4 sm:px-6 lg:px-8 py-8">
+        {/* Edit Form Section */}
+        {isEditing && (
+          <>
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(false)}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Profile
+                </Button>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Edit Profile
+              </h1>
+              <p className="text-gray-600">
+                Update your information and preferences.
+              </p>
             </div>
-            <Button
-              onClick={() => setIsEditing(!isEditing)}
-              variant={isEditing ? "outline" : "default"}
-              className="flex items-center space-x-2">
-              <Edit3 className="h-4 w-4" />
-              <span>{isEditing ? "Cancel Edit" : "Edit Profile"}</span>
-            </Button>
-          </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Overview Card */}
-          <div className="lg:col-span-1">
-            <Card>
-              {/* Profile Header */}
-              <div className="text-center mb-6">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary flex items-center justify-center text-white text-4xl font-bold">
-                  {getInitials(caregiverDetails.name)}
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-1">
-                  {caregiverDetails.name}
-                </h2>
-                <p className="text-gray-600 flex items-center justify-center">
-                  <span className="mr-2">
-                    {getGenderIcon(caregiverDetails.gender)}
-                  </span>
-                  {caregiverDetails.gender.charAt(0).toUpperCase() +
-                    caregiverDetails.gender.slice(1)}
-                </p>
+            {/* Success/Error Messages */}
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                {success}
               </div>
-
-              {/* Profile Stats */}
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-primary mr-3" />
-                    <span className="text-gray-700">Elders in Care</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">
-                    {elderDetails?.length || 0}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-green-600 mr-3" />
-                    <span className="text-gray-700">Age</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">
-                    {caregiverDetails.date_of_birth
-                      ? getAge(caregiverDetails.date_of_birth)
-                      : "N/A"}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-purple-600 mr-3" />
-                    <span className="text-gray-700">Member Since</span>
-                  </div>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {formatDate(caregiverDetails.created_at)}
-                  </span>
-                </div>
+            )}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                {error}
               </div>
+            )}
 
-              {/* Contact Information */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Contact Information
-                </h3>
-
-                {caregiverDetails.phone && (
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="h-4 w-4 mr-3 text-primary" />
-                    <span>{caregiverDetails.phone}</span>
-                  </div>
-                )}
-
-                {caregiverDetails.street_address && (
-                  <div className="flex items-start text-gray-600">
-                    <MapPin className="h-4 w-4 mr-3 text-primary mt-0.5" />
-                    <span className="text-sm">
-                      {caregiverDetails.street_address}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Edit Form or Elders List */}
-            {isEditing ? (
-              <Card delay={0.1}>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  Edit Profile
-                </h3>
-                {success && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
-                    {success}
-                  </div>
-                )}
-                {error && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                    {error}
-                  </div>
-                )}
+            {/* Form Container */}
+            <div className="max-w-4xl mx-auto">
+              <div>
                 <CaregiverForm
                   defaultValues={formDefaults}
                   onSubmit={handleSubmit}
                   submitLabel="Update Profile"
                 />
-              </Card>
-            ) : (
-              <>
-                {/* Elders in Care Section */}
-                <Card delay={0.1}>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center">
-                      <Heart className="h-6 w-6 text-red-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        Elders in Your Care
+              </div>
+
+              {/* Delete Account Section */}
+              <div className="mt-8 bg-white rounded-2xl border border-red-200 shadow-sm">
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-900">
+                        Delete Account
                       </h3>
+                      <p className="text-sm text-red-600 mt-1">
+                        This action cannot be undone. This will permanently
+                        delete your account and remove all associated data.
+                      </p>
                     </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Account
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Account</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete your account? This
+                            action cannot be undone and will permanently remove
+                            all data associated with your account.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex gap-3 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const dialog = document.querySelector(
+                                '[role="dialog"]'
+                              ) as HTMLDialogElement;
+                              if (dialog) {
+                                dialog.close();
+                              }
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={handleDeleteAccount}
+                          >
+                            Delete Account
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Profile Overview Section */}
+        {!isEditing && (
+          <>
+            {/* Profile Header Section */}
+            <div className="mb-12">
+              <div className="flex flex-col lg:flex-row items-start lg:items-start gap-8">
+                {/* Profile Picture */}
+                {caregiverDetails.profile_picture ? (
+                  <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg flex-shrink-0">
+                    <img
+                      src={caregiverDetails.profile_picture}
+                      alt={`${caregiverDetails.name}'s profile picture`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold shadow-lg flex-shrink-0">
+                    {getInitials(caregiverDetails.name)}
+                  </div>
+                )}
+
+                {/* Profile Info */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-4xl font-bold text-gray-900">
+                      {caregiverDetails.name}
+                    </h1>
+                  </div>
+                  <p className="text-lg text-gray-600 mb-4">
+                    Caregiver based in{" "}
+                    {caregiverDetails.street_address
+                      ? "Singapore"
+                      : "your location"}
+                  </p>
+
+                  {/* Bio */}
+                  {caregiverDetails.bio && (
+                    <p className="text-gray-700 mb-6 max-w-2xl">
+                      {caregiverDetails.bio}
+                    </p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 mb-6">
                     <Button
-                      onClick={() => navigate("/elder/new")}
-                      size="sm"
-                      className="bg-primary hover:bg-blue-700">
-                      Add Elder
+                      onClick={() => setIsEditing(true)}
+                      className="bg-black text-white hover:bg-gray-800 px-6 py-2 rounded-lg"
+                    >
+                      Edit Profile
                     </Button>
                   </div>
 
-                  {elderDetails && elderDetails.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {elderDetails.map((elder, index) => (
-                        <Card
-                          delay={0.1 + index * 0.05}
-                          onClick={() =>
-                            navigate(`/elder/${elder.id}/profile`)
-                          }>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center">
-                              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold mr-3">
-                                {getInitials(elder.name)}
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900">
-                                  {elder.name}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {elder.date_of_birth
-                                    ? getAge(elder.date_of_birth)
-                                    : "N/A"}{" "}
-                                  years old
-                                </p>
-                              </div>
-                            </div>
-                            <span className="text-2xl">
-                              {getGenderIcon(elder.gender)}
-                            </span>
-                          </div>
-
-                          <div className="space-y-2 text-sm text-gray-600">
-                            {elder.phone && (
-                              <div className="flex items-center">
-                                <Phone className="h-3 w-3 mr-2" />
-                                {elder.phone}
-                              </div>
-                            )}
-                            {elder.street_address && (
-                              <div className="flex items-start">
-                                <MapPin className="h-3 w-3 mr-2 mt-0.5" />
-                                <span className="line-clamp-2">
-                                  {elder.street_address}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
+                  {/* Statistics */}
+                  <div className="flex gap-8 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Elders in Care</span>
+                      <span className="font-semibold text-gray-900">
+                        {elderDetails?.length || 0}
+                      </span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Age</span>
+                      <span className="font-semibold text-gray-900">
+                        {caregiverDetails.date_of_birth
+                          ? getAge(caregiverDetails.date_of_birth)
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Member Since</span>
+                      <span className="font-semibold text-gray-900">
+                        {formatDate(caregiverDetails.created_at).split(" ")[2]}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="border-b border-gray-200 mb-8">
+              <nav className="flex space-x-8">
+                {[
+                  {
+                    id: "elders",
+                    label: "My Elders",
+                    count: elderDetails?.length || 0,
+                  },
+                  { id: "calendar", label: "My Calendar", count: 0 },
+                  { id: "notes", label: "My Notes", count: notes.length },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                      activeTab === tab.id
+                        ? "border-black text-black"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span className="text-xs text-gray-400">{tab.count}</span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === "elders" && (
+              <div className="space-y-8">
+                {/* Elders Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {elderDetails && elderDetails.length > 0 ? (
+                    elderDetails.map((elder) => (
+                      <div
+                        key={elder.id}
+                        onClick={() => navigate(`/elder/${elder.id}/profile`)}
+                        className="bg-blue-50 rounded-2xl p-6 hover:bg-blue-100 transition-colors cursor-pointer group"
+                      >
+                        {/* Elder Preview */}
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-blue-600 text-xl font-semibold shadow-sm">
+                            {getInitials(elder.name)}
+                          </div>
+                        </div>
+
+                        {/* Elder Info */}
+                        <div className="text-center mb-4">
+                          <h3 className="font-semibold text-gray-900 text-lg mb-1">
+                            {elder.name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {elder.date_of_birth
+                              ? getAge(elder.date_of_birth)
+                              : "N/A"}{" "}
+                            years old • {elder.gender}
+                          </p>
+                        </div>
+
+                        {/* Engagement Stats */}
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Heart className="h-4 w-4" />
+                            <span>Active</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            <span>Profile</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                   ) : (
-                    <div className="text-center py-12">
+                    <div className="col-span-full text-center py-12">
                       <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                       <h4 className="text-lg font-medium text-gray-900 mb-2">
                         No Elders Yet
                       </h4>
                       <p className="text-gray-600 mb-6">
-                        You haven't added any elders to your care yet. Start by
-                        adding your first elder.
+                        Start by adding your first elder to begin managing their
+                        care.
                       </p>
                       <Button
                         onClick={() => navigate("/elder/new")}
-                        className="bg-primary hover:bg-blue-700">
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
                         Add Your First Elder
                       </Button>
                     </div>
                   )}
-                </Card>
+                </div>
 
-                {/* Caregiving Statistics */}
-                <Card delay={0.2}>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <Star className="h-6 w-6 text-yellow-500 mr-3" />
-                    Caregiving Statistics
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-1">
-                        {elderDetails?.length || 0}
-                      </div>
-                      <div className="text-sm text-blue-700">Total Elders</div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600 mb-1">
-                        {elderDetails?.filter((e) => e.gender === "male")
-                          .length || 0}
-                      </div>
-                      <div className="text-sm text-green-700">Male Elders</div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-600 mb-1">
-                        {elderDetails?.filter((e) => e.gender === "female")
-                          .length || 0}
-                      </div>
-                      <div className="text-sm text-purple-700">
-                        Female Elders
-                      </div>
+                {/* Add Elder Card */}
+                {elderDetails && elderDetails.length > 0 && (
+                  <div
+                    onClick={() => navigate("/elder/new")}
+                    className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors cursor-pointer border-2 border-dashed border-gray-300 flex items-center justify-center"
+                  >
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600 font-medium">Add New Elder</p>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  {elderDetails && elderDetails.length > 0 && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-3">
-                        Elders by Age Group
-                      </h4>
-                      <div className="space-y-2">
-                        {(() => {
-                          const ageGroups = {
-                            "65-74": elderDetails.filter((e) => {
-                              const age = e.date_of_birth
-                                ? getAge(e.date_of_birth)
-                                : 0;
-                              return age >= 65 && age <= 74;
-                            }).length,
-                            "75-84": elderDetails.filter((e) => {
-                              const age = e.date_of_birth
-                                ? getAge(e.date_of_birth)
-                                : 0;
-                              return age >= 75 && age <= 84;
-                            }).length,
-                            "85+": elderDetails.filter((e) => {
-                              const age = e.date_of_birth
-                                ? getAge(e.date_of_birth)
-                                : 0;
-                              return age >= 85;
-                            }).length,
-                          };
+            {activeTab === "calendar" && (
+              <div className="space-y-6">
+                {/* Calendar Navigation */}
+                <div className="flex items-center justify-between bg-white rounded-xl p-3">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateToMonth("prev")}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <h4 className="text-base font-semibold text-gray-900">
+                      {currentDate.toLocaleString("default", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateToMonth("next")}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToToday}
+                      className="text-sm"
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      onClick={() => setIsImportModalOpen(true)}
+                      className="bg-blue-600 hover:bg-blue-700 text-sm"
+                    >
+                      Import Your Calendar
+                    </Button>
+                  </div>
+                </div>
 
-                          return Object.entries(ageGroups).map(
-                            ([range, count]) => (
-                              <div
-                                key={range}
-                                className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">
-                                  {range} years
-                                </span>
-                                <span className="font-medium text-gray-900">
-                                  {count} elder{count !== 1 ? "s" : ""}
-                                </span>
-                              </div>
-                            )
+                {/* Calendar Grid */}
+                {elderDetails && elderDetails.length > 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    {/* Calendar Header */}
+                    <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                        (day) => (
+                          <div
+                            key={day}
+                            className="p-4 text-center text-sm font-medium text-gray-600"
+                          >
+                            {day}
+                          </div>
+                        )
+                      )}
+                    </div>
+
+                    {/* Calendar Days */}
+                    <div className="grid grid-cols-7">
+                      {(() => {
+                        const daysInMonth = getDaysInMonth(currentDate);
+                        const firstDay = getFirstDayOfMonth(currentDate);
+                        const cells = [];
+
+                        // Empty cells for days before the first day of the month
+                        for (let i = 0; i < firstDay; i++) {
+                          cells.push(
+                            <div
+                              key={`empty-${i}`}
+                              className="p-4 border-r border-b border-gray-100 min-h-[120px]"
+                            />
                           );
-                        })()}
+                        }
+
+                        // Days of the month
+                        for (let day = 1; day <= daysInMonth; day++) {
+                          const dayAppointments = getAppointmentsForDay(day);
+                          const isCurrentDay = isToday(day);
+
+                          cells.push(
+                            <div
+                              key={day}
+                              className={`p-4 border-r border-b border-gray-100 min-h-[120px] transition-all duration-200 ease-in-out hover:bg-blue-50 hover:shadow-md hover:scale-[1.02] hover:z-10 relative cursor-pointer`}
+                              onClick={() => {
+                                setViewDate(
+                                  new Date(
+                                    currentDate.getFullYear(),
+                                    currentDate.getMonth(),
+                                    day
+                                  )
+                                );
+                              }}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div
+                                  className={`text-sm font-medium ${
+                                    isCurrentDay
+                                      ? "text-red-600"
+                                      : "text-gray-900"
+                                  }`}
+                                >
+                                  {isCurrentDay ? (
+                                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                      <span className="text-white font-semibold">
+                                        {day}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    day
+                                  )}
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                {dayAppointments
+                                  .slice(0, 3)
+                                  .map((appt, index) => (
+                                    <div
+                                      key={index}
+                                      className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded truncate cursor-pointer hover:bg-blue-200 transition-colors duration-150"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedAppointment(appt);
+                                        setViewDate(
+                                          new Date(
+                                            currentDate.getFullYear(),
+                                            currentDate.getMonth(),
+                                            day
+                                          )
+                                        );
+                                        setSheetView("details");
+                                      }}
+                                    >
+                                      {new Date(
+                                        appt.startDateTime
+                                      ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}{" "}
+                                      {appt.name}
+                                    </div>
+                                  ))}
+                                {dayAppointments.length > 3 && (
+                                  <div className="text-xs text-gray-500">
+                                    +{dayAppointments.length - 3} more
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return cells;
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No Elders to Show Calendar
+                    </h4>
+                    <p className="text-gray-600 mb-6">
+                      Add an elder to start viewing their appointments and
+                      activities.
+                    </p>
+                    <Button
+                      onClick={() => navigate("/elder/new")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Add Your First Elder
+                    </Button>
+                  </div>
+                )}
+
+                {/* Upcoming Appointments */}
+                {appointments && appointments.length > 0 && (
+                  <div className="bg-white rounded-xl p-6 border border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                      Upcoming Appointments
+                    </h4>
+                    <div className="space-y-3">
+                      {appointments
+                        .filter(
+                          (appt) => new Date(appt.startDateTime) > new Date()
+                        )
+                        .sort(
+                          (a, b) =>
+                            new Date(a.startDateTime).getTime() -
+                            new Date(b.startDateTime).getTime()
+                        )
+                        .slice(0, 5)
+                        .map((appt, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                `/calendar?date=${new Date(
+                                  appt.startDateTime
+                                ).toISOString()}`
+                              )
+                            }
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {appt.name}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {new Date(
+                                    appt.startDateTime
+                                  ).toLocaleDateString()}{" "}
+                                  at{" "}
+                                  {new Date(
+                                    appt.startDateTime
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                            <Clock className="h-4 w-4 text-gray-400" />
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "notes" && (
+              <div className="space-y-6">
+                {notesLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-3"></div>
+                    <p className="text-sm text-gray-600">Loading notes...</p>
+                  </div>
+                ) : notesError ? (
+                  <div className="text-center py-12">
+                    <p className="text-red-600 mb-4 font-medium">
+                      Failed to load notes
+                    </p>
+                    <Button
+                      onClick={() => window.location.reload()}
+                      className="bg-slate-900 hover:bg-slate-800"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : notes.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No Notes Yet
+                    </h4>
+                    <p className="text-gray-600 mb-6">
+                      Your notes will appear here.
+                    </p>
+                    <Button
+                      onClick={() => navigate("/notes/new")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Create Note
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {notes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => navigate(`/notes/${note.id}/edit`)}
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date(note.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h3 className="font-semibold text-gray-900 text-lg mb-2">
+                          {note.header}
+                        </h3>
+
+                        {note.content && (
+                          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                            {note.content}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            <span>{note.elder_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            <span>View</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Sheet for Day View */}
+      <Sheet
+        open={!!viewDate}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewDate(null);
+            setSheetView("dayview");
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="!w-full sm:!w-[600px] max-w-full p-0 overflow-hidden"
+        >
+          <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 sticky top-0 z-10">
+            <div className="grid grid-cols-3 items-center py-4 px-6">
+              <div className="flex justify-start">
+                {!(sheetView == "dayview") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSheetView("dayview")}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
+                  </Button>
+                )}
+              </div>
+              <div className="flex justify-center font-semibold text-slate-900">
+                {sheetView == "dayview" && viewDate?.toDateString()}
+                {sheetView == "details" && "Details"}
+                {sheetView == "form" && "Create"}
+                {sheetView == "update" && "Update"}
+              </div>
+              <div className="flex justify-end">
+                {sheetView == "dayview" &&
+                  elderDetails &&
+                  elderDetails.length > 0 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSheetView("form")}
+                      className="bg-white hover:bg-slate-50"
+                    >
+                      <CalendarPlus className="w-4 h-4 mr-2" />
+                      Add Appointment
+                    </Button>
+                  )}
+
+                {sheetView == "details" && selectedAppointment && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setSheetView("update")}
+                      variant="outline"
+                      className="bg-white hover:bg-slate-50"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="bg-white hover:bg-slate-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Appointment</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete this appointment?
+                            This action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4">
+                          <Button
+                            className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                            onClick={async () => {
+                              handleDeleteAppointment({
+                                elder_id: selectedAppointment.elder_id,
+                                appt_id: selectedAppointment.appt_id,
+                              });
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="h-full overflow-y-auto p-6">
+            {sheetView == "dayview" && (
+              <DayView
+                viewDateString={viewDate?.toDateString()}
+                date={viewDate!}
+                appointments={selectedDateAppointments}
+                onSelect={(appt) => {
+                  setSelectedAppointment(appt);
+                  setSheetView("details");
+                }}
+              />
+            )}
+
+            {sheetView == "form" && elderDetails && elderDetails.length > 0 && (
+              <AppointmentForm
+                selectedDate={viewDate!}
+                elder_id={elderDetails[0].id}
+                elder_name={elderDetails[0].name}
+                onSubmit={handleAppointmentSubmit}
+              />
+            )}
+
+            {sheetView == "details" && selectedAppointment?.appt_id && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {selectedAppointment.name}
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <div>
+                        <div className="text-sm text-gray-600">Time</div>
+                        <div className="font-medium text-gray-900">
+                          {new Date(
+                            selectedAppointment.startDateTime
+                          ).toLocaleDateString()}{" "}
+                          at{" "}
+                          {new Date(
+                            selectedAppointment.startDateTime
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </Card>
-              </>
+                    {selectedAppointment.details && (
+                      <div className="flex items-start gap-3">
+                        <div className="w-4 h-4 text-gray-400 mt-0.5">📝</div>
+                        <div>
+                          <div className="text-sm text-gray-600">Details</div>
+                          <div className="font-medium text-gray-900">
+                            {selectedAppointment.details}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {selectedAppointment.loc && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <div>
+                          <div className="text-sm text-gray-600">Location</div>
+                          <div className="font-medium text-gray-900">
+                            {selectedAppointment.loc}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {sheetView == "update" && selectedAppointment?.appt_id && (
+              <AppointmentForm
+                selectedDate={viewDate!}
+                elder_id={selectedAppointment.elder_id}
+                elder_name={
+                  elderDetails?.find(
+                    (e) => e.id === selectedAppointment.elder_id
+                  )?.name || ""
+                }
+                onSubmit={handleUpdateSubmit}
+                defaultValues={selectedAppointment}
+              />
             )}
           </div>
-        </div>
-      </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Backdrop blur overlay when sheet is open */}
+      {!!viewDate && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-10 pointer-events-none" />
+      )}
+
+      {/* Import Calendar Modal */}
+      <GlassmorphicModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Your Schedule"
+        description="Upload your calendar file to import appointments into your schedule."
+      >
+        <IcsImport onImportComplete={refetchAppointments} />
+      </GlassmorphicModal>
     </div>
   );
 }
