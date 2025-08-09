@@ -1,13 +1,7 @@
 import { RequestHandler } from "express";
 import { authorizationHeaderSchema, jwtPayloadSchema } from "@carely/core";
-import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
+import { jwtVerify } from "jose";
 import { jwtSecret } from "./secret";
-
-const JWKS = createRemoteJWKSet(
-  new URL(
-    process.env.CLERK_JWKS_URL ?? "https://clerk.dev/.well-known/jwks.json"
-  )
-);
 
 type AuthMiddlewareConfig = {
   verifier: (jwt: string) => Promise<{ payload: unknown }>;
@@ -16,17 +10,7 @@ type AuthMiddlewareConfig = {
 export const authMiddleware =
   (
     config: AuthMiddlewareConfig = {
-      verifier: (jwt) => {
-        // check if the JWT was signed by carely
-        const claims = decodeJwt(jwt);
-        if (claims.iss === "carely") {
-          // if so, verify it with carely's secret
-          return jwtVerify(jwt, jwtSecret);
-        } else {
-          // if not, check if it was signed by clerk
-          return jwtVerify(jwt, JWKS);
-        }
-      },
+      verifier: (jwt) => jwtVerify(jwt, jwtSecret),
     }
   ): RequestHandler =>
   (req, res, next) =>

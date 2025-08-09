@@ -6,7 +6,7 @@
     "build": "tsup",
     "dev": "tsx watch --clear-screen=false --env-file ../../.env src/index.ts",
     "start": "node --env-file=.env .",
-    "test:run": "vitest --run",
+    "test:run": "vitest --run --coverage",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
     "lint": "eslint ."
