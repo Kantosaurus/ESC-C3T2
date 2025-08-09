@@ -1,6 +1,6 @@
 import { SignJWT } from "jose";
 
-describe("calendar + dashboard e2e", () => {});
+describe("calendar + dashboard e2e", () => { });
 let token2: string;
 let token: string;
 let inviteLinkValue = "";
@@ -51,13 +51,13 @@ it("full calendar end to end test", () => {
   //create the first elder
   cy.contains("Add Elder").click();
   cy.get('input[placeholder="Enter their full name"]').type("Ahmaaa");
-  cy.get('input[name="date_of_birth"]').type("1940-05-21");
+  cy.get('[data-testid="elder-dob-input"]').type("1940-05-21");
   cy.contains("Female").click();
   cy.contains("button", "Create Profile").click();
   //create the second elder
   cy.contains("Add Elder").click();
   cy.get('input[placeholder="Enter their full name"]').type("Ahgong");
-  cy.get('input[name="date_of_birth"]').type("1932-05-27");
+  cy.get('[data-testid="elder-dob-input"]').type("1932-05-27");
   cy.contains("Male").click();
   cy.contains("button", "Create Profile").click();
   cy.contains("Calendar").click();

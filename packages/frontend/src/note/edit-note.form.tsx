@@ -155,7 +155,8 @@ export function EditNoteForm({
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter a clear title for your note..."
+                data-testid="note-header-edit-input"
+                placeholder="Enter a clear title for your note..."
                   {...field}
                   required
                   className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20"
@@ -211,6 +212,7 @@ export function EditNoteForm({
 
               <FormControl>
                 <Textarea
+                  data-testid="note-content-edit-input"
                   placeholder="Add your note content here... You can include reminders, medical information, dosage instructions, or any other important details."
                   rows={6}
                   {...field}

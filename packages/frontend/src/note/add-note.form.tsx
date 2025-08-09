@@ -106,7 +106,9 @@ export function AddNoteForm({
                     field.onChange(value);
                   }}
                 >
-                  <SelectTrigger className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20">
+                  <SelectTrigger
+                    data-testid="select-elder-assigned-button"
+                  >
                     <SelectValue placeholder="Select a care recipient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -138,7 +140,8 @@ export function AddNoteForm({
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter a clear title for your note..."
+                data-testid="note-header-input"
+                placeholder="Enter a clear title for your note..."
                   {...field}
                   required
                   className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20"
@@ -194,6 +197,7 @@ export function AddNoteForm({
 
               <FormControl>
                 <Textarea
+                  data-testid="note-content-input"
                   placeholder="Add your note content here... You can include reminders, medical information, dosage instructions, or any other important details."
                   rows={6}
                   {...field}
