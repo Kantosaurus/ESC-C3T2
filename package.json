@@ -19,7 +19,7 @@
     "prepare": "husky",
     "migrate": "ts-node ./scripts/migrate.ts",
     "clean": "ts-node ./scripts/clean.ts",
-    "e2e": "cypress open"
+    "e2e": "npm run clean && npm run migrate && ts-node ./scripts/e2e.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
