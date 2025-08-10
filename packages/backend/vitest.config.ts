@@ -6,8 +6,10 @@ export default defineConfig({
     environment: "node",
     env: {
       NODE_ENV: "test",
+      // Default to a non-listening port to avoid accidental local DB connection
       POSTGRES_CONNECTION_STRING:
-        "postgres://postgres:postgres@localhost:5432/postgres",
+        process.env.POSTGRES_CONNECTION_STRING ||
+        "postgres://postgres:postgres@localhost:65432/postgres",
     },
   },
 });

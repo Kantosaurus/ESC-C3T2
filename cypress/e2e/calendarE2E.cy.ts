@@ -1,40 +1,40 @@
 import { SignJWT } from "jose";
 
-describe("calendar + dashboard e2e", () => { });
-let token2: string;
-let token: string;
-let inviteLinkValue = "";
+describe("calendar + dashboard e2e", () => {
+  let token2: string;
+  let token: string;
+  let inviteLinkValue = "";
 
-beforeEach(async () => {
-  const jwtSecret = new TextEncoder().encode(
-    "XlGw86hiYgGRZyi6abappQMhEHHptbtt6leocJ4Lfmc" // This is hardcoded, ensure that your local .env matches this secret
-  );
-  token = await new SignJWT()
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setIssuer("carely")
-    .setAudience("carely")
-    .setSubject("user-id-1")
-    .setExpirationTime("2h")
-    .sign(jwtSecret);
+  beforeEach(async () => {
+    const jwtSecret = new TextEncoder().encode(
+      "XlGw86hiYgGRZyi6abappQMhEHHptbtt6leocJ4Lfmc" // This is hardcoded, ensure that your local .env matches this secret
+    );
+    token = await new SignJWT()
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setIssuer("carely")
+      .setAudience("carely")
+      .setSubject("user-id-1")
+      .setExpirationTime("2h")
+      .sign(jwtSecret);
 
-  token2 = await new SignJWT()
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setIssuer("carely")
-    .setAudience("carely")
-    .setSubject("user-id-2")
-    .setExpirationTime("2h")
-    .sign(jwtSecret);
+    token2 = await new SignJWT()
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setIssuer("carely")
+      .setAudience("carely")
+      .setSubject("user-id-2")
+      .setExpirationTime("2h")
+      .sign(jwtSecret);
 
-  cy.log("JWT Token:", token);
+    cy.log("JWT Token:", token);
 
-  cy.window().then((win) => {
-    win.localStorage.setItem("carely-token", token);
+    cy.window().then((win) => {
+      win.localStorage.setItem("carely-token", token);
+    });
   });
-});
 
-it("full calendar end to end test", () => {
+  it("full calendar end to end test", () => {
   cy.viewport(2560, 1440);
   cy.visit("http://localhost:5173/");
   cy.wait(1000);
@@ -286,4 +286,5 @@ it("full calendar end to end test", () => {
   cy.wait(1000);
   cy.get("body").type("{esc}");
   cy.get("body").should("not.contain", "Dental Visit");
+  });
 });

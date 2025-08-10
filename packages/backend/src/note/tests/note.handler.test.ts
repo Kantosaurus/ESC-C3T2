@@ -11,7 +11,7 @@ import { testDb } from "../../db/test-db";
 
 // Mock the main database to use test database
 vi.mock("../../db/db", () => ({
-  db: testDb 
+  db: testDb,
 }));
 // Ensures handlers use mocked db rather than main db
 import { getNotesHandler, insertNotesHandler } from "../note.handler";
@@ -19,7 +19,9 @@ import type { Request, Response, NextFunction } from "express";
 
 // Integration tests (bottom-up): using sql queries on actual db + schema validation + handler functions
 // Requires running docker container with postgres database
-describe("note.handler integration tests", () => {
+// Skip by default in CI / pre-commit unless RUN_DB_TESTS=true
+const runDbTests = process.env.RUN_DB_TESTS === "true";
+describe.runIf(runDbTests)("note.handler integration tests", () => {
   beforeAll(async () => {
     // Clean the database before running tests
     try {
@@ -103,7 +105,6 @@ describe("note.handler integration tests", () => {
   });
 
   test("successfully insert a note and get notes using handler functions", async () => {
-
     // Create test elder for note assignment
     const elderInsertResult = await testDb.query(
       `INSERT INTO elders (

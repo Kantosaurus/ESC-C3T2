@@ -15,9 +15,11 @@ export function ProfilePictureUpload({
   onChange,
   className,
 }: ProfilePictureUploadProps) {
-  const [preview, setPreview] = useState<string | null>(value || null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use the value prop directly instead of local state
+  const preview = value;
 
   const handleFileSelect = (file: File) => {
     if (!file) return;
@@ -87,7 +89,6 @@ export function ProfilePictureUpload({
         return;
       }
 
-      setPreview(compressedDataUrl);
       onChange(compressedDataUrl);
     };
 
@@ -124,7 +125,6 @@ export function ProfilePictureUpload({
   };
 
   const handleRemove = () => {
-    setPreview(null);
     onChange(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

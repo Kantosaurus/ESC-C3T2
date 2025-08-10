@@ -1,28 +1,27 @@
 import { SignJWT } from "jose";
 
-describe("create, view, edit, delete note", () => { });
-
-beforeEach(async () => {
+describe("create, view, edit, delete note", () => {
+  beforeEach(async () => {
     const jwtSecret = new TextEncoder().encode(
-        "XlGw86hiYgGRZyi6abappQMhEHHptbtt6leocJ4Lfmc" // This is hardcoded, ensure that your local .env matches this secret
+      "XlGw86hiYgGRZyi6abappQMhEHHptbtt6leocJ4Lfmc" // This is hardcoded, ensure that your local .env matches this secret
     );
     const token = await new SignJWT()
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setIssuer("carely")
-        .setAudience("carely")
-        .setSubject("user-id-1")
-        .setExpirationTime("2h")
-        .sign(jwtSecret);
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setIssuer("carely")
+      .setAudience("carely")
+      .setSubject("user-id-1")
+      .setExpirationTime("2h")
+      .sign(jwtSecret);
 
     cy.log("JWT Token:", token);
 
     cy.window().then((win) => {
-        win.localStorage.setItem("carely-token", token);
+      win.localStorage.setItem("carely-token", token);
     });
-});
+  });
 
-it("full note end to end test", () => {
+  it("full note end to end test", () => {
     cy.viewport(2560, 1440);
     cy.visit("http://localhost:5173/");
     cy.wait(4500);
@@ -154,4 +153,5 @@ it("full note end to end test", () => {
     cy.contains("Delete Note").should("be.visible").click();
     cy.wait(500);
     cy.contains("Clinic Contact list").should("not.exist");
+  });
 });

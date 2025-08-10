@@ -52,7 +52,10 @@ export default function NewElderPage() {
           };
         }
       }
-      await addNewElder(values);
+      await addNewElder({
+        ...values,
+        profile_picture: values.profile_picture || null,
+      });
       navigate("/dashboard");
     } catch (error) {
       console.error("Failed to create elder:", error);
