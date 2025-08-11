@@ -155,8 +155,8 @@ export function EditNoteForm({
               </FormLabel>
               <FormControl>
                 <Input
-                data-testid="note-header-edit-input"
-                placeholder="Enter a clear title for your note..."
+                  data-testid="note-header-edit-input"
+                  placeholder="Enter a clear title for your note..."
                   {...field}
                   required
                   className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20"
@@ -235,6 +235,7 @@ export function EditNoteForm({
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
           <Button
+            data-testid="cancel-edit-note-button"
             variant="outline"
             type="button"
             onClick={() => navigate("/notes")}
@@ -244,6 +245,7 @@ export function EditNoteForm({
             Cancel
           </Button>
           <Button
+            data-testid="submit-edit-note-button"
             type="submit"
             disabled={form.formState.isSubmitting || !form.formState.isDirty}
             className="flex-1 sm:flex-none gap-2 h-12 shadow-lg hover:shadow-xl transition-all duration-200"

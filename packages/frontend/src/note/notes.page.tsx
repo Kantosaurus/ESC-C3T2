@@ -37,6 +37,7 @@ export default function NotesPage() {
           {elderDetails && elderDetails.length > 0 && (
             <Link to="/notes/new">
               <Button
+                data-testid="create-note-button"
                 size="lg"
                 className="gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
               >

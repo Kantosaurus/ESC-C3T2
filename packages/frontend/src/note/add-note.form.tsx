@@ -217,6 +217,7 @@ export function AddNoteForm({
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
           <Button
+            data-testid="cancel-add-note-button"
             variant="outline"
             type="button"
             onClick={() => navigate("/notes")}
@@ -226,6 +227,7 @@ export function AddNoteForm({
             Cancel
           </Button>
           <Button
+            data-testid="submit-add-note-button"
             type="submit"
             disabled={form.formState.isSubmitting || !form.formState.isDirty}
             className="flex-1 sm:flex-none gap-2 h-12 shadow-lg hover:shadow-xl transition-all duration-200"

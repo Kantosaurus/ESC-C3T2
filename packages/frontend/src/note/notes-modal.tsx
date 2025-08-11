@@ -131,6 +131,7 @@ export default function Modal({
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
           <Button
+            data-testid="close-modal-button"
             variant="outline"
             onClick={toggle}
             className="flex-1 sm:flex-none gap-2"
@@ -139,6 +140,7 @@ export default function Modal({
             Close
           </Button>
           <Button
+            data-testid="edit-note-button"
             onClick={() => navigate(`/notes/${note.id}/edit`)}
             className="flex-1 sm:flex-none gap-2"
           >
@@ -146,6 +148,7 @@ export default function Modal({
             Edit Note
           </Button>
           <Button
+            data-testid="delete-note-button"
             variant="destructive"
             onClick={handleDeleteNote}
             className="flex-1 sm:flex-none gap-2"
