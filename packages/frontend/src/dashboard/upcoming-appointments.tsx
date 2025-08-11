@@ -5,6 +5,7 @@ import type { AxiosResponse, AxiosError } from "axios";
 import { Calendar, MapPin, Pen, Filter, User, Users } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
 
 type FilterType = "all" | "my-appointments" | "by-elder";
 
@@ -91,6 +92,7 @@ export default function UpcomingAppointments({
 }: {
   elderNames?: Record<string, string>;
 }) {
+  const navigate = useNavigate();
   const { appointments, error, isLoading } = useUpcomingAppointments();
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [selectedElderId, setSelectedElderId] = useState<string>("");
@@ -156,8 +158,7 @@ export default function UpcomingAppointments({
               variant={filterType === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => handleFilterChange("all")}
-              className="h-6 px-2 text-xs"
-            >
+              className="h-6 px-2 text-xs">
               <Users className="h-3 w-3 mr-1" />
               All
             </Button>
@@ -166,8 +167,7 @@ export default function UpcomingAppointments({
               variant={filterType === "my-appointments" ? "default" : "outline"}
               size="sm"
               onClick={() => handleFilterChange("my-appointments")}
-              className="h-6 px-2 text-xs"
-            >
+              className="h-6 px-2 text-xs">
               <User className="h-3 w-3 mr-1" />
               My Appointments
             </Button>
@@ -177,8 +177,7 @@ export default function UpcomingAppointments({
                 <select
                   value={selectedElderId}
                   onChange={(e) => handleElderChange(e.target.value)}
-                  className="h-6 px-2 text-xs border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
-                >
+                  className="h-6 px-2 text-xs border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600">
                   <option value="">Select Elder</option>
                   {elderIds.map((elderId) => (
                     <option key={elderId} value={elderId}>
@@ -197,8 +196,7 @@ export default function UpcomingAppointments({
                   setFilterType("all");
                   setSelectedElderId("");
                 }}
-                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
-              >
+                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700">
                 Clear Filter
               </Button>
             )}
@@ -251,8 +249,12 @@ export default function UpcomingAppointments({
               {filteredAppointments.map((appointment) => (
                 <li
                   key={appointment.appt_id}
-                  className=" border-gray-200 dark:border-neutral-800 py-1 border-l-4 border-l-primary pl-5"
-                >
+                  className=" border-gray-200 dark:border-neutral-800 py-1 border-l-4 border-l-primary pl-5 cursor-pointer"
+                  onClick={() =>
+                    navigate(
+                      `/calendar/${appointment.elder_id}/${appointment.appt_id}`
+                    )
+                  }>
                   {renderTimeInfo(
                     appointment.startDateTime,
                     appointment.endDateTime
