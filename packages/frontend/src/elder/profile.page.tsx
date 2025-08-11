@@ -690,6 +690,7 @@ export default function ElderProfilePage() {
           <div className="relative bg-white/80 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl max-w-md w-full mx-4">
             {/* Close Button */}
             <button
+              data-testid="close-invite-button"
               onClick={() => setShowInviteModal(false)}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
             >
@@ -737,7 +738,10 @@ export default function ElderProfilePage() {
               <p className="text-xs text-gray-500 mb-2 font-medium">
                 INVITE LINK
               </p>
-              <p className="text-sm text-gray-900 break-all font-mono bg-white/30 p-2 rounded-lg">
+              <p
+                data-testid="invite-link"
+                className="text-sm text-gray-900 break-all font-mono bg-white/30 p-2 rounded-lg"
+              >
                 {inviteLink}
               </p>
             </div>

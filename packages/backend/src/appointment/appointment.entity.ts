@@ -192,11 +192,7 @@ export const acceptAppointment = (
       [caregiver_id, elder_id, appt_id]
     )
     .then((result) => {
-      const rows = result.rows || result;
-      if (!Array.isArray(rows)) {
-        throw new Error("Invalid format");
-      }
-      return z.array(appointmentSchema.pick({ accepted: true })).parse(rows);
+      return appointmentSchema.pick({ accepted: true }).parse(result[0]);
     });
 
 export const declineAppointment = (
@@ -214,11 +210,7 @@ export const declineAppointment = (
     )
     .then((result) => {
       console.log("Declined:", result);
-      const rows = result.rows || result;
-      if (!Array.isArray(rows)) {
-        throw new Error("Invalid format");
-      }
-      return z.array(appointmentSchema.pick({ declined: true })).parse(rows);
+      return appointmentSchema.pick({ declined: true }).parse(result[0]);
     });
 
 export const undoDeclineAppointment = (
@@ -236,9 +228,5 @@ export const undoDeclineAppointment = (
     )
     .then((result) => {
       console.log("Declined undo:", result);
-      const rows = result.rows || result;
-      if (!Array.isArray(rows)) {
-        throw new Error("Invalid format");
-      }
-      return z.array(appointmentSchema.pick({ declined: true })).parse(rows);
+      return appointmentSchema.pick({ declined: true }).parse(result[0]);
     });

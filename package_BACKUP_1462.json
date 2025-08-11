@@ -19,7 +19,7 @@
     "prepare": "husky",
     "migrate": "ts-node ./scripts/migrate.ts",
     "clean": "ts-node ./scripts/clean.ts",
-    "e2e": "npm run clean && npm run migrate && ts-node ./scripts/e2e.ts"
+    "e2e": "cypress open"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
@@ -39,7 +39,22 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   },
+<<<<<<< HEAD
+  "dependencies": {}
+=======
   "dependencies": {
-    "ical": "^0.8.0"
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-scroll-area": "^1.2.9",
+    "@radix-ui/react-select": "^2.2.5",
+    "@types/qrcode": "^1.5.5",
+    "framer-motion": "^12.23.6",
+    "ical": "^0.8.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.1",
+    "react-day-picker": "^9.8.0",
+    "react-dom": "^19.1.1",
+    "react-ios-time-picker": "^0.2.2",
+    "ts-ics": "^2.2.0"
   }
+>>>>>>> acc5d1eef1206b929cd1e5864ebaa8855afa257d
 }
