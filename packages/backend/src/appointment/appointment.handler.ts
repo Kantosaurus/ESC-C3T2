@@ -434,3 +434,18 @@ export const _getDeclinedAppointmentsHandler = async (
     console.error("Failed to fetch declined appointments:", error);
   }
 };
+
+export const _getAppointmentsHandler = async (req: Request, res: Response) => {
+  const { elder_id } = z
+    .object({
+      elder_id: z.string().transform((val) => parseInt(val, 10)),
+    })
+    .parse(req.params);
+
+  const appts = await getAppointmentsForElder(elder_id);
+  if (!appts) {
+    return res.status(404).json({ error: "No appointments found" });
+  }
+
+  res.json(appts);
+};
