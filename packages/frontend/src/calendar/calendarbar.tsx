@@ -31,7 +31,8 @@ export default function CalendarBar({
   const { appointments } = useGetAppointments(selectedElder?.id ?? null);
   const [showPending, setShowPending] = useState(false);
   const { triggerDownload } = useCreateIcsFile(appointments);
-  const { declined } = useGetDeclinedAppointments(selectedElder?.id ?? null);
+  const { declined, refetchAppointment: refetchDeclined } =
+    useGetDeclinedAppointments(selectedElder?.id ?? null);
 
   const { pending, refetchPending } = useGetPendingAppointments();
 
@@ -79,6 +80,7 @@ export default function CalendarBar({
   const handlePendingToggle = () => {
     setShowPending((prev) => !prev);
     refetchPending();
+    refetchDeclined();
   };
 
   //big version
