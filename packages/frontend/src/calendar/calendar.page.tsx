@@ -65,6 +65,8 @@ export default function Calendarview() {
   const { elderDetails, isLoading: eldersLoading } = useEldersDetails();
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
+  const [appointmentToDelete, setAppointmentToDelete] =
+    useState<Appointment | null>(null);
 
   const [sheetView, setSheetView] = useState<
     "dayview" | "details" | "form" | "update"
@@ -116,6 +118,7 @@ export default function Calendarview() {
   ) => {
     try {
       await deleteAppointment(values);
+      await setAppointmentToDelete(null);
       await refetch();
       setSelectedAppointment(null);
       setSheetView("dayview");
@@ -477,41 +480,16 @@ export default function Calendarview() {
 
                 {sheetView == "details" && selectedAppointment && (
                   <div className="flex gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle className="max-w-[400px] truncate">
-                            Delete {selectedAppointment.name}?
-                          </DialogTitle>
-                          <DialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the appointment
-                          </DialogDescription>
-                        </DialogHeader>
-                        <Button
-                          data-testid={`confirm-delete-button`}
-                          className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                          onClick={async () => {
-                            if (!selectedElder) return;
-                            handleDeleteAppointment({
-                              elder_id: selectedAppointment.elder_id,
-                              appt_id: selectedAppointment.appt_id,
-                            });
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </DialogContent>
-                    </Dialog>
+                    <Button
+                      variant="outline"
+                      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
+                      onClick={() =>
+                        setAppointmentToDelete(selectedAppointment)
+                      }
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
                     <Button
                       onClick={() => setSheetView("update")}
                       variant="outline"
@@ -535,15 +513,7 @@ export default function Calendarview() {
                   showAppointmentDetails(appt);
                 }}
                 onDelete={(appt) => {
-                  if (!selectedElder) return;
-                  const confirmed = window.confirm(
-                    `Delete "${appt.name}"? This cannot be undone.`
-                  );
-                  if (!confirmed) return;
-                  handleDeleteAppointment({
-                    elder_id: appt.elder_id,
-                    appt_id: appt.appt_id,
-                  });
+                  setAppointmentToDelete(appt);
                 }}
               />
             )}
@@ -573,6 +543,40 @@ export default function Calendarview() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <Dialog
+        open={!!appointmentToDelete}
+        onOpenChange={(open) => {
+          if (!open) setAppointmentToDelete(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="max-w-[400px] truncate">
+              Delete {appointmentToDelete?.name}?
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete the
+              appointment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-center">
+            <Button
+              data-testid="confirm-delete-button"
+              className="px-4 py-2 text-sm bg-red-500 text-white w-full rounded hover:bg-red-600"
+              onClick={() => {
+                if (!appointmentToDelete || !selectedElder) return;
+                handleDeleteAppointment({
+                  elder_id: appointmentToDelete.elder_id,
+                  appt_id: appointmentToDelete.appt_id,
+                });
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Backdrop blur overlay when sheet is open */}
       {!!viewDate && !!selectedElder && (
