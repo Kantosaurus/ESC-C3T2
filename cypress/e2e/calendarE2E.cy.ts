@@ -37,7 +37,7 @@ beforeEach(async () => {
 it("full calendar end to end test", () => {
   cy.viewport(2560, 1440);
   cy.visit("http://localhost:5173/");
-  cy.wait(1000);
+  cy.wait(2000);
   cy.contains("Login").click();
   cy.wait(10000);
 
@@ -190,6 +190,9 @@ it("full calendar end to end test", () => {
   cy.wait(1000);
   cy.contains("Ahmaaa").click();
   cy.wait(5000);
+  cy.contains("Invite").click();
+  cy.wait(1000);
+
   //store the copied value in clipboard
   cy.get('[data-testid="invite-link"]')
     .invoke("text")
@@ -197,10 +200,8 @@ it("full calendar end to end test", () => {
       inviteLinkValue = text;
       cy.log("Invite Link:", inviteLinkValue);
     });
-
   cy.wait(1000);
-  cy.contains("Back").click();
-  cy.wait(1000);
+  cy.get('[data-testid="close-invite-button"]').click();
   cy.get("[data-testid='avatar-button']").click();
   cy.wait(1000);
   cy.get('[data-testid="logout-button"]').click();
@@ -237,6 +238,7 @@ it("full calendar end to end test", () => {
   cy.get('[data-testid="appointment-Doctor-Visit"]').click();
   cy.wait(1000);
   cy.get('[data-testid="accept-appointment-button"]').click();
+  cy.wait(1000);
   cy.get("body").type("{esc}");
   cy.wait(1000);
   cy.get('[data-testid="calendar-cell-7"]').click();
@@ -268,7 +270,7 @@ it("full calendar end to end test", () => {
   cy.get('[data-testid="calendar-cell-6"]').click();
   cy.get('[data-testid="appointment-Doctor-Visit"]').click();
   cy.wait(1000);
-  cy.contains("test caregiver 2").should("be.visible");
+  cy.contains("Already accepted by").should("be.visible");
   cy.get("body").type("{esc}");
   cy.get('[data-testid="calendar-cell-7"]').click();
   cy.wait(1000);
