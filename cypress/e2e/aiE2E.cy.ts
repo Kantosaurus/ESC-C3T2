@@ -26,7 +26,9 @@ describe("AI assistant end to end", () => {
     cy.contains("Login", { timeout: 15000 }).should("be.visible").click();
 
     // Create caregiver quickly if first run
-    cy.get('input[placeholder="Enter your full name"]').should("be.visible").type("ai user");
+    cy.get('input[placeholder="Enter your full name"]')
+      .should("be.visible")
+      .type("ai user");
     cy.get('[data-testid="dob-input"]').should("be.visible").type("1990-01-01");
     cy.contains("Male").should("be.visible").click();
     cy.contains("button", "Create Profile").should("be.visible").click();
@@ -38,29 +40,29 @@ describe("AI assistant end to end", () => {
     // Navigate to AI Assistant
     cy.contains("AI Assistant").should("be.visible").click();
     cy.url().should("include", "/ai");
-    
-    // Wait for AI page to fully load
-    cy.get('input[placeholder*="Ask me anything about caregiving"]', { timeout: 10000 })
+
+    // Wait for AI page to fully load - look for input within the form
+    cy.get('form input[type="text"]', { timeout: 10000 })
       .should("be.visible")
       .and("be.enabled");
 
     // Send a simple prompt
-    cy.get('input[placeholder*="Ask me anything about caregiving"]')
-      .type("Hello AI");
-    cy.get('button[type="submit"]').should("be.visible").and("be.enabled").click();
+    cy.get('form input[type="text"]').type("Hello AI");
+    cy.get('button[type="submit"]')
+      .should("be.visible")
+      .and("be.enabled")
+      .click();
 
     // Expect echo of user message
     cy.contains("Hello AI", { timeout: 10000 }).should("be.visible");
 
     // Check that input is cleared after sending
-    cy.get('input[placeholder*="Ask me anything about caregiving"]')
-      .should("have.value", "");
+    cy.get('form input[type="text"]').should("have.value", "");
 
-    // We cannot assert external API responses without network mocking;
-    // just assert the typing indicator appears (if present)
+    // We cannot assert external API responses without network mocking, but we can just assert the typing indicator appears (if present)
     // Note: This may not always appear depending on API response speed
-    cy.get('body').then(($body) => {
-      if ($body.text().includes('AI is typing...')) {
+    cy.get("body").then(($body) => {
+      if ($body.text().includes("AI is typing...")) {
         cy.contains("AI is typing...").should("be.visible");
       }
     });

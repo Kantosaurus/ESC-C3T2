@@ -60,8 +60,9 @@ const elderFormSchema = z.object({
   profile_picture: z.string().nullish(),
   street_address: z
     .string()
+    .optional()
     .transform((x) => {
-      if (!x || x.trim() === "") return "";
+      if (!x || x.trim() === "") return undefined;
       return x;
     })
     .pipe(
@@ -69,6 +70,7 @@ const elderFormSchema = z.object({
         .string()
         .min(1, "Street address is required")
         .max(255, "Street address must be at most 255 characters")
+        .optional()
     ),
   unit_number: z
     .string()
@@ -89,8 +91,9 @@ const elderFormSchema = z.object({
     ),
   postal_code: z
     .string()
+    .optional()
     .transform((x) => {
-      if (!x || x.trim() === "") return "";
+      if (!x || x.trim() === "") return undefined;
       return x;
     })
     .pipe(
@@ -101,6 +104,7 @@ const elderFormSchema = z.object({
           const num = parseInt(code);
           return num >= 10000 && num <= 999999;
         }, "Please enter a valid Singapore postal code")
+        .optional()
     ),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
