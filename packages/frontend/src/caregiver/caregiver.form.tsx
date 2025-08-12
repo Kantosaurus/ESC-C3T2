@@ -15,30 +15,97 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { AddressForm } from "@/components/ui/address-form";
+import { AddressInput } from "@/components/ui/address-input";
 import { ProfilePictureUpload } from "@/components/ui/profile-picture-upload";
 import { Loader } from "lucide-react";
 
 const caregiverFormSchema = z.object({
-  name: caregiverSchema.shape.name,
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  name: caregiverSchema.shape.name
+    .max(100, "Name must be at most 100 characters")
+    .regex(
+      /^[a-zA-Z\s.'-]+$/,
+      "Name can only contain letters, spaces, periods, apostrophes, and hyphens"
+    ),
+  date_of_birth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      const actualAge =
+        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return actualAge >= 18 && actualAge <= 80;
+    }, "Age must be between 18 and 80 years"),
   gender: z.enum(["male", "female", "other"]),
   phone: z
     .string()
     .optional()
     .transform((x) => {
       if (!x || x.trim() === "") return undefined;
+      return x.replace(/\s+/g, "").replace(/^\+65/, "");
+    })
+    .pipe(
+      z
+        .string()
+        .regex(
+          /^[986]\d{7}$/,
+          "Phone number must be 8 digits starting with 9, 8, or 6"
+        )
+        .optional()
+    ),
+  bio: z.string().max(500, "Bio must be at most 500 characters").optional(),
+  profile_picture: z.string().nullish(),
+  street_address: z
+    .string()
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
       return x;
     })
-    .pipe(caregiverSchema.shape.phone.unwrap().unwrap().optional()),
-  bio: z.string().optional(),
-  profile_picture: z.string().nullish(),
-  street_address: caregiverSchema.shape.street_address
-    .unwrap()
-    .unwrap()
-    .optional(),
-  unit_number: caregiverSchema.shape.unit_number.unwrap().unwrap().optional(),
-  postal_code: caregiverSchema.shape.postal_code.unwrap().unwrap().optional(),
+    .pipe(
+      z
+        .string()
+        .min(1, "Street address is required")
+        .max(255, "Street address must be at most 255 characters")
+        .optional()
+    ),
+  unit_number: z
+    .string()
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(
+      z
+        .string()
+        .max(20, "Unit number must be at most 20 characters")
+        .regex(
+          /^#?\d{2}-\d{2,4}$|^[A-Za-z0-9\-#\s]+$/,
+          "Please enter a valid unit number (e.g., #12-345 or Block 123)"
+        )
+        .optional()
+    ),
+  postal_code: z
+    .string()
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(
+      z
+        .string()
+        .regex(/^[0-9]{6}$/, "Postal code must be exactly 6 digits")
+        .refine((code) => {
+          const num = parseInt(code);
+          return num >= 10000 && num <= 999999;
+        }, "Please enter a valid Singapore postal code")
+        .optional()
+    ),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });
@@ -58,6 +125,7 @@ export function CaregiverForm({
     resolver: zodResolver(caregiverFormSchema),
     defaultValues,
     mode: "onChange",
+    criteriaMode: "all",
   });
 
   return (
@@ -140,7 +208,10 @@ export function CaregiverForm({
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your phone number" {...field} />
+                  <Input
+                    placeholder="e.g., 91234567 or +65 9123 4567"
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   Optional. We will use this to contact you only in case of
@@ -158,8 +229,8 @@ export function CaregiverForm({
               <FormItem>
                 <FormLabel>Bio</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Tell us about yourself" 
+                  <Textarea
+                    placeholder="Tell us about yourself"
                     {...field}
                     value={field.value || ""}
                   />
@@ -182,19 +253,29 @@ export function CaregiverForm({
                 <FormControl>
                   <ProfilePictureUpload
                     value={field.value || null}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      form.trigger(); // Force form validation and dirty state update
+                    }}
                   />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   Optional. Upload a profile picture to personalize your
-                  account. Supported formats: PNG, JPG. Max size: 10MB (will be compressed automatically).
+                  account. Supported formats: PNG, JPG. Max size: 10MB (will be
+                  compressed automatically).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <AddressForm />
+          <AddressInput
+            streetAddressFieldName="street_address"
+            unitNumberFieldName="unit_number"
+            postalCodeFieldName="postal_code"
+            latitudeFieldName="latitude"
+            longitudeFieldName="longitude"
+          />
         </div>
 
         <div
@@ -203,11 +284,7 @@ export function CaregiverForm({
         >
           <Button
             type="submit"
-            disabled={
-              form.formState.isSubmitting ||
-              !form.formState.isDirty ||
-              !form.formState.isValid
-            }
+            disabled={form.formState.isSubmitting}
             className="w-full h-14 text-base font-semibold rounded-xl"
           >
             {form.formState.isSubmitting ? (

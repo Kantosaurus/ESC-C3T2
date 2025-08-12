@@ -15,27 +15,93 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { AddressForm } from "@/components/ui/address-form";
+import { AddressInput } from "@/components/ui/address-input";
 import { ProfilePictureUpload } from "@/components/ui/profile-picture-upload";
 import { Loader } from "lucide-react";
 
 const elderFormSchema = z.object({
-  name: elderSchema.shape.name,
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  name: elderSchema.shape.name
+    .max(100, "Name must be at most 100 characters")
+    .regex(
+      /^[a-zA-Z\s.'-]+$/,
+      "Name can only contain letters, spaces, periods, apostrophes, and hyphens"
+    ),
+  date_of_birth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      const actualAge =
+        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return actualAge >= 50 && actualAge <= 120;
+    }, "Age must be between 50 and 120 years"),
   gender: elderSchema.shape.gender,
   phone: z
     .string()
     .optional()
     .transform((x) => {
       if (!x || x.trim() === "") return undefined;
+      return x.replace(/\s+/g, "").replace(/^\+65/, "");
+    })
+    .pipe(
+      z
+        .string()
+        .regex(
+          /^[689]\d{7}$/,
+          "Phone number must be 8 digits starting with 6, 8, or 9"
+        )
+        .optional()
+    ),
+  bio: z.string().max(500, "Bio must be at most 500 characters").optional(),
+  profile_picture: z.string().nullish(),
+  street_address: z
+    .string()
+    .transform((x) => {
+      if (!x || x.trim() === "") return "";
       return x;
     })
-    .pipe(elderSchema.shape.phone.unwrap().unwrap().optional()),
-  bio: z.string().optional(),
-  profile_picture: z.string().nullish(),
-  street_address: elderSchema.shape.street_address.unwrap().unwrap().optional(),
-  unit_number: elderSchema.shape.unit_number.unwrap().unwrap().optional(),
-  postal_code: elderSchema.shape.postal_code.unwrap().unwrap().optional(),
+    .pipe(
+      z
+        .string()
+        .min(1, "Street address is required")
+        .max(255, "Street address must be at most 255 characters")
+    ),
+  unit_number: z
+    .string()
+    .optional()
+    .transform((x) => {
+      if (!x || x.trim() === "") return undefined;
+      return x;
+    })
+    .pipe(
+      z
+        .string()
+        .max(20, "Unit number must be at most 20 characters")
+        .regex(
+          /^#?\d{2}-\d{2,4}$|^[A-Za-z0-9\-#\s]+$/,
+          "Please enter a valid unit number (e.g., #12-345 or Block 123)"
+        )
+        .optional()
+    ),
+  postal_code: z
+    .string()
+    .transform((x) => {
+      if (!x || x.trim() === "") return "";
+      return x;
+    })
+    .pipe(
+      z
+        .string()
+        .regex(/^[0-9]{6}$/, "Postal code must be exactly 6 digits")
+        .refine((code) => {
+          const num = parseInt(code);
+          return num >= 10000 && num <= 999999;
+        }, "Please enter a valid Singapore postal code")
+    ),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });
@@ -56,6 +122,7 @@ export function ElderForm({
     resolver: zodResolver(elderFormSchema),
     defaultValues,
     mode: "onChange",
+    criteriaMode: "all",
   });
 
   return (
@@ -138,7 +205,10 @@ export function ElderForm({
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter their phone number" {...field} />
+                  <Input
+                    placeholder="e.g., 91234567 or +65 9123 4567"
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
                   Optional. We will use this to contact them only in case of
@@ -179,7 +249,10 @@ export function ElderForm({
                 <FormControl>
                   <ProfilePictureUpload
                     value={field.value || null}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      form.trigger(); // Force form validation and dirty state update
+                    }}
                   />
                 </FormControl>
                 <FormDescription className="text-gray-500 text-sm mt-2">
@@ -192,7 +265,13 @@ export function ElderForm({
             )}
           />
 
-          <AddressForm />
+          <AddressInput
+            streetAddressFieldName="street_address"
+            unitNumberFieldName="unit_number"
+            postalCodeFieldName="postal_code"
+            latitudeFieldName="latitude"
+            longitudeFieldName="longitude"
+          />
         </div>
 
         <div
@@ -201,11 +280,7 @@ export function ElderForm({
         >
           <Button
             type="submit"
-            disabled={
-              form.formState.isSubmitting ||
-              !form.formState.isDirty ||
-              !form.formState.isValid
-            }
+            disabled={form.formState.isSubmitting}
             className="w-full h-14 text-base font-semibold rounded-xl"
           >
             {form.formState.isSubmitting ? (

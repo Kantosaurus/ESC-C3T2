@@ -134,7 +134,12 @@ export default function ProfilePage() {
       setSuccess("");
       setError("");
       try {
-        await http().patch("/api/caregiver/self", values);
+        // Ensure profile_picture is sent even if null
+        const dataToSend = {
+          ...values,
+          profile_picture: values.profile_picture || null,
+        };
+        await http().patch("/api/caregiver/self", dataToSend);
         await refetchCaregiver(); // Refetch caregiver details after successful update
         setSuccess("Profile updated successfully.");
         setIsEditing(false);
@@ -184,7 +189,7 @@ export default function ProfilePage() {
       : "",
     phone: caregiverDetails.phone ?? undefined,
     bio: caregiverDetails.bio ?? "",
-    profile_picture: caregiverDetails.profile_picture ?? null,
+    profile_picture: caregiverDetails.profile_picture, // Don't use nullish coalescing to preserve null
     street_address: caregiverDetails.street_address ?? "",
     postal_code: caregiverDetails.postal_code ?? "",
     unit_number: caregiverDetails.unit_number ?? "",

@@ -116,7 +116,7 @@ export default function ElderProfilePage() {
     const latitude = elderDetails?.latitude;
     const longitude = elderDetails?.longitude;
 
-    if (latitude && longitude) {
+    if (latitude && longitude && window.google?.maps?.Map) {
       const map = new window.google.maps.Map(mapRef.current, {
         center: {
           lat: latitude,
@@ -127,13 +127,15 @@ export default function ElderProfilePage() {
         gestureHandling: "cooperative",
       });
 
-      new window.google.maps.Marker({
+      if (window.google?.maps?.Marker) {
+        new window.google.maps.Marker({
         position: {
           lat: latitude,
           lng: longitude,
         },
         map,
-      });
+        });
+      }
 
       mapInstanceRef.current = map;
     }
@@ -250,9 +252,19 @@ export default function ElderProfilePage() {
         <div className="mb-12">
           <div className="flex flex-col lg:flex-row items-start lg:items-start gap-8">
             {/* Profile Picture */}
-            <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold shadow-lg flex-shrink-0">
-              {getInitials(elderDetails.name)}
-            </div>
+            {elderDetails.profile_picture ? (
+              <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg flex-shrink-0">
+                <img
+                  src={elderDetails.profile_picture}
+                  alt={`${elderDetails.name}'s profile picture`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold shadow-lg flex-shrink-0">
+                {getInitials(elderDetails.name)}
+              </div>
+            )}
 
             {/* Profile Info */}
             <div className="flex-1 flex flex-col justify-center">

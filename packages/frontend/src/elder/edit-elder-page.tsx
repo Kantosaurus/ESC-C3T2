@@ -21,6 +21,7 @@ const updateElder = (elderId: number, values: ElderFormType) =>
     .patch(`/api/elder/${elderId}`, {
       ...values,
       date_of_birth: new Date(values.date_of_birth),
+      profile_picture: values.profile_picture || null,
     })
     .then((res) => res.data)
     .catch((error) => {

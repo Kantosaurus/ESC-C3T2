@@ -46,9 +46,10 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
       `
         INSERT INTO elders (
           name, date_of_birth, gender, phone,
-          street_address, unit_number, postal_code, latitude, longitude
+          street_address, unit_number, postal_code, latitude, longitude,
+          bio, profile_picture
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *;
       `,
       [
@@ -61,6 +62,8 @@ export const insertElder = (caregiverId: string, elderData: NewElderDto) =>
         elderData.postal_code || null,
         elderData.latitude || null,
         elderData.longitude || null,
+        elderData.bio || null,
+        elderData.profile_picture || null,
       ]
     )
     .then((result) => {
@@ -100,8 +103,10 @@ export const updateElder = (elderId: number, elderData: NewElderDto) =>
           postal_code = $7,
           latitude = $8, 
           longitude = $9,
+          bio = $10,
+          profile_picture = $11,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $10
+        WHERE id = $12
         RETURNING *;
       `,
       [
@@ -114,6 +119,8 @@ export const updateElder = (elderId: number, elderData: NewElderDto) =>
         elderData.postal_code || null,
         elderData.latitude || null,
         elderData.longitude || null,
+        elderData.bio || null,
+        elderData.profile_picture || null,
         elderId,
       ]
     )
