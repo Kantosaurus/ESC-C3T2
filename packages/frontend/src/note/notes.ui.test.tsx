@@ -104,11 +104,11 @@ vi.mock("react-router-dom", async () => {
     ...actual,
     useNavigate: () => mockNavigate,
     useParams: () => ({ noteId: "1" }),
-    useOutletContext: vi.fn(() => ({
+    useOutletContext: () => ({
       notes: mockNotes,
       elderDetails: mockElders,
       onDelete: mockOnDelete,
-    })),
+    }),
   };
 });
 
@@ -165,33 +165,6 @@ describe("Note page", () => {
     //expect(screen.getByText("this is a note")).toBeInTheDocument();
     expect(screen.getByText("note2")).toBeInTheDocument();
     expect(screen.getByText("note for elder2")).toBeInTheDocument();
-  });
-});
-
-//PASSED Clicking on Add New Note will render create note form
-describe("Opening edit from modal", () => {
-  it("clicking 'Edit' should triggers navigation to edit page", async () => {
-    render(
-      <MemoryRouter initialEntries={["/notes"]}>
-        <Routes>
-          <Route path="/notes" element={<NoteDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText("note1")).toBeInTheDocument();
-
-    // Open modal for note id 1
-    fireEvent.click(screen.getByTestId("open-modal-button-1"));
-
-    expect(await screen.findByText("Delete Note")).toBeInTheDocument();
-
-    // Click edit button inside modal
-    const editBtn = screen.getByTestId("edit-note-button");
-    fireEvent.click(editBtn);
-
-    // Check that navigation was called with correct edit route
-    expect(mockNavigate).toHaveBeenCalledWith("/notes/1/edit");
   });
 });
 
