@@ -28,8 +28,8 @@ import { useEffect } from "react";
 import { useEldersDetails } from "@/elder/use-elder-details";
 import { User, FileText, Mic, MicOff, Save, X } from "lucide-react";
 
-const addNoteFormSchema = z.object({
-  header: noteSchema.shape.header,
+export const addNoteFormSchema = z.object({
+  header: noteSchema.shape.header.min(1),
   content: noteSchema.shape.content.optional(),
   assigned_elder_id: noteSchema.shape.assigned_elder_id,
 });
@@ -106,9 +106,7 @@ export function AddNoteForm({
                     field.onChange(value);
                   }}
                 >
-                  <SelectTrigger
-                    data-testid="select-elder-assigned-button"
-                  >
+                  <SelectTrigger data-testid="select-elder-assigned-button">
                     <SelectValue placeholder="Select a care recipient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -140,8 +138,8 @@ export function AddNoteForm({
               </FormLabel>
               <FormControl>
                 <Input
-                data-testid="note-header-input"
-                placeholder="Enter a clear title for your note..."
+                  data-testid="note-header-input"
+                  placeholder="Enter a clear title for your note..."
                   {...field}
                   required
                   className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20"
