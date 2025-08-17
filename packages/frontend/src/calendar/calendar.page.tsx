@@ -37,7 +37,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { useEldersDetails } from "@/elder/use-elder-details";

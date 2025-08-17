@@ -23,8 +23,11 @@ const elderIdArb: fc.Arbitrary<ElderIdInput> = fc.integer({
 });
 
 const isoDateArb = fc
-  .date({ min: new Date(2000, 0, 1), max: new Date(2100, 0, 1) })
-  .map((d) => d.toISOString());
+  .integer({
+    min: new Date(2000, 0, 1).getTime(),
+    max: new Date(2100, 0, 1).getTime(),
+  })
+  .map((timestamp) => new Date(timestamp).toISOString());
 
 const nullishStringArb = fc.oneof(
   fc.constant(null),
